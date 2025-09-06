@@ -131,7 +131,7 @@ function onResetPw() {
   display: block;
   width: 180px;
   object-fit: cover;
-  margin: 5rem auto 2.5rem auto;
+  margin: 6rem auto 2.5rem auto;
 }
 
 .login-form {
