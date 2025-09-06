@@ -3,6 +3,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 // 페이지 import
 import HomePage from '@/pages/home/HomePage.vue';
 import NotFoundPage from '@/pages/home/NotFoundPage.vue';
+import ChatDetailPage from '@/pages/chat/ChatDetailPage.vue';
+import ChatListPage from '@/pages/chat/ChatListPage.vue';
 
 const routes = [
   {
