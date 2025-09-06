@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h5>메인 페이지</h5>
+    <h5>대출·지원금 페이지</h5>
   </div>
 </template>
 
