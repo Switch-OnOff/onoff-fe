@@ -1,7 +1,9 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomePage from '@/pages/home/HomePage.vue'
-import NotFoundPage from '@/pages/home/NotFoundPage.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import HomePage from '@/pages/home/HomePage.vue';
+import NotFoundPage from '@/pages/home/NotFoundPage.vue';
 import authRoutes from './auth.js'
+import ChatDetailPage from '@/pages/chat/ChatDetailPage.vue';
+import ChatListPage from '@/pages/chat/ChatListPage.vue';
 
 const routes = [
   {
@@ -17,7 +19,17 @@ const routes = [
     component: NotFoundPage,
   },
 ]
-
+  {
+    path: '/chat-detail',
+    name: 'chat-detail',
+    component: ChatDetailPage,
+  },
+  {
+    path: '/chat-list',
+    name: 'chat-list',
+    component: ChatListPage,
+  },
+];
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,

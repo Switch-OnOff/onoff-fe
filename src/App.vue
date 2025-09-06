@@ -22,10 +22,10 @@
 </template>
 
 <script setup>
-import Header from './components/layout/Header.vue'
-import Footer from './components/layout/Footer.vue'
-import { useRoute } from 'vue-router'
-import { computed, onMounted } from 'vue'
+import Header from './components/layout/Header.vue';
+import Footer from './components/layout/Footer.vue';
+import { useRoute } from 'vue-router';
+import { computed, onMounted } from 'vue';
 
 const route = useRoute()
 const hideHeader = computed(() => !!route.meta.hideHeader)
@@ -63,7 +63,8 @@ const hideFooter = computed(() => !!route.meta.hideFooter)
 <!-- 전역 규칙: 세로만 스크롤 허용 + 스크롤바 숨김 -->
 <style>
 /* 페이지 스크롤 정책 */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 
@@ -85,7 +86,7 @@ html, body {
   height: 0;
 }
 * {
-  -ms-overflow-style: none;   /* IE/Edge Legacy */
-  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge Legacy */
+  scrollbar-width: none; /* Firefox */
 }
 </style>
