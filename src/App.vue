@@ -22,14 +22,18 @@
 </template>
 
 <script setup>
-import Header from './components/layout/Header.vue'
-import Footer from './components/layout/Footer.vue'
-import { useRoute } from 'vue-router'
-import { computed, onMounted } from 'vue'
+import Header from './components/layout/Header.vue';
+import Footer from './components/layout/Footer.vue';
+import { useRoute } from 'vue-router';
+import { computed, onMounted } from 'vue';
 
 const route = useRoute()
 const hideHeader = computed(() => !!route.meta.hideHeader)
 const hideFooter = computed(() => !!route.meta.hideFooter)
+
+onMounted(() => {
+  authStore.restore()
+})
 </script>
 
 <style scoped>
@@ -39,7 +43,7 @@ const hideFooter = computed(() => !!route.meta.hideFooter)
   min-width: 393px;
   max-width: 393px;
 
-  margin: 0 auto;            /* 데스크톱에서 가운데 정렬 */
+  margin: 0 auto;             /* 데스크톱에서 가운데 정렬 */
   min-height: 100vh;
   background-color: #fff;
 
@@ -51,8 +55,7 @@ const hideFooter = computed(() => !!route.meta.hideFooter)
 }
 
 .main-content {
-  flex: 1;
-  padding-bottom: 70px;
+  flex: 1;                   
   overflow-x: hidden;         /* 방어용 */
 }
 .main-content.has-header {
@@ -63,7 +66,8 @@ const hideFooter = computed(() => !!route.meta.hideFooter)
 <!-- 전역 규칙: 세로만 스크롤 허용 + 스크롤바 숨김 -->
 <style>
 /* 페이지 스크롤 정책 */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 
@@ -85,7 +89,7 @@ html, body {
   height: 0;
 }
 * {
-  -ms-overflow-style: none;   /* IE/Edge Legacy */
-  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge Legacy */
+  scrollbar-width: none; /* Firefox */
 }
 </style>
