@@ -38,7 +38,7 @@ function goBack() {
   max-width: 393px;
   width: 100%;
   margin: 0 auto;
-  border-bottom: 0.5px solid var(--color-light);
+  border-bottom: 0.5px solid var(--color-lightgray);
   padding: 14px 16px;
 }
 
