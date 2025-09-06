@@ -1,33 +1,33 @@
 <template>
-  <header class="navbar">
+  <footer class="navbar">
     <nav>
-      <RouterLink
-        v-for="item in navItems"
-        :key="item.path"
-        :to="item.path"
-        class="nav-link"
-        :class="{ active: isActive(item.path) }"
-      >
-        <div class="wrapper">
-          <div class="nav-icon">
-            <img :src="item.icon" />
-          </div>
-          <label>{{ item.label }}</label>
+    <RouterLink
+    v-for="item in navItems"
+    :key="item.path"
+    :to="item.path"
+    class="nav-link"
+    :class="{ active: isActive(item.path) }"
+    >
+    <div class="wrapper">
+        <div class="nav-icon">
+        <img :src="item.icon" alt="" />
         </div>
-      </RouterLink>
+        <label class="bodyRegular12px">{{ item.label }}</label>
+    </div>
+    </RouterLink>
     </nav>
-  </header>
+  </footer>
 </template>
 
 <script setup>
-import locationIcon from '@/assets/icons/location.png';
-import chatIcon from '@/assets/icons/chat.png';
-import homeIcon from '@/assets/icons/home.png';
-import loanIcon from '@/assets/icons/bulb-active.png';
-import userIcon from '@/assets/icons/user.png';
-import { useRoute } from 'vue-router';
+import locationIcon from '@/assets/icons/location.png'
+import chatIcon from '@/assets/icons/chat.png'
+import homeIcon from '@/assets/icons/home.png'
+import loanIcon from '@/assets/icons/bulb-active.png'
+import userIcon from '@/assets/icons/user.png'
+import { useRoute } from 'vue-router'
 
-const route = useRoute();
+const route = useRoute()
 
 const navItems = [
   { path: '/map', label: '매물', icon: locationIcon },
@@ -35,30 +35,30 @@ const navItems = [
   { path: '/', label: '홈', icon: homeIcon },
   { path: '/loan', label: '대출·지원금', icon: loanIcon },
   { path: '/my-page', label: '내정보', icon: userIcon },
-];
+]
 
-const isActive = (path) => route.path === path;
+const isActive = (path) => route.path === path
 </script>
 
 <style scoped>
 .navbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
   width: 100%;
-  height: 70px;
-  background-color: #f5f5f5;
+  height: 64px;
+  background-color: #ffffff;
   display: flex;
   justify-content: center;
+  border-top: 1px solid var(--color-lightgray);
 }
 
 nav {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(5, 1fr);
   justify-content: center;
   align-items: center;
   text-align: center;
   gap: 1rem;
+
+  width: 100%;
 }
 
 .nav-link {
@@ -69,12 +69,10 @@ nav {
 
 label {
   margin-top: 2px;
-
-  font-size: 0.75rem;
 }
 
 .nav-link.active label {
-  color: #0e0b80;
+  color: var(--color-primary);
 }
 
 .wrapper {

@@ -30,6 +30,10 @@ import { computed, onMounted } from 'vue'
 const route = useRoute()
 const hideHeader = computed(() => !!route.meta.hideHeader)
 const hideFooter = computed(() => !!route.meta.hideFooter)
+
+onMounted(() => {
+  authStore.restore()
+})
 </script>
 
 <style scoped>
@@ -39,20 +43,19 @@ const hideFooter = computed(() => !!route.meta.hideFooter)
   min-width: 393px;
   max-width: 393px;
 
-  margin: 0 auto;            /* 데스크톱에서 가운데 정렬 */
+  margin: 0 auto;             /* 데스크톱에서 가운데 정렬 */
   min-height: 100vh;
   background-color: #fff;
 
   display: flex;
   flex-direction: column;
 
-  /* 가로 스크롤 누수 방지 */
+  /* 가로 스크롤 방지 */
   overflow-x: hidden;
 }
 
 .main-content {
-  flex: 1;
-  padding-bottom: 70px;
+  flex: 1;                   
   overflow-x: hidden;         /* 방어용 */
 }
 .main-content.has-header {
