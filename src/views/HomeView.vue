@@ -1,9 +1,0 @@
-<template>
-  <div>
-    <h5>메인 페이지</h5>
-  </div>
-</template>
-
-<script setup></script>
-
-<style scoped></style>
