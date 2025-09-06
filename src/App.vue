@@ -50,7 +50,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
 
-  /* 가로 스크롤 누수 방지 */
+  /* 가로 스크롤 방지 */
   overflow-x: hidden;
 }
 

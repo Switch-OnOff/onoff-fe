@@ -24,7 +24,7 @@ import logo from '@/assets/icons/logo.png'
 .base-header {
   width: 100%;
   max-width: 393px;       /* iPhone 16 Pro 기준 */
-  height: 56px;           /* 모바일 헤더 높이 */
+  height: 60px;        
   display: flex;
   align-items: center;
   justify-content: space-between;

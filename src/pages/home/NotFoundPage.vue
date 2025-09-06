@@ -1,25 +1,39 @@
 <template>
-  <div class="not-found">
-    <h1 class="titleExtra32px">404</h1>
-    <p class="bodyRegular16px">페이지를 찾을 수 없습니다.</p>
-    <router-link to="/" class="back-home bodyMedium16px">
-      홈으로 돌아가기
-    </router-link>
+  <div class="not-found-page">
+    <!-- SimpleHeader 테스트 -->
+    <SimpleHeader title="404 페이지" />
+
+    <!-- 본문 -->
+    <div class="not-found">
+      <h1 class="titleExtra32px">404</h1>
+      <p class="bodyRegular16px">페이지를 찾을 수 없습니다.</p>
+      <router-link to="/" class="back-home bodyMedium16px">
+        홈으로 돌아가기
+      </router-link>
+    </div>
   </div>
 </template>
 
 <script setup>
-// 별도 로직 없음
+import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 </script>
 
 <style scoped>
+.not-found-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 본문 영역 */
 .not-found {
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 
-  height: calc(100vh - 56px); /* 헤더 높이 제외 */
+  height: calc(100vh - 60px); /* 헤더 높이 제외 */
   text-align: center;
   padding: 16px;
 }

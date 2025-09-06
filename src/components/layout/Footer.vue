@@ -1,5 +1,5 @@
 <template>
-  <header class="navbar">
+  <footer class="navbar">
     <nav>
       <RouterLink
         v-for="item in navItems"
@@ -19,7 +19,7 @@
         </div>
       </RouterLink>
     </nav>
-  </header>
+  </footer>
 </template>
 
 <script setup>
@@ -35,7 +35,7 @@ import userIcon from '@/assets/icons/footer/user.png';
 import userIconActive from '@/assets/icons/footer/user-active.png';
 import { useRoute } from 'vue-router';
 
-const route = useRoute();
+const route = useRoute()
 
 const navItems = [
   { path: '/', label: '홈', icon: homeIcon, iconActive: homeIconActive },
@@ -65,28 +65,28 @@ const navItems = [
   },
 ];
 
-const isActive = (path) => route.path === path;
+const isActive = (path) => route.path === path
 </script>
 
 <style scoped>
 .navbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
   width: 100%;
-  height: 70px;
-  background-color: #f5f5f5;
+  height: 64px;
+  background-color: #ffffff;
   display: flex;
   justify-content: center;
+  border-top: 1px solid var(--color-lightgray);
 }
 
 nav {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(5, 1fr);
   justify-content: center;
   align-items: center;
   text-align: center;
   gap: 1rem;
+
+  width: 100%;
 }
 
 .nav-link {
@@ -100,7 +100,7 @@ label {
 }
 
 .nav-link.active label {
-  color: #0e0b80;
+  color: var(--color-primary);
 }
 
 .wrapper {

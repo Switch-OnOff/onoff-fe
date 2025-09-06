@@ -3,7 +3,7 @@
     <button class="back-btn" @click="goBack" aria-label="뒤로가기">
       <img :src="leftArrow" alt="뒤로가기" class="arrow-img" />
     </button>
-    <span class="header-title bodyMedium16px">{{ title }}</span>
+    <span class="header-title bodyMedium20px">{{ title }}</span>
     <slot name="action"></slot>
   </header>
 </template>
@@ -39,7 +39,7 @@ function goBack() {
   width: 100%;
   margin: 0 auto;
   border-bottom: 0.5px solid var(--color-light);
-  padding: 14px 12px;
+  padding: 14px 16px;
 }
 
 .back-btn {
@@ -54,17 +54,17 @@ function goBack() {
 }
 
 .arrow-img {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: block;
 }
 
 .header-title {
   display: flex;
   align-items: center;
-  color: var(--color-primary);
+  color: var(--color-black);
   height: 100%;
   line-height: 60px;
-  margin-top: 3px;
+  margin-left: 8px;
 }
 </style>
