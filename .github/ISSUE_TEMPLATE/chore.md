@@ -1,7 +1,7 @@
 ---
 name: Chore
 about: 사소한 작업
-title: ''
+title: "[Chore]"
 labels: Chore
 assignees: ''
 

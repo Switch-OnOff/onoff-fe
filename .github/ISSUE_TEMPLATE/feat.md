@@ -1,7 +1,7 @@
 ---
 name: Feat
 about: 새로운 기능 추가
-title: ''
+title: "[Feat]"
 labels: Feat
 assignees: ''
 
