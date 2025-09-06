@@ -1,10 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
-// 기본 페이지 import
 import HomePage from '@/pages/home/HomePage.vue'
 import NotFoundPage from '@/pages/home/NotFoundPage.vue'
-
-// auth 라우트 import
 import authRoutes from './auth.js'
 
 const routes = [
