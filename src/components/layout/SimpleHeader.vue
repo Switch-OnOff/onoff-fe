@@ -1,6 +1,11 @@
 <template>
   <header class="simple-header">
-    <button class="back-btn" @click="goBack" aria-label="뒤로가기">
+    <button
+      v-if="props.showButton"
+      class="back-btn"
+      @click="goBack"
+      aria-label="뒤로가기"
+    >
       <img :src="leftArrow" alt="뒤로가기" class="arrow-img" />
     </button>
     <span class="header-title bodyMedium20px">{{ title }}</span>
@@ -9,11 +14,12 @@
 </template>
 
 <script setup>
-import { useRouter } from "vue-router";
-import leftArrow from "@/assets/icons/back.png";
+import { useRouter } from 'vue-router';
+import leftArrow from '@/assets/icons/back.png';
 
 const props = defineProps({
   title: { type: String, required: true },
+  showButton: { type: Boolean, default: true },
 });
 
 const router = useRouter();

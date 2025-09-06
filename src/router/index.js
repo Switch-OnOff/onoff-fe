@@ -16,6 +16,22 @@ const routes = [
     name: 'not-found',
     component: NotFoundPage,
   },
+  {
+    path: '/chat-detail',
+    name: 'chat-detail',
+    component: ChatDetailPage,
+    meta: {
+      hideHeader: true,
+    },
+  },
+  {
+    path: '/chat-list',
+    name: 'chat-list',
+    component: ChatListPage,
+    meta: {
+      hideHeader: true,
+    },
+  },
 ];
 
 const router = createRouter({
