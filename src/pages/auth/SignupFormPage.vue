@@ -192,7 +192,7 @@ async function onSubmit() {
     return
   }
 
-  // 🔒 서버 요청 부분 주석 처리
+  // 서버 요청 부분 주석 처리
   /*
   try {
     const userData = {
@@ -216,7 +216,7 @@ async function onSubmit() {
   }
   */
 
-  // 👉 데모 모드
+  // 데모 모드
   setTimeout(() => {
     alert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.')
     signupSuccess = true
