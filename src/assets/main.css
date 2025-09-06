@@ -24,6 +24,7 @@ body {
   --color-mediumgray: #BDBDBD;
   --color-darkgray: #8D8D8D;
   --color-darkblack: #393939;
+  --color-error: #bf0000;
   --transition: all 0.3s ease;
 }
 
@@ -60,6 +61,11 @@ body {
   font-weight: 700;
   font-family: 'Pretendard', sans-serif;
 }
+.bodyBold14px {
+  font-size: 0.875rem;      /* 14px */
+  font-weight: 700;
+  font-family: 'Pretendard', sans-serif;
+}
 .bodyBold16px {
   font-size: 1rem;      /* 16px */
   font-weight: 700;
@@ -79,6 +85,11 @@ body {
 /* Body - Medium (500) */
 .bodyMedium12px {
   font-size: 0.75rem;   /* 12px */
+  font-weight: 500;
+  font-family: 'Pretendard', sans-serif;
+}
+.bodyMedium14px {
+  font-size: 0.875rem;   /* 12px */
   font-weight: 500;
   font-family: 'Pretendard', sans-serif;
 }
