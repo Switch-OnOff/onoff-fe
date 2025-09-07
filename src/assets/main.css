@@ -82,6 +82,33 @@ body {
   font-family: 'Pretendard', sans-serif;
 }
 
+/* Body - SemiBold (600) */
+.bodySemiBold12px {
+  font-size: 0.75rem;   /* 12px */
+  font-weight: 600;
+  font-family: 'Pretendard', sans-serif;
+}
+.bodySemiBold14px {
+  font-size: 0.875rem;      /* 14px */
+  font-weight: 600;
+  font-family: 'Pretendard', sans-serif;
+}
+.bodySemiBold16px {
+  font-size: 1rem;      /* 16px */
+  font-weight: 600;
+  font-family: 'Pretendard', sans-serif;
+}
+.bodySemiBold20px {
+  font-size: 1.25rem;   /* 20px */
+  font-weight: 600;
+  font-family: 'Pretendard', sans-serif;
+}
+.bodySemiBold24px {
+  font-size: 1.5rem;    /* 24px */
+  font-weight: 600;
+  font-family: 'Pretendard', sans-serif;
+}
+
 /* Body - Medium (500) */
 .bodyMedium12px {
   font-size: 0.75rem;   /* 12px */

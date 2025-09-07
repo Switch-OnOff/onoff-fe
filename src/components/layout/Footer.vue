@@ -46,7 +46,7 @@ const navItems = [
     iconActive: loanIconActive,
   },
   {
-    path: '/map',
+    path: '/listing',
     label: '매물',
     icon: locationIcon,
     iconActive: locationIconActive,

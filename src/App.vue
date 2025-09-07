@@ -55,9 +55,6 @@ const hideFooter = computed(() => !!route.meta.hideFooter)
   flex: 1;                   
   overflow-x: hidden;         /* 방어용 */
 }
-.main-content.has-header {
-  padding-top: 60px;
-}
 </style>
 
 <!-- 전역 규칙: 세로만 스크롤 허용 + 스크롤바 숨김 -->
