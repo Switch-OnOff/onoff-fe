@@ -5,25 +5,24 @@
       <!-- 썸네일 이미지 -->
       <img :src="imageSrc" alt="매물 썸네일" class="thumb" />
 
-      <!-- 본문 줄 수/높이 고정 + 말줄임 -->
       <div class="content">
         <!-- 업종 배지 -->
-        <div class="badge bodySemiBold12px">
+        <div class="badge bodySemiBold14px">
           <span class="ellipsis">{{ category || '없음' }}</span>
         </div>
 
         <!-- 메인 가격 라인 -->
-        <div class="title bodySemiBold14px">
+        <div class="title bodySemiBold16px">
           <span class="ellipsis">{{ titleLine }}</span>
         </div>
 
         <!-- 권리금 -->
-        <div class="premium bodySemiBold12px">
+        <div class="premium bodySemiBold14px">
           <span class="ellipsis">권리금 {{ premiumText }}</span>
         </div>
 
         <!-- 하단 메타 -->
-        <div class="meta bodyRegular12px">
+        <div class="meta bodyRegular14px">
           <span class="ellipsis">{{ metaLine }}</span>
         </div>
       </div>
@@ -107,7 +106,7 @@ const metaLine = computed(() => {
 .content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   height: 96px;
 }
 
@@ -117,6 +116,8 @@ const metaLine = computed(() => {
   text-overflow: ellipsis;
   display: block;        
   min-width: 0;      
+  margin-top: 4px;
+  line-height: 16px;
 }
 
 .badge {
@@ -124,12 +125,13 @@ const metaLine = computed(() => {
   display: inline-flex;
   align-items: center;
   height: 22px;
-  padding: 0 8px;
+  line-height: 22px;
+  padding: 0 4px;
   background: var(--color-primary-10);
   color: var(--color-primary);
   border-radius: 2px;
   width: auto;      
-  max-width: 100%;    
+  max-width: 100%;   
 }
 .badge .ellipsis {
   display: block;
@@ -137,10 +139,11 @@ const metaLine = computed(() => {
   white-space: nowrap;
   text-overflow: ellipsis;
   max-width: 100%;
+  padding-bottom: 2px;
 }
 
 .title {
-  line-height: 1.2;
+  line-height: 1;
   color: var(--color-black);
   min-height: 20px; 
 }

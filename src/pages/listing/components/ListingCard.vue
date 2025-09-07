@@ -9,10 +9,10 @@
 
       <div class="content">
         <!-- 업종 배지 -->
-        <div class="badge bodySemiBold12px" v-if="category">{{ category }}</div>
+        <div class="badge bodySemiBold14px" v-if="category">{{ category }}</div>
 
         <!-- 메인 가격 라인 -->
-        <div class="title bodySemiBold14px">
+        <div class="title bodySemiBold16px">
           <template v-if="dealType === '월세' || dealType === '임대'">
             월세 {{ depositText }}/{{ rentText }}
           </template>
@@ -22,12 +22,12 @@
         </div>
 
         <!-- 권리금 -->
-        <div class="premium bodyBold12px" v-if="premium != null">
+        <div class="premium bodyBold14px" v-if="premium != null">
           권리금 {{ premiumText }}
         </div>
 
         <!-- 하단 면적&지역 -->
-        <div class="meta bodyRegular12px">
+        <div class="meta bodyRegular14px">
           <span v-if="areaPyeong">{{ areaPyeong }}평</span>
           <span v-if="areaPyeong && location"> · </span>
           <span v-if="location">{{ location }}</span>
@@ -103,7 +103,7 @@ const premiumText = computed(() => formatManwon(props.premium))
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .badge {
@@ -111,7 +111,7 @@ const premiumText = computed(() => formatManwon(props.premium))
   display: inline-flex;
   align-items: center;
   height: 22px;
-  padding: 0 8px;
+  padding: 0 6px;
   background: var(--color-primary-10);
   color: var(--color-primary);
   border-radius: 2px;
