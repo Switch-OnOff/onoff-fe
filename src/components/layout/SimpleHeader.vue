@@ -46,6 +46,7 @@ function goBack() {
   margin: 0 auto;
   border-bottom: 0.5px solid var(--color-light);
   padding: 14px 16px;
+  border-bottom: 0.5px solid var(--color-lightgray);
 }
 
 .back-btn {
