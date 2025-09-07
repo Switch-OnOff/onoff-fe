@@ -19,7 +19,7 @@ const routes = [
     component: NotFoundPage,
   },
   {
-    path: '/chat-detail',
+    path: '/chat-detail/:id',
     name: 'chat-detail',
     component: ChatDetailPage,
     meta: {

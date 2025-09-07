@@ -1,18 +1,30 @@
 <template>
-  <div class="chat-item">
+  <div class="chat-item" @click="goToDetail">
     <div class="chat-avatar"></div>
     <div class="chat-body">
-      <span class="chat-username">{{ props.chatInfo.name }}</span>
-      <span class="chat-message">{{ props.chatInfo.chat }}</span>
+      <span class="chat-userid">{{ props.chatInfo.id }}</span>
+      <span class="chat-message">{{ props.chatInfo.message }}</span>
     </div>
     <span class="chat-timestamp">{{ props.chatInfo.time }}</span>
   </div>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
+
 const props = defineProps({
-  chatInfo: 'chatInfo',
+  chatInfo: Object,
 });
+
+const router = useRouter();
+
+const goToDetail = () => {
+  router.push({
+    name: 'chat-detail',
+    params: { id: props.chatInfo.id },
+    state: { chatData: props.chatInfo },
+  });
+};
 </script>
 
 <style scoped>
@@ -38,7 +50,7 @@ const props = defineProps({
   max-width: 65%;
 }
 
-.chat-username {
+.chat-userid {
   font-weight: bold;
 }
 
