@@ -71,6 +71,11 @@ body {
   font-weight: 700;
   font-family: 'Pretendard', sans-serif;
 }
+.bodyBold18px {
+  font-size: 1.125rem;      /* 16px */
+  font-weight: 700;
+  font-family: 'Pretendard', sans-serif;
+}
 .bodyBold20px {
   font-size: 1.25rem;   /* 20px */
   font-weight: 700;
