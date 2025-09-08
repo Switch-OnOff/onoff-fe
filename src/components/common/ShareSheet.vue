@@ -1,7 +1,13 @@
 <!-- src/components/common/ShareSheet.vue -->
 <template>
   <Transition name="fade" appear>
-    <div v-if="open" class="sheet-wrap" @click.self="$emit('close')">
+    <div
+      v-if="open"
+      class="sheet-wrap"
+      role="dialog"
+      aria-modal="true"
+      @click.self="$emit('close')"
+    >
       <Transition name="bottomsheet" appear>
         <div class="sheet" :style="sheetStyle">
           <div class="sheet-handle"></div>
@@ -12,22 +18,22 @@
           </div>
 
           <div class="sheet-grid">
-            <button class="action" @click="shareKakao">
+            <button type="button" class="action" @click="shareKakao">
               <img class="icon" :src="kakaoIcon" alt="카카오톡" />
               <span class="bodyMedium14px">카카오톡</span>
             </button>
 
-            <button class="action" @click="shareSMS">
+            <button type="button" class="action" @click="shareSMS">
               <img class="icon" :src="messageIcon" alt="문자" />
               <span class="bodyMedium14px">문자</span>
             </button>
 
-            <button class="action" @click="copyLink">
+            <button type="button" class="action" @click="copyLink">
               <img class="icon" :src="linkIcon" alt="링크복사" />
               <span class="bodyMedium14px">링크복사</span>
             </button>
 
-            <button class="action" @click="shareEmail">
+            <button type="button" class="action" @click="shareEmail">
               <img class="icon" :src="emailIcon" alt="이메일" />
               <span class="bodyMedium14px">이메일</span>
             </button>
@@ -59,8 +65,11 @@ const containerWidth = ref(null)
 
 function measure() {
   const el = props.fitTo ? document.querySelector(props.fitTo) : null
-  if (el) containerWidth.value = Math.round(el.getBoundingClientRect().width)
-  else containerWidth.value = typeof props.maxWidth === 'number' ? props.maxWidth : undefined
+  if (el) {
+    containerWidth.value = Math.round(el.getBoundingClientRect().width)
+  } else {
+    containerWidth.value = typeof props.maxWidth === 'number' ? props.maxWidth : undefined
+  }
 }
 
 const sheetStyle = computed(() => {
@@ -69,7 +78,9 @@ const sheetStyle = computed(() => {
   return { '--sheet-max-w': w ? `${w}px` : fallback || '480px' }
 })
 
-function onResize() { if (props.open) measure() }
+function onResize() {
+  if (props.open) measure()
+}
 
 onMounted(() => {
   measure()
@@ -86,8 +97,9 @@ function toast(msg){ alert(msg) }
 
 async function copyLink() {
   const url = props.url || location.href
-  try { await navigator.clipboard.writeText(url) }
-  catch {
+  try {
+    await navigator.clipboard.writeText(url)
+  } catch {
     const ta = document.createElement('textarea')
     ta.value = url
     document.body.appendChild(ta)
@@ -112,7 +124,10 @@ function shareEmail() {
 
 function shareKakao() {
   const Kakao = window.Kakao
-  if (!Kakao || !Kakao.isInitialized?.()) { toast('카카오 공유를 사용할 수 없어요.'); return }
+  if (!Kakao || !Kakao.isInitialized?.()) {
+    toast('카카오 공유를 사용할 수 없습니다.')
+    return
+  }
   Kakao.Share.sendDefault({
     objectType: 'feed',
     content: {
@@ -125,7 +140,13 @@ function shareKakao() {
       }
     },
     buttons: [
-      { title: '자세히 보기', link: { mobileWebUrl: props.url || location.href, webUrl: props.url || location.href } }
+      {
+        title: '자세히 보기',
+        link: {
+          mobileWebUrl: props.url || location.href,
+          webUrl: props.url || location.href
+        }
+      }
     ]
   })
 }
@@ -210,27 +231,41 @@ function shareKakao() {
   display: block;
 }
 
-.fade-enter-from,
-.fade-leave-to { opacity: 0; }
-.fade-enter-active,
-.fade-leave-active { transition: opacity .22s ease; }
+.fade-enter-from {
+  opacity: 0;
+}
+.fade-leave-to {
+  opacity: 0;
+}
+.fade-enter-active {
+  transition: opacity .22s ease;
+}
+.fade-leave-active {
+  transition: opacity .22s ease;
+}
 
 /* 바텀시트 애니메이션 */
-.bottomsheet-enter-active { 
+.bottomsheet-enter-active {
   animation: sheet-in .42s cubic-bezier(.2, .9, .2, 1) both;
 }
-.bottomsheet-leave-active { 
+.bottomsheet-leave-active {
   animation: sheet-out .24s cubic-bezier(.22, .61, .36, 1) both;
 }
-
 @keyframes sheet-in {
-  0%   { transform: translate3d(-50%, 120%, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
+  0% {
+    transform: translate3d(-50%, 120%, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
-
 @keyframes sheet-out {
-  0%   { transform: translate3d(-50%, 0, 0); }
-  100% { transform: translate3d(-50%, 120%, 0); }
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 120%, 0);
+  }
 }
 
 .bottomsheet-enter-active .sheet-grid .action {
@@ -244,13 +279,21 @@ function shareKakao() {
 .bottomsheet-enter-active .sheet-grid .action:nth-child(4) { animation-delay: .18s; }
 
 @keyframes item-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fade-enter-active, .fade-leave-active,
-  .bottomsheet-enter-active, .bottomsheet-leave-active {
+  .fade-enter-active,
+  .fade-leave-active,
+  .bottomsheet-enter-active,
+  .bottomsheet-leave-active {
     animation: none !important;
     transition: none !important;
   }
