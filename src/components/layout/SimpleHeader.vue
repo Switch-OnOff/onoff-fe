@@ -10,16 +10,26 @@
     </button>
     <span class="header-title bodyMedium20px">{{ title }}</span>
     <slot name="action"></slot>
+    <button
+      v-if="props.showMoreButton"
+      class="back-btn"
+      @click="$emit('more-click')"
+      aria-label="더보기"
+    >
+      <img :src="more" alt="더보기" class="more-img" />
+    </button>
   </header>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router';
 import leftArrow from '@/assets/icons/back.png';
+import more from '@/assets/icons/more.png';
 
 const props = defineProps({
   title: { type: String, required: true },
   showButton: { type: Boolean, default: true },
+  showMoreButton: { type: Boolean, default: false },
 });
 
 const router = useRouter();
@@ -33,7 +43,7 @@ function goBack() {
 .simple-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   position: relative;
   top: 0;
   left: 0;
@@ -45,7 +55,7 @@ function goBack() {
   width: 100%;
   margin: 0 auto;
   border-bottom: 0.5px solid var(--color-light);
-  padding: 14px 16px;
+  padding: 14px 0 14px 16px;
   border-bottom: 0.5px solid var(--color-lightgray);
 }
 
@@ -68,10 +78,16 @@ function goBack() {
 
 .header-title {
   display: flex;
+  flex: 1;
   align-items: center;
   color: var(--color-black);
   height: 100%;
   line-height: 60px;
   margin-left: 8px;
+}
+
+.more-img {
+  width: 30px;
+  height: 30px;
 }
 </style>
