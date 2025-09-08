@@ -1,10 +1,12 @@
+// src/main.js
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
-
 import './assets/main.css'
+
+import { useKakao } from 'vue3-kakao-maps/@utils'
 
 const KAKAO_JS_KEY = import.meta.env.VITE_KAKAO_JS_KEY
 
@@ -23,7 +25,7 @@ function waitKakao(maxWaitMs = 6000, intervalMs = 30) {
 async function initKakao() {
   const hasSDK = await waitKakao()
   if (!hasSDK) {
-    console.warn('[Kakao] SDK not detected. Falling back to Web Share / copy.')
+    console.warn('[Kakao] JS SDK not detected.')
     return
   }
   try {
@@ -41,8 +43,19 @@ async function initKakao() {
   }
 }
 
+
 ;(async () => {
   await initKakao()
+
+  if (KAKAO_JS_KEY) {
+    try {
+      await useKakao(KAKAO_JS_KEY, ['services', 'clusterer'])
+    } catch (e) {
+      console.warn('[KakaoMap] SDK load failed:', e)
+    }
+  } else {
+    console.warn('[KakaoMap] VITE_KAKAO_JS_KEY is missing. 지도 기능이 동작하지 않을 수 있습니다.')
+  }
 
   const app = createApp(App)
   app.use(createPinia())
