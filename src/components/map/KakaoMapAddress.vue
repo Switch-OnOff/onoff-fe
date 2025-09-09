@@ -3,7 +3,7 @@
   <div class="kmap">
     <!-- 위치 헤더 -->
     <div class="loc-head">
-      <p class="loc-title bodyBold18px">{{ heading }}</p>
+      <p class="loc-title bodyBold16px">{{ heading }}</p>
 
       <!-- 주소 + (한 줄일 때만) 복사 버튼 -->
       <div class="loc-address-wrap">
