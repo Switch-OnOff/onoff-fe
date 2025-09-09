@@ -4,8 +4,13 @@ import App from './App.vue'
 import router from './router'
 import './assets/main.css'
 import { useKakao } from 'vue3-kakao-maps'
+import axios from 'axios'
 
 const KAKAO_JS_KEY = (import.meta.env.VITE_KAKAO_JS_KEY || '').trim()
+
+// axios 전역 기본값만 (프록시 통해 백엔드 연동)
+axios.defaults.baseURL = '/api'
+axios.defaults.timeout = 10000
 
 ;(async () => {
   if (!KAKAO_JS_KEY) {
