@@ -32,7 +32,8 @@ import logo from '@/assets/icons/logo.png';
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000;
+  z-index: 100;
+  margin: 0 auto;
 }
 
 .left {
