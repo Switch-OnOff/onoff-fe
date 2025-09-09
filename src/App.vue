@@ -57,7 +57,7 @@ onMounted(() => {
 .main-content {
   flex: 1;
   overflow-x: hidden; /* 방어용 */
-  padding-bottom: 4rem; /* 푸터 가림 방지 */
+  padding: 60px 0 64px 0; /* 푸터 가림 방지 */
 }
 .main-content.has-header {
   padding-top: 60px;
