@@ -85,6 +85,7 @@ const goList = () => router.push('/financial/list'); // TODO: 실제 라우트�
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
+  margin-top: 0.75rem;
   margin-bottom: 0.75rem;
 }
 .icon-box {
