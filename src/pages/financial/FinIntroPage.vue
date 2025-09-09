@@ -65,19 +65,16 @@ const goList = () => router.push('/financial/list'); // TODO: 실제 라우트�
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  padding-top: 0.5rem;
 }
 
 .doc {
   width: 25rem;
   display: block;
-  padding: 0 4rem 0 6rem;
+  padding: 0.5rem 4rem 3rem 6rem;
 }
 
 .features {
   width: 100%;
-  padding: 0;
   margin: 0 0 0.5rem;
   list-style: none;
 }
@@ -88,18 +85,7 @@ const goList = () => router.push('/financial/list'); // TODO: 실제 라우트�
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
 }
-.icon-box {
-  width: 1.125rem; /* 18px */
-  height: 1.125rem;
-  border: 0.125rem solid var(--color-lightgray);
-  border-radius: 0.25rem;
-  background: var(--color-white);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  overflow: hidden;
-}
+
 .icon-box img {
   width: 100%;
   height: 100%;

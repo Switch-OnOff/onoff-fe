@@ -19,7 +19,7 @@ defineProps({
 
 <style scoped>
 .top-wrap {
-  padding-top: 5rem;
+  padding-top: 4rem;
   padding-bottom: 2.5rem;
 }
 .title {
