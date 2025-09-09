@@ -27,13 +27,13 @@ import Footer from './components/layout/Footer.vue';
 import { useRoute } from 'vue-router';
 import { computed, onMounted } from 'vue';
 
-const route = useRoute()
-const hideHeader = computed(() => !!route.meta.hideHeader)
-const hideFooter = computed(() => !!route.meta.hideFooter)
+const route = useRoute();
+const hideHeader = computed(() => !!route.meta.hideHeader);
+const hideFooter = computed(() => !!route.meta.hideFooter);
 
 onMounted(() => {
-  authStore.restore()
-})
+  // authStore.restore()
+});
 </script>
 
 <style scoped>
@@ -43,7 +43,7 @@ onMounted(() => {
   min-width: 393px;
   max-width: 393px;
 
-  margin: 0 auto;             /* 데스크톱에서 가운데 정렬 */
+  margin: 0 auto; /* 데스크톱에서 가운데 정렬 */
   min-height: 100vh;
   background-color: #fff;
 
@@ -55,8 +55,9 @@ onMounted(() => {
 }
 
 .main-content {
-  flex: 1;                   
-  overflow-x: hidden;         /* 방어용 */
+  flex: 1;
+  overflow-x: hidden; /* 방어용 */
+  padding-bottom: 4rem; /* 푸터 가림 방지 */
 }
 .main-content.has-header {
   padding-top: 60px;

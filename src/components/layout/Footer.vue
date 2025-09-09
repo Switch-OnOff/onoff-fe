@@ -35,7 +35,7 @@ import userIcon from '@/assets/icons/footer/user.png';
 import userIconActive from '@/assets/icons/footer/user-active.png';
 import { useRoute } from 'vue-router';
 
-const route = useRoute()
+const route = useRoute();
 
 const navItems = [
   { path: '/', label: '홈', icon: homeIcon, iconActive: homeIconActive },
@@ -65,7 +65,7 @@ const navItems = [
   },
 ];
 
-const isActive = (path) => route.path === path
+const isActive = (path) => route.path === path;
 </script>
 
 <style scoped>
@@ -76,6 +76,12 @@ const isActive = (path) => route.path === path
   display: flex;
   justify-content: center;
   border-top: 1px solid var(--color-lightgray);
+
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 nav {
