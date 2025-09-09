@@ -131,6 +131,11 @@ body {
   font-weight: 500;
   font-family: 'Pretendard', sans-serif;
 }
+.bodyMedium18px {
+  font-size: 1.125rem;      /* 18px */
+  font-weight: 500;
+  font-family: 'Pretendard', sans-serif;
+}
 .bodyMedium20px {
   font-size: 1.25rem;   /* 20px */
   font-weight: 500;

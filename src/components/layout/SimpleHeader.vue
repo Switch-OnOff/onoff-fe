@@ -3,7 +3,7 @@
     <button class="back-btn" @click="goBack" aria-label="뒤로가기">
       <img :src="leftArrow" alt="뒤로가기" class="arrow-img" />
     </button>
-    <span class="header-title bodyMedium20px">{{ title }}</span>
+    <span class="header-title bodyMedium18px">{{ title }}</span>
     <slot name="action"></slot>
   </header>
 </template>
