@@ -35,12 +35,12 @@ import userIcon from '@/assets/icons/footer/user.png';
 import userIconActive from '@/assets/icons/footer/user-active.png';
 import { useRoute } from 'vue-router';
 
-const route = useRoute()
+const route = useRoute();
 
 const navItems = [
   { path: '/', label: '홈', icon: homeIcon, iconActive: homeIconActive },
   {
-    path: '/loan',
+    path: '/financial',
     label: '대출·지원금',
     icon: loanIcon,
     iconActive: loanIconActive,
@@ -65,7 +65,7 @@ const navItems = [
   },
 ];
 
-const isActive = (path) => route.path === path
+const isActive = (path) => route.path === path;
 </script>
 
 <style scoped>
