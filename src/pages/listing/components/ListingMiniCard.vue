@@ -69,21 +69,25 @@ const props = defineProps({
 })
 defineEmits(['close'])
 
-const nf = (n) => (n == null ? '-' : new Intl.NumberFormat('ko-KR').format(n))
-const toMan = (won) => (won == null ? null : Math.round(won / 10000))
+const fmtMan = (n) => {
+  const v = Number(n)
+  if (!Number.isFinite(v)) return '-'
+  const eok = Math.floor(v / 10000)            // 억
+  const man = v % 10000                         // 만원
+  return eok > 0 ? `${eok}억 ${man.toLocaleString('ko-KR')}` : man.toLocaleString('ko-KR')
+}
 
 const priceText = computed(() => {
   if (props.item.transactionType === 'SALE') {
-    // 매매는 기존 원 단위 유지
-    return `매매 ${nf(props.item.salePrice)}원`
+    return `매매 ${fmtMan(props.item.salePrice)}`
   }
-  const d = toMan(props.item.deposit)
-  const m = toMan(props.item.monthlyRent)
-  return `보증금 ${nf(d)} / 월세 ${nf(m)} (만원)`
+  const d = fmtMan(props.item.deposit)
+  const m = fmtMan(props.item.monthlyRent)
+  return `보증금 ${d} / 월세 ${m}`
 })
 
 function onImgError(e) {
-  e.target.src = 'https://picsum.photos/seed/placeholder/240/160'
+  e.target.src = 'https://placehold.co/240x160?text=IMG'  //나중에 폴백 이미지 변경 필요(leeday)
 }
 </script>
 
@@ -127,8 +131,8 @@ function onImgError(e) {
   color: var(--color-primary);
 }
 .addr{ 
-    margin:0; 
-    color: var(--color-darkgray);
+  margin:0; 
+  color: var(--color-darkgray);
 }
 
 /* 하단 CTA 바 (전체 폭) */
