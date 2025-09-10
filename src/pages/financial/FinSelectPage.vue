@@ -269,17 +269,44 @@ function selectSuggestion(item) {
 }
 
 /* doSearch → 입력 플로우 시작 */
-function doSearch() {
+async function doSearch() {
   if (!store.mode) {
     alert('먼저 지원금/대출을 선택하세요!');
     return;
   }
-  sessionStorage.setItem('financial-keyword', keyword.value.trim());
+  const q = keyword.value.trim();
+  sessionStorage.setItem('financial-keyword', q);
   if (store.mode === 'support') {
-    router.push('/financial/support-basic');
+    // 1) 정확 매칭 → 2) like 매칭
+    const id = await resolveSupportIdByName(q);
+    router.push({
+      path: '/financial/support-basic',
+      query: id ? { id } : undefined, // 있으면 붙여서 보냄
+    });
   } else {
     router.push('/financial/loan-basic');
   }
+}
+
+async function resolveSupportIdByName(name) {
+  if (!name) return null;
+  // 정확 매칭
+  let r = await fetch(
+    `${API_BASE}/support?service_name=${encodeURIComponent(name)}&_limit=1`
+  );
+  if (r.ok) {
+    const arr = await r.json();
+    if (arr?.[0]?.service_id) return arr[0].service_id;
+  }
+  // 없으면 like
+  r = await fetch(
+    `${API_BASE}/support?service_name_like=${encodeURIComponent(name)}&_limit=1`
+  );
+  if (r.ok) {
+    const arr = await r.json();
+    return arr?.[0]?.service_id || null;
+  }
+  return null;
 }
 
 /* 목록 보기 (선택) */
