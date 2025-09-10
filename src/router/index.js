@@ -24,6 +24,7 @@ const routes = [
     component: ChatDetailPage,
     meta: {
       hideHeader: true,
+      hideFooter: true,
     },
   },
   {
