@@ -270,6 +270,7 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import MedSubmitBtn from '@/components/button/MedSubmitBtn.vue'
@@ -289,6 +290,7 @@ import PhotoUploader from '@/pages/listing/components/PhotoUploader.vue'
 const step = ref(1)
 const verifying = ref(false)
 const errorMsg = ref('')
+const router = useRouter()
 
 const INDUSTRY_CATEGORIES = [
   { major: '일반음식점', minors: ['한식', '중식', '양식', '분식', '치킨', '카페/디저트'] },
@@ -389,13 +391,17 @@ function addAmount(field, delta) {
 }
 
 function manToKoreanWon(num) {
+  if (num === null || num === undefined || num === '') return ''
   const n = Number(num)
-  if (!n && n !== 0) return ''
+  if (Number.isNaN(n)) return ''
+  if (n === 0) return '0원'
+
   let rest = Math.floor(n * 10000)
   const eok = Math.floor(rest / 100000000)
   rest %= 100000000
   const man = Math.floor(rest / 10000)
   const won = rest % 10000
+
   const parts = []
   if (eok) parts.push(`${eok}억`)
   if (man) parts.push(`${man}만`)
@@ -477,16 +483,47 @@ const payload = computed(() => {
 })
 
 async function submitAll() {
-  try {
-    const fd = new FormData()
-    fd.append('data', JSON.stringify(payload.value))
-    photos.value.forEach((f, i) => fd.append('photos', f, f.name || `photo_${i}.jpg`))
-    await axios.post('/api/listings', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
-    alert('등록이 완료되었습니다.')
-  } catch {
-    alert('등록 실패. 잠시 후 다시 시도해주세요.')
+  if (!photos.value || photos.value.length === 0) {
+    alert('사진을 최소 1장 등록해 주세요.');
+    return;
   }
-}
+
+  try {
+    const fd = new FormData();
+    fd.append('data', JSON.stringify(payload.value));
+    photos.value.forEach((f, i) =>
+      fd.append('photos', f, f.name || `photo_${i}.jpg`)
+    );
+
+    const { data, headers } = await axios.post('/api/listings', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+
+    let id =
+      data?.id ??
+      data?.listingId ??
+      data?.result?.id ??
+      data?.slug ??
+      data?.data?.id ??
+      data?.data?.slug
+    if (!id && headers?.location) {
+      const m = headers.location.match(/\/listing\/([^/?#]+)/)
+      if (m) id = m[1]
+    }
+
+    alert('등록 완료')
+
+    if (id) {
+      await router.push({ name: 'listing-detail', params: { id } })
+    } else if (headers?.location) {
+      await router.push(headers.location)
+    } else {
+      await router.push({ name: 'listing-list' })
+    }
+   } catch {
+     alert('등록 실패. 잠시 후 다시 시도해주세요.')
+   }
+ }
 </script>
 
 <style scoped>

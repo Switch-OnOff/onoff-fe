@@ -2,6 +2,7 @@
 <template>
   <div class="listings-wrap">
     <SimpleHeader title="매물 리스트">
+      <!-- 기존 헤더 액션(북마크) 유지 -->
       <template #action>
         <button class="bookmark-btn" @click="goBookmarks" aria-label="북마크로 이동">
           <img :src="bookmarkIcon" alt="북마크" />
@@ -13,9 +14,7 @@
     <div class="listings-page">
       <!-- 좌측 필터 영역(추후 구현) + 우측 보기 전환 -->
       <div class="controls">
-        <div class="filters">
-          <!-- height 60px 필터 컴포넌트 자리(추후 구현) -->
-        </div>
+        <div class="filters"><!-- 추후 필터 영역 --></div>
 
         <button
           class="view-toggle-btn"
@@ -65,7 +64,7 @@
         />
       </section>
 
-      <!-- 페이지네이션 5개 윈도우 -->
+      <!-- 페이지네이션 -->
       <nav class="pagination" aria-label="페이지네이션" v-if="totalPages > 1">
         <button class="page-btn first bodyMedium14px" :disabled="currentPage === 1" @click="goFirst">«</button>
         <button class="page-btn prev bodyMedium14px" :disabled="currentPage === 1" @click="prevPage">‹</button>
@@ -84,6 +83,9 @@
         <button class="page-btn last bodyMedium14px" :disabled="currentPage === totalPages" @click="goLast">»</button>
       </nav>
     </div>
+
+    <!-- 플로팅 '매물 지도' 버튼 -->
+    <FloatingMapButton @click="goMap" />
   </div>
 </template>
 
@@ -91,9 +93,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import ListingCard from '@/pages/listing/components/ListingCard.vue'
 import ListingCardGrid from '@/pages/listing/components/ListingCardGrid.vue'
+import FloatingMapButton from '@/pages/listing/components/MapFloatingBtn.vue'
 
 import gridIcon from '@/assets/icons/grid-icon.png'
 import listIcon from '@/assets/icons/list-icon.png'
@@ -114,9 +118,14 @@ onMounted(() => {
   if (saved === 'grid' || saved === 'list') viewMode.value = saved
 })
 
-/** 북마크 페이지 이동 */
+/** 북마크 페이지 이동(기존 유지) */
 function goBookmarks() {
   router.push({ name: 'my-bookmarks' })
+}
+
+/** 매물 지도 페이지로 이동(플로팅 버튼) */
+function goMap() {
+  router.push({ name: 'listing-map' })
 }
 
 /** 카드 매핑 */
@@ -198,6 +207,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 헤더 액션(북마크) - 기존 유지 */
 .bookmark-btn {
   width: 36px;
   height: 36px;
@@ -212,12 +222,10 @@ onMounted(() => {
   cursor: pointer;
   margin-left: auto;
 }
-
 .bookmark-btn img {
   width: 24px;
   height: 24px;
   display: block;
-  margin-right: 18px;
 }
 
 .listings-page {
@@ -231,9 +239,7 @@ onMounted(() => {
   justify-content: space-between;
 }
 
-.filters {
-  flex: 1;
-}
+.filters { flex: 1; }
 
 .view-toggle-btn {
   width: 36px;
@@ -247,16 +253,13 @@ onMounted(() => {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-
 .view-toggle-btn img {
   width: 20px;
   height: 20px;
   display: block;
 }
 
-.list-mode {
-  margin-top: 8px;
-}
+.list-mode { margin-top: 8px; }
 
 .grid-mode {
   margin-top: 8px;
@@ -274,7 +277,6 @@ onMounted(() => {
   gap: 6px;
   margin: 12px 0;
 }
-
 .page-btn,
 .page-num {
   min-width: 36px;
@@ -289,12 +291,10 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
 }
-
 .page-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
-
 .page-num.active {
   background: var(--color-primary-10);
   border-color: var(--color-primary);
