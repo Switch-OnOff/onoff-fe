@@ -5,7 +5,19 @@
     <div class="mypage-container">
       <!-- 프로필 영역 -->
       <div class="profile-box">
-        <img class="profile-img" :src="profileImageSrc" alt="프로필" />
+        <div class="profile-wrapper">
+          <img class="profile-img" :src="profileImageSrc" alt="프로필" />
+          <button class="edit-btn" @click="selectImage">
+            <img class="pencil-icon" :src="PencilIcon" alt="편집" />
+          </button>
+          <input
+            type="file"
+            ref="fileInput"
+            accept="image/*"
+            @change="onFileChange"
+            style="display: none"
+          />
+        </div>
         <div class="profile-info">
           <div class="profile-name titleBold20px">사용자</div>
           <div class="profile-email bodyMedium14px">
@@ -14,7 +26,9 @@
         </div>
       </div>
     </div>
+
     <div class="line"></div>
+
     <div class="menu-wrapper">
       <div class="menu-box">
         <img class="icon" :src="UserIcon" />
@@ -22,11 +36,11 @@
       </div>
       <div class="menu-box">
         <img class="icon" :src="ChatIcon" />
-        <label>회원정보</label>
+        <label>문의</label>
       </div>
       <div class="menu-box">
         <img class="icon" :src="UserIcon" />
-        <label>회원정보</label>
+        <label>설정</label>
       </div>
     </div>
   </div>
@@ -36,12 +50,31 @@
 import SimpleHeader from '@/components/layout/SimpleHeader.vue';
 import UserIcon from '@/assets/icons/footer/user.png';
 import ChatIcon from '@/assets/icons/footer/chat.png';
+import PencilIcon from '@/assets/icons/mypage/pencil.png';
 import { ref } from 'vue';
 
-// ✅ 랜덤 이미지 URL을 저장할 반응형 변수를 생성합니다.
+// 랜덤 초기 프로필 이미지
 const profileImageSrc = ref(
   `https://picsum.photos/200?random=${Math.random()}`
 );
+const fileInput = ref(null);
+
+// 버튼 클릭 시 파일 선택창 열기
+const selectImage = () => {
+  fileInput.value.click();
+};
+
+// 파일 선택 후 이미지 반영
+const onFileChange = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    profileImageSrc.value = e.target.result; // 선택 즉시 반영
+  };
+  reader.readAsDataURL(file);
+};
 </script>
 
 <style scoped>
@@ -60,13 +93,39 @@ const profileImageSrc = ref(
   border-bottom: 1px solid var(--color-light);
 }
 
+.profile-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .profile-img {
   width: 100px;
   height: 100px;
-  border: 2px solid var(--color-primary);
+  border: 2px solid var(--color-lightgray);
   border-radius: 50%;
-  background: var(--color-white);
   object-fit: cover;
+}
+
+.edit-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-lightgray);
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.pencil-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 
 .profile-info {
@@ -82,17 +141,21 @@ const profileImageSrc = ref(
 }
 
 .menu-box {
-  /* border-top: 1px solid var(--color-lightgray);
-  border-bottom: 1px solid var(--color-lightgray); */
-
   padding: 1rem;
   display: flex;
   align-items: center;
   gap: 0.8rem;
+  cursor: pointer;
 }
 
 .icon {
   width: 25px;
   height: 25px;
+}
+
+.line {
+  height: 1px;
+  background-color: var(--color-light);
+  margin: 0;
 }
 </style>
