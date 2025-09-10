@@ -145,9 +145,10 @@ watch(
   position: relative;
   display: flex;
   align-items: center;
-  height: 56px;
   border-bottom: 1px solid #e6e6eb;
 }
+
+/* placeholder */
 .placeholder {
   position: absolute;
   left: 0;
@@ -162,19 +163,20 @@ watch(
   opacity: 0;
 }
 
-/* 표시부 */
+/* 표시부 버튼 */
 .display {
   width: 100%;
-  height: 100%;
   background: transparent;
   border: 0;
-  outline: 0;
+  outline: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-right: 28px;
   cursor: pointer;
+  user-select: none;
 }
+
 .text {
   font-size: 16px;
   color: var(--color-black);
@@ -182,31 +184,27 @@ watch(
 .text.dim {
   color: transparent;
 }
+
+/* 캐럿 */
 .caret {
   position: absolute;
   right: 0;
   width: 18px;
   height: 18px;
-  flex: 0 0 18px;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  /* 회색 캐럿 (기본) */
-  background-image: url("data:image/svg+xml;utf8,\<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%239EA2A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%239EA2A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
   transition: transform 0.15s ease;
 }
-
-/* 열렸을 때 살짝 뒤집기 */
 .caret.open {
   transform: rotate(180deg);
 }
-
-/* 포커스 들어오면 포인트만 살짝 진하게 (선택사항) */
 .field:focus-within .caret {
-  background-image: url("data:image/svg+xml;utf8,\<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230E0B80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230E0B80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
 }
 
-/* 리스트 */
+/* 드롭다운 리스트 */
 .dropdown-list {
   position: absolute;
   z-index: 30;
@@ -218,27 +216,30 @@ watch(
   border-radius: 12px;
   padding: 0.25rem 0;
   list-style: none;
-
-  /* 스크롤링 설정 */
   overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 .dropdown-list.drop-up {
   top: auto;
   bottom: calc(100% + 8px);
 }
 
+/* 옵션 */
 .option {
   padding: 0.625rem 1rem;
   cursor: pointer;
   line-height: 1.5;
+  background: transparent;
+  outline: none;
+  user-select: none;
 }
+
+/* hover/active 색만 */
 .option:hover,
 .option.active {
   background: var(--color-primary-10);
 }
 
+/* focus 시 underline 색만 강조 */
 .field:focus-within {
   border-bottom-color: var(--color-primary);
 }

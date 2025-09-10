@@ -45,16 +45,32 @@
 import SimpleHeader from '@/components/layout/SimpleHeader.vue';
 import TopMessage from './components/TopMessage.vue';
 import BottomCTA from './components/BottomCTA.vue';
-import SelectField from './components/SelectField.vue'; // ← 너가 만든 커스텀 셀렉트
-import { useRouter, useRoute } from 'vue-router';
-import { computed } from 'vue';
+import SelectField from '../../components/common/SelectField.vue';
+import { onBeforeRouteLeave, useRouter, useRoute } from 'vue-router';
+import { computed, onMounted } from 'vue';
 import { useFinancialStore } from '@/stores/financial';
 
 const router = useRouter();
-const store = useFinancialStore();
 const route = useRoute();
+const store = useFinancialStore();
 
-/* 옵션들 (label/value 쌍) */
+const API_BASE = 'http://localhost:3000';
+
+function resetBasic() {
+  store.support.basic = { status: '', location: '', industry: '' };
+}
+
+onMounted(() => {
+  resetBasic();
+});
+
+onBeforeRouteLeave((to) => {
+  if (to.path !== '/financial/support-criteria') {
+    resetBasic();
+  }
+});
+
+/* 옵션 */
 const statusOptions = [
   { label: '예비창업자', value: '예비창업자' },
   { label: '영업중', value: '영업중' },
@@ -94,24 +110,96 @@ const canNext = computed(
     !!store.support.basic.industry
 );
 
-function goNext() {
-  if (!canNext.value) return;
-  // 쿼리에서 넘어온 id 보존 or 나중 단에서 찾은 id 보존
-  const id =
-    Number(route.query.id || store.support?.currentServiceId || 0) || undefined;
+function splitCSV(str = '') {
+  return String(str)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function basicMatchesService(service, basic) {
+  const statusOK =
+    !service.service_status || service.service_status === basic.status;
+
+  const locOK =
+    !service.location ||
+    service.location === '전국' ||
+    service.location === basic.location;
+
+  const serviceIndustries = splitCSV(service.industry);
+  const indOK =
+    serviceIndustries.length === 0 ||
+    serviceIndustries.includes(basic.industry);
+
+  return statusOK && locOK && indOK;
+}
+
+async function fetchServiceByIdOrKeyword() {
+  const id = Number(route.query.id || store.support?.currentServiceId || 0);
   if (id) {
-    store.support = { ...store.support, currentServiceId: id };
+    const r = await fetch(`${API_BASE}/support?service_id=${id}&_limit=1`);
+    if (r.ok) {
+      const arr = await r.json();
+      if (arr?.[0]) return arr[0];
+    }
+  }
+
+  const kw = (sessionStorage.getItem('financial-keyword') || '').trim();
+  if (kw) {
+    let r = await fetch(
+      `${API_BASE}/support?service_name=${encodeURIComponent(kw)}&_limit=1`
+    );
+    if (r.ok) {
+      const a = await r.json();
+      if (a?.[0]) return a[0];
+    }
+    r = await fetch(
+      `${API_BASE}/support?service_name_like=${encodeURIComponent(kw)}&_limit=1`
+    );
+    if (r.ok) {
+      const a = await r.json();
+      if (a?.[0]) return a[0];
+    }
+  }
+
+  const r = await fetch(`${API_BASE}/support?_limit=1`);
+  const arr = r.ok ? await r.json() : [];
+  return arr?.[0] || null;
+}
+
+async function goNext() {
+  if (!canNext.value) return;
+
+  const service = await fetchServiceByIdOrKeyword();
+  const basic = store.support.basic;
+
+  if (service?.service_id) {
+    store.support = { ...store.support, currentServiceId: service.service_id };
+  }
+
+  if (!service || !basicMatchesService(service, basic)) {
+    router.push({
+      path: '/financial/result',
+      query: {
+        status: 'ineligible',
+        product: service?.service_name || '지원금',
+      },
+    });
+    return;
   }
 
   router.push({
     path: '/financial/support-criteria',
-    query: id ? { id } : undefined,
+    query: service?.service_id ? { id: service.service_id } : undefined,
   });
 }
 </script>
 
 <style scoped>
-/* 공통 패딩/레이아웃만 남기고, 네이티브 select용 스타일은 전부 제거 */
+.field {
+  height: 2.5rem;
+}
+
 .px {
   padding-left: 2rem;
   padding-right: 2rem;
