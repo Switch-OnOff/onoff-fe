@@ -30,10 +30,6 @@ import { computed, onMounted } from 'vue';
 const route = useRoute();
 const hideHeader = computed(() => !!route.meta.hideHeader);
 const hideFooter = computed(() => !!route.meta.hideFooter);
-
-onMounted(() => {
-  authStore.restore();
-});
 </script>
 
 <style scoped>
