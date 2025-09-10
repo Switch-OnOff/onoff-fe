@@ -21,7 +21,6 @@
 
 <script setup>
 import { ref } from 'vue';
-// ✅ 새로 만든 컴포넌트를 import 합니다.
 import ExtraOptionsBox from './ExtraOptionsBox.vue';
 
 const textInput = ref('');
@@ -91,6 +90,4 @@ const sendMessage = () => {
   padding: 1.5rem 1rem;
   width: 80%;
 }
-
-/* ❌ .extra-box와 .slide-fade 관련 스타일은 자식 컴포넌트로 이동했으므로 삭제합니다. */
 </style>
