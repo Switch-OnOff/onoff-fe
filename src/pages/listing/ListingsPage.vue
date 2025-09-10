@@ -88,7 +88,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
@@ -119,16 +119,7 @@ function goBookmarks() {
   router.push({ name: 'my-bookmarks' })
 }
 
-/* -------------------------------------------
-gpt가 아래처럼 서버에서 페이지네이션 받아오는 게 좋다고 해서 일단 뒀는데,
-백엔드에서 처리하기 번거로울 것 같으면 그냥 전부 받아와서 프론트에서 페이지네이션하는 걸로
-변경예정 (leeday)
-   json-server 연동: 서버사이드 페이지네이션
-   - /api/listings?_page=1&_limit=8&_sort=id&_order=desc
-   - X-Total-Count 헤더로 전체개수 수신
-------------------------------------------- */
-
-/** 뷰 모델 매핑 db.json에서 카드 props */
+/** 카드 매핑 */
 function m2toPyeong(m2) {
   const n = Number(m2)
   return Number.isFinite(n) ? Number((n / 3.305785).toFixed(1)) : undefined
@@ -153,44 +144,44 @@ function mapListing(r) {
 /** 데이터 & 페이징 상태 */
 const pageSize = 8
 const currentPage = ref(1)
-const items = ref([]) 
-const totalItems = ref(0)
+const rawItems = ref([])
+
+const sortedItems = computed(() =>
+  rawItems.value.slice().sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+)
+const totalItems = computed(() => sortedItems.value.length)
 const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / pageSize)))
 
-const paginatedItems = computed(() => items.value)
+const paginatedItems = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  const end = start + pageSize
+  return sortedItems.value.slice(start, end)
+})
 
-/** 서버에서 현재 페이지 가져오기 */
-async function fetchPage(p = 1) {
+async function fetchAll() {
   try {
-    const { data, headers } = await axios.get('/listings', {
-      params: {
-        _page: p,
-        _limit: pageSize,
-        _sort: 'id',
-        _order: 'desc'
-      }
-    })
-    items.value = (Array.isArray(data) ? data : []).map(mapListing)
-    // json-server가 주는 전체 개수
-    const total = Number(headers['x-total-count'] || 0)
-    if (total) totalItems.value = total
-    // 헤더가 없으면(예외) 첫 페이지 길이로 대략 설정
-    if (!totalItems.value && p === 1) totalItems.value = items.value.length
+    const { data } = await axios.get('/listings')
+    const rows = Array.isArray(data) ? data : []
+    rawItems.value = rows.map(mapListing)
+    if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
   } catch (e) {
-    console.warn('[listings] fetch fail:', e)
-    items.value = []
+    console.warn('[listings] fetchAll fail:', e)
+    rawItems.value = []
+    currentPage.value = 1
   }
 }
 
-/** 페이지 이동 로직 */
-function goPage(p) { currentPage.value = Math.min(Math.max(1, p), totalPages.value) }
+/** 페이지 이동 */
+function goPage(p) {
+  const np = Math.min(Math.max(1, p), totalPages.value)
+  if (np === currentPage.value) return
+  currentPage.value = np
+  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+}
 function prevPage() { goPage(currentPage.value - 1) }
 function nextPage() { goPage(currentPage.value + 1) }
 function goFirst()  { goPage(1) }
 function goLast()   { goPage(totalPages.value) }
-
-/** 페이지 변경 시 서버 재호출 */
-watch(currentPage, (p) => { fetchPage(p) })
 
 /** 페이지 윈도우 */
 const windowSize = 5
@@ -202,7 +193,7 @@ const visiblePageNumbers = computed(() =>
 
 /** 초기 로딩 */
 onMounted(() => {
-  fetchPage(currentPage.value)
+  fetchAll()
 })
 </script>
 
@@ -267,9 +258,9 @@ onMounted(() => {
 }
 
 .grid-mode {
-   margin-top: 8px;
+  margin-top: 8px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)); 
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 /* 그리드 아이템이 내부 콘텐츠 때문에 폭을 밀어내지 않도록 */
@@ -280,7 +271,7 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   gap: 6px;
-  margin: 16px 0 4px;
+  margin: 12px 0;
 }
 
 .page-btn,
