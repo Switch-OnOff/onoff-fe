@@ -71,11 +71,16 @@ const isActive = (path) => route.path === path;
 <style scoped>
 .navbar {
   width: 100%;
+  max-width: 393px;
   height: 64px;
   background-color: #ffffff;
   display: flex;
   justify-content: center;
   border-top: 1px solid var(--color-lightgray);
+
+  position: fixed;
+  bottom: 0;
+  z-index: 1000;
 }
 
 nav {
