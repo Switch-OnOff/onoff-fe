@@ -97,7 +97,7 @@ import ListingCardGrid from '@/pages/listing/components/ListingCardGrid.vue'
 
 import gridIcon from '@/assets/icons/grid-icon.png'
 import listIcon from '@/assets/icons/list-icon.png'
-import bookmarkIcon from '@/assets/icons/bookmark.png'
+import bookmarkIcon from '@/assets/icons/folder.png'
 
 const router = useRouter()
 
