@@ -8,7 +8,7 @@
     >
       <img :src="leftArrow" alt="뒤로가기" class="arrow-img" />
     </button>
-    <span class="header-title bodyMedium20px">{{ title }}</span>
+    <span class="header-title bodyMedium18px">{{ title }}</span>
     <slot name="action"></slot>
     <button
       v-if="props.showMoreButton"

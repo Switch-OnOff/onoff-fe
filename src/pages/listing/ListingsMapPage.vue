@@ -4,14 +4,7 @@
     <SimpleHeader title="양도 매물 지도" />
 
     <div class="map-wrap">
-      <!-- 목데이터 컨트롤 -->
-      <div v-if="DEV" class="dev-toolbar">
-        <button @click="seedMocks(120)">Mock 120</button>
-        <button @click="seedMocks(400)">Mock 400</button>
-        <button @click="clearMocks()">Clear</button>
-      </div>
-
-      <!-- Kakao Map DOM -->
+      <!-- Kakao Map -->
       <div ref="mapEl" class="map-root"></div>
 
       <!-- 플로팅 컨트롤 -->
@@ -29,48 +22,13 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { createApp } from 'vue'
+import axios from 'axios'
 
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import FloatingButtonStack from '@/pages/listing/components/FloatingButtonStack.vue'
 import ListingMiniCard from '@/pages/listing/components/ListingMiniCard.vue'
 import routerInstance from '@/router'
 import pinImgUrl from '@/assets/icons/listing-pin.png'
-
-/* 목데이터 유틸 (추후 삭제) */
-const DEV = import.meta.env.DEV
-const rnd = (min, max) => Math.random() * (max - min) + min
-const m2lat = (m) => m / 111_111
-const m2lng = (m, lat) => m / (111_111 * Math.cos((lat * Math.PI) / 180))
-
-function mockListing(id, lat, lng) {
-  const isSale = Math.random() < 0.35
-  return {
-    id,
-    title: ['카페','분식','미용실','편의점','의류','베이커리'][id % 6] + ' ' + (100 + id),
-    lat, lng,
-    thumbnail: `https://picsum.photos/seed/listing${id}/240/160`,
-    transactionType: isSale ? 'SALE' : 'MONTHLY',
-    salePrice: isSale ? Math.round(rnd(1.5, 8) * 1e8) : undefined,
-    deposit: !isSale ? Math.round(rnd(2, 8) * 1e7) : undefined,
-    monthlyRent: !isSale ? Math.round(rnd(80, 350) * 1e4) : undefined,
-    address: '서울 강남구 테스트로 ' + (10 + (id % 90)),
-  }
-}
-function genMocks(n, lat0, lng0, radiusM = 2000) {
-  const arr = []
-  for (let i = 0; i < n; i++) {
-    const r = Math.sqrt(Math.random()) * radiusM
-    const t = Math.random() * Math.PI * 2
-    arr.push(
-      mockListing(
-        1000 + i,
-        lat0 + m2lat(r * Math.cos(t)),
-        lng0 + m2lng(r * Math.sin(t), lat0)
-      )
-    )
-  }
-  return arr
-}
 
 const MAX_ZOOM_OUT_LEVEL = 12
 const CLUSTER_MIN_LEVEL  = 5
@@ -85,17 +43,15 @@ const lat = ref(initialCenter[0])
 const lng = ref(initialCenter[1])
 const level = ref(Number(route.query.zoomLevel) || 5)
 
-const listings = ref(genMocks(120, lat.value, lng.value))
+const listings = ref([]) 
 const selected = ref(null)
 const isBottomSheetOpen = ref(false)
 
 const mapEl = ref(null)
 let map = null
-
 let clusterer = null
 let markers = []
 let markerImage = null
-
 let overlay = null
 let overlayApp = null
 
@@ -106,6 +62,7 @@ function isMapsReady() {
   const w = window
   return !!(w.kakao && w.kakao.maps && typeof w.kakao.maps.LatLng === 'function')
 }
+
 function sleep(ms) { return new Promise(res => setTimeout(res, ms)) }
 async function waitKakaoMapsReady(maxMs = 7000, step = 50) {
   const start = Date.now()
@@ -114,12 +71,62 @@ async function waitKakaoMapsReady(maxMs = 7000, step = 50) {
     await sleep(step)
   }
 }
-const hasClusterer = () => !!(window.kakao && window.kakao.maps && window.kakao.maps.MarkerClusterer)
 
-/* 맵 준비 */
+/* Kakao Cluster 로딩 대기 */
+const hasClusterer = () =>
+  !!(window.kakao && window.kakao.maps && window.kakao.maps.MarkerClusterer)
+
+async function waitClustererReady(maxMs = 7000, step = 50) {
+  const start = Date.now()
+  while (!hasClusterer()) {
+    if (Date.now() - start > maxMs) throw new Error('Clusterer not ready in time')
+    await sleep(step)
+  }
+}
+
+/* db.json 데이터를 가지고 지도/카드 모델로 매핑 */
+function mapServerRow(r) {
+  const isSale = r.dealType === '매매'
+  return {
+    id: r.id,
+    lat: r.lat,
+    lng: r.lng,
+    title: r.storeName || r.industry || `상가 ${r.id}`,
+    thumbnail: r.images?.[0] || 'https://placehold.co/240x160?text=IMG',  //나중에 폴백 이미지 변경(leeday)
+    transactionType: isSale ? 'SALE' : 'MONTHLY',
+    salePrice: isSale ? (r.salePrice ?? 0) : undefined,
+    deposit: !isSale ? (r.deposit ?? 0) : undefined,
+    monthlyRent: !isSale ? (r.rent ?? 0) : undefined,
+    address: r.address,
+    industry: r.industry,
+    premium: r.premium,
+    mgmtFee: r.mgmtFee,
+  }
+}
+
+/* 서버에서 목록 로드 */
+async function fetchListings() {
+  try {
+    const { data } = await axios.get('/listings', { params: { _sort: 'id', _order: 'desc' } })
+    const rows = Array.isArray(data) ? data : (data?.data || [])
+    listings.value = rows
+      .filter(r => Number.isFinite(r.lat) && Number.isFinite(r.lng))
+      .map(mapServerRow)
+
+    rebuildMarkers()
+    fitToBounds()
+    if (map && map.getLevel() < CLUSTER_MIN_LEVEL + 1) map.setLevel(CLUSTER_MIN_LEVEL + 1)
+  } catch (e) {
+    console.error('[Map fetchListings] failed:', e)
+    alert('지도를 불러오지 못했습니다.')
+  }
+}
+
+/* 맵 초기화 */
 onMounted(async () => {
   try {
-    await waitKakaoMapsReady() // SDK 완전 로드
+    await waitKakaoMapsReady() 
+    await waitClustererReady()  
 
     const w = window
     if (!mapEl.value) return
@@ -129,36 +136,32 @@ onMounted(async () => {
       level: Math.min(level.value, MAX_ZOOM_OUT_LEVEL),
     })
 
-    console.log('[Cluster] available:', hasClusterer())
-
     markerImage = new w.kakao.maps.MarkerImage(
       pinSrc,
       new w.kakao.maps.Size(36, 36),
       { offset: new w.kakao.maps.Point(18, 36) }
     )
 
-    if (hasClusterer()) {
-      clusterer = new w.kakao.maps.MarkerClusterer({
-        map,
-        averageCenter: true,
-        minLevel: CLUSTER_MIN_LEVEL,
-        minClusterSize: 1,
-        disableClickZoom: true,
-        styles: [{
-          width: '44px', height: '44px',
-          background: 'var(--color-primary-80)',
-          color: '#fff', borderRadius: '22px',
-          textAlign: 'center', lineHeight: '44px',
-          border: '2px solid #fff',
-        }],
-      })
-    } else {
-      console.warn('[Cluster] library NOT loaded → fallback to plain markers')
-    }
+    clusterer = new w.kakao.maps.MarkerClusterer({
+      map,
+      averageCenter: true,
+      minLevel: CLUSTER_MIN_LEVEL,
+      minClusterSize: 1,
+      disableClickZoom: true,
+      styles: [{
+        width: '44px', height: '44px',
+        background: 'var(--color-primary-80)',
+        color: '#fff', borderRadius: '22px',
+        textAlign: 'center', lineHeight: '44px',
+        border: '2px solid #fff',
+      }],
+    })
 
     rebuildMarkers()
     fitToBounds()
     if (map.getLevel() < CLUSTER_MIN_LEVEL + 1) map.setLevel(CLUSTER_MIN_LEVEL + 1)
+
+    await fetchListings()
 
     w.kakao.maps.event.addListener(map, 'dragend', () => updateURL())
     w.kakao.maps.event.addListener(map, 'zoom_changed', () => {
@@ -172,11 +175,11 @@ onMounted(async () => {
     })
   } catch (e) {
     console.error('[Map init failed]', e)
-    alert('지도를 불러오지 못했습니다. 잠시 후 다시 시도해줘.')
+    alert('지도를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.')
   }
 })
 
-/* 마커/클러스터 구성 */
+/* 마커/클러스터 */
 function rebuildMarkers() {
   const w = window
   if (!map || !w.kakao || !w.kakao.maps) return
@@ -202,10 +205,8 @@ function rebuildMarkers() {
 
   if (clusterer) {
     clusterer.addMarkers(markers)
-    console.log('[Cluster] markers added:', markers.length, 'level=', map.getLevel())
   } else {
     markers.forEach(m => m.setMap && m.setMap(map))
-    console.log('[Cluster] fallback markers added:', markers.length)
   }
 }
 
@@ -271,18 +272,6 @@ function moveToCurrentLocation(){
   )
 }
 
-/* DEV 목데이터 (추후 삭제) */
-function seedMocks(n = 120){
-  listings.value = genMocks(n, lat.value, lng.value)
-  rebuildMarkers()
-  fitToBounds()
-  if (map.getLevel() < CLUSTER_MIN_LEVEL + 1) map.setLevel(CLUSTER_MIN_LEVEL + 1)
-}
-function clearMocks(){
-  listings.value = []
-  rebuildMarkers()
-}
-
 /* 정리 */
 onBeforeUnmount(() => {
   closeOverlay()
@@ -309,14 +298,6 @@ onBeforeUnmount(() => {
   .map-wrap{ height: calc(100vh - var(--header-h, 56px) - var(--footer-h, 56px)); }
 }
 .map-root{ width:100%; height:100%; }
-
-.dev-toolbar{
-  position: absolute; left:10px; top:10px; z-index:1100;
-  display:flex; gap:6px;
-}
-.dev-toolbar>button{
-  padding:6px 10px; border-radius:8px; border:1px solid #e2e8f0; background:#fff; cursor:pointer; font-size:12px;
-}
 
 .overlay-container{
   pointer-events:auto;
