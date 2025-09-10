@@ -4,7 +4,8 @@ import NotFoundPage from '@/pages/home/NotFoundPage.vue';
 import authRoutes from './auth.js';
 import listingRoutes from './listing.js';
 import financialRoutes from './financial';
-import chatRoutes from './chat.js'
+import chatRoutes from './chat.js';
+import myPageRoutes from './myPage.js';
 
 const routes = [
   {
@@ -16,6 +17,7 @@ const routes = [
   ...listingRoutes,
   ...chatRoutes,
   ...financialRoutes,
+  ...myPageRoutes,
   {
     // 정의되지 않은 모든 경로 처리
     path: '/:pathMatch(.*)*',
