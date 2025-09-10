@@ -14,86 +14,83 @@
         </div>
       </div>
     </template>
+    <FloatingBtn />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, nextTick } from 'vue';
+import FloatingBtn from './FloatingBtn.vue';
 
 const props = defineProps({
   messages: {
     type: Array,
     default: () => [],
-    // 각 메시지 객체에 date 속성(예: '2023-10-27')이 포함되어야 합니다.
   },
 });
 
 const messagesContainer = ref(null);
 
-// 날짜 구분선을 표시할지 결정하는 함수
+// 날짜 구분선 표시
 const shouldShowDateSeparator = (index) => {
-  if (index === 0) {
-    return true; // 가장 첫 메시지 위에 항상 날짜 표시
-  }
-
+  if (index === 0) return true;
   const currentMsg = props.messages[index];
   const prevMsg = props.messages[index - 1];
-
   return currentMsg.date !== prevMsg.date;
 };
 
 const formatDate = (dateString) => {
-  if (!dateString) return ''; // dateString이 없는 경우 빈 문자열 반환
-
+  if (!dateString) return '';
   const date = new Date(dateString);
-
-  // date 객체가 유효하지 않은 날짜인지 확인
-  if (isNaN(date.getTime())) {
-    // 개발 중에 문제를 쉽게 찾을 수 있도록 콘솔에 에러를 출력합니다.
-    console.error('Invalid date string received:', dateString);
-    return ''; // 빈 문자열을 반환하여 UI에 NaN이 표시되지 않도록 합니다.
-  }
-
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  return `${year}년 ${month}월 ${day}일`;
+  if (isNaN(date.getTime())) return '';
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
 };
 
-// 시간을 표시할지 결정하는 로직 함수 (기존과 동일)
+// 타임스탬프 표시
 const shouldShowTimestamp = (index) => {
   const currentMsg = props.messages[index];
   const nextMsg = props.messages[index + 1];
-
-  if (!nextMsg) {
-    return true;
-  }
-
-  if (currentMsg.user !== nextMsg.user || currentMsg.time !== nextMsg.time) {
-    return true;
-  }
-
-  return false;
+  if (!nextMsg) return true;
+  return currentMsg.user !== nextMsg.user || currentMsg.time !== nextMsg.time;
 };
 
+// 스크롤
 const scrollToBottom = () => {
   if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+    messagesContainer.value.scrollTo({
+      top: messagesContainer.value.scrollHeight,
+      behavior: 'smooth',
+    });
   }
 };
 
 const isScrolledToBottom = () => {
   if (!messagesContainer.value) return true;
   const { scrollTop, clientHeight, scrollHeight } = messagesContainer.value;
-  const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-  return distanceFromBottom < 10;
+  const threshold = 50; // 하단에서 50px 이내면 "최하단"으로 취급
+  return scrollHeight - scrollTop - clientHeight < threshold;
 };
 
-defineExpose({ scrollToBottom, isScrolledToBottom });
+// 최하단이 아닐 때 플로팅 버튼 노출
+const isAtBottom = ref(true);
+const checkScroll = () => {
+  isAtBottom.value = isScrolledToBottom();
+};
+
+// 메시지 변경 시 체크
+watch(
+  () => props.messages,
+  () => {
+    nextTick(checkScroll);
+  },
+  { deep: true }
+);
+
+// expose
+defineExpose({ scrollToBottom, isScrolledToBottom, checkScroll, isAtBottom });
 </script>
 
 <style scoped>
-/* 기존 스타일은 여기에 그대로 유지 */
 .messages {
   display: flex;
   flex-direction: column;

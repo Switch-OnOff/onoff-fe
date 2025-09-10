@@ -15,24 +15,7 @@ const routes = [
   },
   ...authRoutes,
   ...listingRoutes,
-  ...financialRoutes,
-  {
-    path: '/chat-detail/:id',
-    name: 'chat-detail',
-    component: ChatDetailPage,
-    meta: {
-      hideHeader: true,
-      hideFooter: true,
-    },
-  },
-  {
-    path: '/chat-list',
-    name: 'chat-list',
-    component: ChatListPage,
-    meta: {
-      hideHeader: true,
-    },
-  },
+  ...chatRoutes,
   {
     // 정의되지 않은 모든 경로 처리
     path: '/:pathMatch(.*)*',
