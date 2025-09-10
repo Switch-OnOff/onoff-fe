@@ -2,7 +2,92 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 
 export function useWebSocket(url) {
-  const messages = ref([]);
+  const messages = ref([
+    {
+      user: 'me',
+      text: '안녕하세요!',
+      time: '오후 2:30',
+      date: '2025-08-10',
+    },
+    {
+      user: 'other',
+      text: '네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀',
+      time: '오후 2:31',
+      date: '2025-09-10',
+    },
+    {
+      user: 'me',
+      text: '안녕하세요!',
+      time: '오후 2:30',
+      date: '2025-09-10',
+    },
+    {
+      user: 'other',
+      text: '네, 반갑습니다 😀',
+      time: '오후 2:31',
+      date: '2025-09-10',
+    },
+    {
+      user: 'me',
+      text: '오늘 계약 일정 괜찮으세요?',
+      time: '오후 2:35',
+      date: '2025-09-10',
+    },
+    {
+      user: 'other',
+      text: '네, 내일 오후 3시에 가능할 것 같아요.',
+      time: '오후 2:36',
+      date: '2025-09-10',
+    },
+    {
+      user: 'me',
+      text: '좋습니다! 그럼 내일 뵐게요 🙌',
+      time: '오후 2:37',
+      date: '2025-09-10',
+    },
+    {
+      user: 'other',
+      text: '네~ 내일 뵈어요!',
+      time: '오후 2:38',
+      date: '2025-09-10',
+    },
+    {
+      user: 'other',
+      text: '네~ 내일 뵈어요!',
+      time: '오후 2:38',
+      date: '2025-09-10',
+    },
+    {
+      user: 'other',
+      text: '네~ 내일 뵈어요!',
+      time: '오후 2:38',
+      date: '2025-09-10',
+    },
+    {
+      user: 'other',
+      text: '네~ 내일 뵈어요!',
+      time: '오후 2:38',
+      date: '2025-09-10',
+    },
+    {
+      user: 'other',
+      text: '네~ 내일 뵈어요!',
+      time: '오후 2:38',
+      date: '2025-09-10',
+    },
+    {
+      user: 'other',
+      text: '네~ 내일 뵈어요!',
+      time: '오후 2:38',
+      date: '2025-09-10',
+    },
+    {
+      user: 'other',
+      text: '네~ 내일 뵈어요!',
+      time: '오후 2:38',
+      date: '2025-09-10',
+    },
+  ]);
   let ws = null;
 
   const connect = () => {

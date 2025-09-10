@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-container">
+  <div>
     <SimpleHeader
       :title="id"
       :show-more-button="true"
@@ -11,16 +11,18 @@
       @select="handleSelect"
       @close="popoverVisible = false"
     />
-    <MarketInfo />
 
-    <ChatMessages
-      :messages="messages"
-      ref="chatMessagesRef"
-      @scroll-state-change="handleScrollState"
-    />
-    <ChatInput @send="sendMessage" />
+    <div class="chat-container">
+      <MarketInfo />
+      <ChatMessages
+        :messages="messages"
+        ref="chatMessagesRef"
+        @scroll-state-change="handleScrollState"
+      />
+      <ChatInput @send="sendMessage" />
 
-    <FloatingBtn v-if="!isAtBottom" @click="handleScrollToBottom" />
+      <FloatingBtn v-if="!isAtBottom" @click="handleScrollToBottom" />
+    </div>
   </div>
 </template>
 

@@ -10,8 +10,8 @@ defineEmits(['click']);
 
 <style scoped>
 .btn {
-  width: 50px;
-  height: 50px;
+  width: 32px;
+  height: 32px;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 50%;
   display: flex;
@@ -27,8 +27,8 @@ defineEmits(['click']);
 }
 
 .btn img {
-  width: 24px;
-  height: 24px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 </style>

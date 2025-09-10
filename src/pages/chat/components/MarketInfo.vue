@@ -2,8 +2,10 @@
   <div class="container">
     <div class="market-img"></div>
     <div class="market-info">
-      <label class="market-name">한담 해안도로 카페거리 카페 24평</label>
-      <label class="titleExtra16px">매매 1억 2천</label>
+      <label class="bodyMedium14px market-name"
+        >한담 해안도로 카페거리 카페 24평</label
+      >
+      <label class="bodyBold14px">매매 1억 2천</label>
     </div>
   </div>
 </template>
@@ -17,11 +19,19 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+
+  position: fixed;
+  top: 60px;
+  z-index: 100;
+
+  width: 393px;
+
+  background-color: #fff;
 }
 
 .market-img {
-  width: 55px;
-  height: 55px;
+  width: 50px;
+  height: 50px;
   background-color: black;
   border-radius: 10px;
 }
