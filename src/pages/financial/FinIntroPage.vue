@@ -1,7 +1,5 @@
 <template>
   <div class="page">
-    <SimpleHeader title="대출·지원금" />
-
     <TopMessage
       class="px"
       :prefix="'내 정보를 바탕으로 '"
@@ -34,7 +32,6 @@
 </template>
 
 <script setup>
-import SimpleHeader from '@/components/layout/SimpleHeader.vue';
 import TopMessage from './components/TopMessage.vue';
 import BottomCTA from './components/BottomCTA.vue';
 import { useRouter } from 'vue-router';
@@ -51,7 +48,7 @@ const features = [
 ];
 
 const router = useRouter();
-const goNext = () => router.push('/financial/result?status=eligible');
+const goNext = () => router.push('/financial/select');
 const goList = () => router.push('/financial/list'); // TODO: 실제 라우트로 교체
 </script>
 
