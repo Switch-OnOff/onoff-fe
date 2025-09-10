@@ -7,12 +7,21 @@
       <!-- Kakao Map -->
       <div ref="mapEl" class="map-root"></div>
 
-      <!-- 플로팅 컨트롤 -->
+      <!-- 플로팅 컨트롤 (바텀시트 열리면 숨김) -->
       <FloatingButtonStack
         v-if="!isBottomSheetOpen"
         @zoom-in="zoomIn"
         @zoom-out="zoomOut"
         @move-current-location="moveToCurrentLocation"
+      />
+
+      <!-- 클러스터 바텀시트 -->
+      <ClusterSheet
+        :open="isBottomSheetOpen"
+        :items="clusterItems"
+        title="이 지역 매물"
+        @close="closeClusterSheet"
+        @select="goDetail"
       />
     </div>
   </div>
@@ -27,15 +36,21 @@ import axios from 'axios'
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import FloatingButtonStack from '@/pages/listing/components/FloatingButtonStack.vue'
 import ListingMiniCard from '@/pages/listing/components/ListingMiniCard.vue'
+import ClusterSheet from '@/pages/listing/components/ClusterSheet.vue'
 import routerInstance from '@/router'
 import pinImgUrl from '@/assets/icons/listing-pin.png'
+import fallbackThumb from '@/assets/images/fallback-image.png'
 
+
+/** 지도/클러스터 옵션 */
 const MAX_ZOOM_OUT_LEVEL = 12
 const CLUSTER_MIN_LEVEL  = 5
+const LOCK_INIT_VIEW = true
 
 const route = useRoute()
 const router = useRouter()
 
+/** 라우터 쿼리 기반 초기 중심/줌 */
 const initialCenter =
   (route.query.center && route.query.center.split(',').map(Number)) || [37.497976, 127.027636]
 
@@ -43,10 +58,16 @@ const lat = ref(initialCenter[0])
 const lng = ref(initialCenter[1])
 const level = ref(Number(route.query.zoomLevel) || 5)
 
-const listings = ref([]) 
-const selected = ref(null)
-const isBottomSheetOpen = ref(false)
+/** 쿼리에 view 정보가 있으면 복구 모드 */
+const hasQueryView = !!(route.query.center && route.query.zoomLevel)
 
+/** 상태 */
+const listings = ref([])              // 지도에 올릴 매물(전체)
+const selected = ref(null)            // 미니카드(오버레이) 선택 상태
+const isBottomSheetOpen = ref(false)  // 바텀시트 열림 여부
+const clusterItems = ref([])          // 해당 클러스터에 포함된 매물 목록
+
+/** 지도 핸들 */
 const mapEl = ref(null)
 let map = null
 let clusterer = null
@@ -92,7 +113,7 @@ function mapServerRow(r) {
     lat: r.lat,
     lng: r.lng,
     title: r.storeName || r.industry || `상가 ${r.id}`,
-    thumbnail: r.images?.[0] || 'https://placehold.co/240x160?text=IMG',  //나중에 폴백 이미지 변경(leeday)
+    thumbnail: r.images?.[0] || fallbackThumb,
     transactionType: isSale ? 'SALE' : 'MONTHLY',
     salePrice: isSale ? (r.salePrice ?? 0) : undefined,
     deposit: !isSale ? (r.deposit ?? 0) : undefined,
@@ -114,8 +135,15 @@ async function fetchListings() {
       .map(mapServerRow)
 
     rebuildMarkers()
-    fitToBounds()
-    if (map && map.getLevel() < CLUSTER_MIN_LEVEL + 1) map.setLevel(CLUSTER_MIN_LEVEL + 1)
+
+    if (hasQueryView) {
+      const w = window
+      map.setCenter(new w.kakao.maps.LatLng(lat.value, lng.value))
+      map.setLevel(Math.min(level.value, MAX_ZOOM_OUT_LEVEL))
+    } else if (!LOCK_INIT_VIEW) {
+      fitToBounds()
+      if (map.getLevel() < CLUSTER_MIN_LEVEL + 1) map.setLevel(CLUSTER_MIN_LEVEL + 1)
+    }
   } catch (e) {
     console.error('[Map fetchListings] failed:', e)
     alert('지도를 불러오지 못했습니다.')
@@ -125,8 +153,8 @@ async function fetchListings() {
 /* 맵 초기화 */
 onMounted(async () => {
   try {
-    await waitKakaoMapsReady() 
-    await waitClustererReady()  
+    await waitKakaoMapsReady()
+    await waitClustererReady()
 
     const w = window
     if (!mapEl.value) return
@@ -147,7 +175,7 @@ onMounted(async () => {
       averageCenter: true,
       minLevel: CLUSTER_MIN_LEVEL,
       minClusterSize: 1,
-      disableClickZoom: true,
+      disableClickZoom: true, 
       styles: [{
         width: '44px', height: '44px',
         background: 'var(--color-primary-80)',
@@ -157,9 +185,13 @@ onMounted(async () => {
       }],
     })
 
-    rebuildMarkers()
-    fitToBounds()
-    if (map.getLevel() < CLUSTER_MIN_LEVEL + 1) map.setLevel(CLUSTER_MIN_LEVEL + 1)
+    // 클러스터 클릭하면 바텀시트 열기
+    w.kakao.maps.event.addListener(clusterer, 'clusterclick', (cluster) => {
+      const ms = cluster.getMarkers()
+      clusterItems.value = ms.map(m => m.__item).filter(Boolean)
+      isBottomSheetOpen.value = true
+      closeOverlay() // 오버레이 열려 있으면 닫아둠
+    })
 
     await fetchListings()
 
@@ -199,6 +231,8 @@ function rebuildMarkers() {
       image: markerImage,
       clickable: true,
     })
+    m.__item = item
+
     w.kakao.maps.event.addListener(m, 'click', () => openOverlay(item, m))
     return m
   })
@@ -222,7 +256,6 @@ function fitToBounds() {
   }
 }
 
-/* 오버레이 */
 function openOverlay(item, marker) {
   const w = window
   if (!map || !w.kakao || !w.kakao.maps) return
@@ -231,9 +264,9 @@ function openOverlay(item, marker) {
 
   const container = document.createElement('div')
   container.className = 'overlay-container'
-  overlayApp = createApp(ListingMiniCard, { item, onClose: closeOverlay })
-  overlayApp.use(routerInstance)
-  overlayApp.mount(container)
+  const app = createApp(ListingMiniCard, { item, onClose: closeOverlay })
+  app.use(routerInstance)
+  app.mount(container)
 
   overlay = new w.kakao.maps.CustomOverlay({
     map,
@@ -242,6 +275,7 @@ function openOverlay(item, marker) {
     xAnchor: 0.5, yAnchor: 1.05,
     zIndex: 9999,
   })
+  overlayApp = app
   selected.value = item
 }
 function closeOverlay() {
@@ -250,12 +284,23 @@ function closeOverlay() {
   selected.value = null
 }
 
-/* 컨트롤 */
+/* 바텀시트 제어 + 상세 이동 */
+function closeClusterSheet(){
+  isBottomSheetOpen.value = false
+  clusterItems.value = []
+}
+function goDetail(id){
+  closeClusterSheet()
+  router.push({ name: 'listing-detail', params: { id } })
+}
+
+/* URL 쿼리에 현재 뷰 반영 (센터/레벨 기억) */
 function updateURL() {
   const c = map.getCenter(), z = map.getLevel()
   router.replace({ query: { ...route.query, center: `${c.getLat()},${c.getLng()}`, zoomLevel: z } })
   lat.value = c.getLat(); lng.value = c.getLng(); level.value = z
 }
+
 function zoomIn(){ if (map) map.setLevel(map.getLevel() - 1) }
 function zoomOut(){ if (map) { const n = map.getLevel() + 1; if (n <= MAX_ZOOM_OUT_LEVEL) map.setLevel(n) } }
 function moveToCurrentLocation(){
@@ -289,13 +334,13 @@ onBeforeUnmount(() => {
 .map-wrap{
   position: relative;
   width: 100%;
-  height: calc(100dvh - var(--header-h, 56px) - var(--footer-h, 56px));
+  height: calc(100dvh - var(--header-h, 60px) - var(--footer-h, 64px));
   min-height: 420px;
   overscroll-behavior: contain;
   touch-action: none;
 }
 @supports not (height: 100dvh) {
-  .map-wrap{ height: calc(100vh - var(--header-h, 56px) - var(--footer-h, 56px)); }
+  .map-wrap{ height: calc(100vh - var(--header-h, 60px) - var(--footer-h, 64px)); }
 }
 .map-root{ width:100%; height:100%; }
 
