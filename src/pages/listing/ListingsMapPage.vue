@@ -4,22 +4,24 @@
     <SimpleHeader title="양도 매물 지도" />
 
     <div class="map-wrap">
-      <!-- 목데이터 컨트롤 -->
-      <div v-if="DEV" class="dev-toolbar">
-        <button @click="seedMocks(120)">Mock 120</button>
-        <button @click="seedMocks(400)">Mock 400</button>
-        <button @click="clearMocks()">Clear</button>
-      </div>
-
-      <!-- Kakao Map DOM -->
+      <!-- Kakao Map -->
       <div ref="mapEl" class="map-root"></div>
 
-      <!-- 플로팅 컨트롤 -->
+      <!-- 플로팅 컨트롤 (바텀시트 열리면 숨김) -->
       <FloatingButtonStack
         v-if="!isBottomSheetOpen"
         @zoom-in="zoomIn"
         @zoom-out="zoomOut"
         @move-current-location="moveToCurrentLocation"
+      />
+
+      <!-- 클러스터 바텀시트 -->
+      <ClusterSheet
+        :open="isBottomSheetOpen"
+        :items="clusterItems"
+        title="이 지역 매물"
+        @close="closeClusterSheet"
+        @select="goDetail"
       />
     </div>
   </div>
@@ -29,55 +31,25 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { createApp } from 'vue'
+import axios from 'axios'
 
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import FloatingButtonStack from '@/pages/listing/components/FloatingButtonStack.vue'
 import ListingMiniCard from '@/pages/listing/components/ListingMiniCard.vue'
+import ClusterSheet from '@/pages/listing/components/ClusterSheet.vue'
 import routerInstance from '@/router'
-import pinImgUrl from '@/assets/icons/listing-pin.png'
+import pinImgUrl from '@/assets/icons/map/listing-pin (1).png'
+import fallbackThumb from '@/assets/images/fallback-image.png'
 
-/* 목데이터 유틸 (추후 삭제) */
-const DEV = import.meta.env.DEV
-const rnd = (min, max) => Math.random() * (max - min) + min
-const m2lat = (m) => m / 111_111
-const m2lng = (m, lat) => m / (111_111 * Math.cos((lat * Math.PI) / 180))
-
-function mockListing(id, lat, lng) {
-  const isSale = Math.random() < 0.35
-  return {
-    id,
-    title: ['카페','분식','미용실','편의점','의류','베이커리'][id % 6] + ' ' + (100 + id),
-    lat, lng,
-    thumbnail: `https://picsum.photos/seed/listing${id}/240/160`,
-    transactionType: isSale ? 'SALE' : 'MONTHLY',
-    salePrice: isSale ? Math.round(rnd(1.5, 8) * 1e8) : undefined,
-    deposit: !isSale ? Math.round(rnd(2, 8) * 1e7) : undefined,
-    monthlyRent: !isSale ? Math.round(rnd(80, 350) * 1e4) : undefined,
-    address: '서울 강남구 테스트로 ' + (10 + (id % 90)),
-  }
-}
-function genMocks(n, lat0, lng0, radiusM = 2000) {
-  const arr = []
-  for (let i = 0; i < n; i++) {
-    const r = Math.sqrt(Math.random()) * radiusM
-    const t = Math.random() * Math.PI * 2
-    arr.push(
-      mockListing(
-        1000 + i,
-        lat0 + m2lat(r * Math.cos(t)),
-        lng0 + m2lng(r * Math.sin(t), lat0)
-      )
-    )
-  }
-  return arr
-}
-
+/** 지도/클러스터 옵션 */
 const MAX_ZOOM_OUT_LEVEL = 12
 const CLUSTER_MIN_LEVEL  = 5
+const LOCK_INIT_VIEW = true
 
 const route = useRoute()
 const router = useRouter()
 
+/** 라우터 쿼리 기반 초기 중심/줌 */
 const initialCenter =
   (route.query.center && route.query.center.split(',').map(Number)) || [37.497976, 127.027636]
 
@@ -85,17 +57,21 @@ const lat = ref(initialCenter[0])
 const lng = ref(initialCenter[1])
 const level = ref(Number(route.query.zoomLevel) || 5)
 
-const listings = ref(genMocks(120, lat.value, lng.value))
-const selected = ref(null)
-const isBottomSheetOpen = ref(false)
+/** 쿼리에 view 정보가 있으면 복구 모드 */
+const hasQueryView = !!(route.query.center && route.query.zoomLevel)
 
+/** 상태 */
+const listings = ref([])              // 지도에 올릴 매물(전체)
+const selected = ref(null)            // 미니카드(오버레이) 선택 상태
+const isBottomSheetOpen = ref(false)  // 바텀시트 열림 여부
+const clusterItems = ref([])          // 해당 클러스터에 포함된 매물 목록
+
+/** 지도 핸들 */
 const mapEl = ref(null)
 let map = null
-
 let clusterer = null
 let markers = []
 let markerImage = null
-
 let overlay = null
 let overlayApp = null
 
@@ -106,6 +82,7 @@ function isMapsReady() {
   const w = window
   return !!(w.kakao && w.kakao.maps && typeof w.kakao.maps.LatLng === 'function')
 }
+
 function sleep(ms) { return new Promise(res => setTimeout(res, ms)) }
 async function waitKakaoMapsReady(maxMs = 7000, step = 50) {
   const start = Date.now()
@@ -114,12 +91,68 @@ async function waitKakaoMapsReady(maxMs = 7000, step = 50) {
     await sleep(step)
   }
 }
-const hasClusterer = () => !!(window.kakao && window.kakao.maps && window.kakao.maps.MarkerClusterer)
 
-/* 맵 준비 */
+/* Kakao Cluster 로딩 대기 */
+const hasClusterer = () =>
+  !!(window.kakao && window.kakao.maps && window.kakao.maps.MarkerClusterer)
+
+async function waitClustererReady(maxMs = 7000, step = 50) {
+  const start = Date.now()
+  while (!hasClusterer()) {
+    if (Date.now() - start > maxMs) throw new Error('Clusterer not ready in time')
+    await sleep(step)
+  }
+}
+
+/* db.json 데이터를 가지고 지도/카드 모델로 매핑 */
+function mapServerRow(r) {
+  const isSale = r.dealType === '매매'
+  return {
+    id: r.id,
+    lat: r.lat,
+    lng: r.lng,
+    thumbnail: r.images?.[0] || fallbackThumb,
+    transactionType: isSale ? 'SALE' : 'MONTHLY',
+    salePrice: isSale ? (r.salePrice ?? 0) : undefined,
+    deposit: !isSale ? (r.deposit ?? 0) : undefined,
+    monthlyRent: !isSale ? (r.rent ?? 0) : undefined,
+    address: r.address,
+    industry: r.industry,
+    premium: r.premium,
+    mgmtFee: r.mgmtFee,
+  }
+}
+
+/* 서버에서 목록 로드 */
+async function fetchListings() {
+  try {
+    const { data } = await axios.get('/listings', { params: { _sort: 'id', _order: 'desc' } })
+    const rows = Array.isArray(data) ? data : (data?.data || [])
+    listings.value = rows
+      .filter(r => Number.isFinite(r.lat) && Number.isFinite(r.lng))
+      .map(mapServerRow)
+
+    rebuildMarkers()
+
+    if (hasQueryView) {
+      const w = window
+      map.setCenter(new w.kakao.maps.LatLng(lat.value, lng.value))
+      map.setLevel(Math.min(level.value, MAX_ZOOM_OUT_LEVEL))
+    } else if (!LOCK_INIT_VIEW) {
+      fitToBounds()
+      if (map.getLevel() < CLUSTER_MIN_LEVEL + 1) map.setLevel(CLUSTER_MIN_LEVEL + 1)
+    }
+  } catch (e) {
+    console.error('[Map fetchListings] failed:', e)
+    alert('지도를 불러오지 못했습니다.')
+  }
+}
+
+/* 맵 초기화 */
 onMounted(async () => {
   try {
-    await waitKakaoMapsReady() // SDK 완전 로드
+    await waitKakaoMapsReady()
+    await waitClustererReady()
 
     const w = window
     if (!mapEl.value) return
@@ -129,36 +162,42 @@ onMounted(async () => {
       level: Math.min(level.value, MAX_ZOOM_OUT_LEVEL),
     })
 
-    console.log('[Cluster] available:', hasClusterer())
-
     markerImage = new w.kakao.maps.MarkerImage(
       pinSrc,
       new w.kakao.maps.Size(36, 36),
       { offset: new w.kakao.maps.Point(18, 36) }
     )
 
-    if (hasClusterer()) {
-      clusterer = new w.kakao.maps.MarkerClusterer({
-        map,
-        averageCenter: true,
-        minLevel: CLUSTER_MIN_LEVEL,
-        minClusterSize: 1,
-        disableClickZoom: true,
-        styles: [{
-          width: '44px', height: '44px',
-          background: 'var(--color-primary-80)',
-          color: '#fff', borderRadius: '22px',
-          textAlign: 'center', lineHeight: '44px',
-          border: '2px solid #fff',
-        }],
-      })
-    } else {
-      console.warn('[Cluster] library NOT loaded → fallback to plain markers')
-    }
+    clusterer = new w.kakao.maps.MarkerClusterer({
+      map,
+      averageCenter: true,
+      minLevel: CLUSTER_MIN_LEVEL,
+      minClusterSize: 1,
+      disableClickZoom: true,
+      styles: [{
+        width: '44px',
+        height: '44px',
+        background: 'var(--color-primary-80)',
+        color: 'var(--color-white)',
+        borderRadius: '12px',
+        textAlign: 'center',
+        lineHeight: '40px',
+        border: '2px solid var(--color-white)',
+        fontFamily: "'Pretendard', sans-serif",
+        fontWeight: 700,
+        fontSize: '16px'
+      }],
+    })
 
-    rebuildMarkers()
-    fitToBounds()
-    if (map.getLevel() < CLUSTER_MIN_LEVEL + 1) map.setLevel(CLUSTER_MIN_LEVEL + 1)
+    // 클러스터 클릭하면 바텀시트 열기
+    w.kakao.maps.event.addListener(clusterer, 'clusterclick', (cluster) => {
+      const ms = cluster.getMarkers()
+      clusterItems.value = ms.map(m => m.__item).filter(Boolean)
+      isBottomSheetOpen.value = true
+      closeOverlay() // 오버레이 열려 있으면 닫아둠
+    })
+
+    await fetchListings()
 
     w.kakao.maps.event.addListener(map, 'dragend', () => updateURL())
     w.kakao.maps.event.addListener(map, 'zoom_changed', () => {
@@ -172,11 +211,11 @@ onMounted(async () => {
     })
   } catch (e) {
     console.error('[Map init failed]', e)
-    alert('지도를 불러오지 못했습니다. 잠시 후 다시 시도해줘.')
+    alert('지도를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.')
   }
 })
 
-/* 마커/클러스터 구성 */
+/* 마커/클러스터 */
 function rebuildMarkers() {
   const w = window
   if (!map || !w.kakao || !w.kakao.maps) return
@@ -196,16 +235,16 @@ function rebuildMarkers() {
       image: markerImage,
       clickable: true,
     })
+    m.__item = item
+
     w.kakao.maps.event.addListener(m, 'click', () => openOverlay(item, m))
     return m
   })
 
   if (clusterer) {
     clusterer.addMarkers(markers)
-    console.log('[Cluster] markers added:', markers.length, 'level=', map.getLevel())
   } else {
     markers.forEach(m => m.setMap && m.setMap(map))
-    console.log('[Cluster] fallback markers added:', markers.length)
   }
 }
 
@@ -221,7 +260,6 @@ function fitToBounds() {
   }
 }
 
-/* 오버레이 */
 function openOverlay(item, marker) {
   const w = window
   if (!map || !w.kakao || !w.kakao.maps) return
@@ -230,9 +268,9 @@ function openOverlay(item, marker) {
 
   const container = document.createElement('div')
   container.className = 'overlay-container'
-  overlayApp = createApp(ListingMiniCard, { item, onClose: closeOverlay })
-  overlayApp.use(routerInstance)
-  overlayApp.mount(container)
+  const app = createApp(ListingMiniCard, { item, onClose: closeOverlay })
+  app.use(routerInstance)
+  app.mount(container)
 
   overlay = new w.kakao.maps.CustomOverlay({
     map,
@@ -241,6 +279,7 @@ function openOverlay(item, marker) {
     xAnchor: 0.5, yAnchor: 1.05,
     zIndex: 9999,
   })
+  overlayApp = app
   selected.value = item
 }
 function closeOverlay() {
@@ -249,12 +288,23 @@ function closeOverlay() {
   selected.value = null
 }
 
-/* 컨트롤 */
+/* 바텀시트 제어 + 상세 이동 */
+function closeClusterSheet(){
+  isBottomSheetOpen.value = false
+  clusterItems.value = []
+}
+function goDetail(id){
+  closeClusterSheet()
+  router.push({ name: 'listing-detail', params: { id } })
+}
+
+/* URL 쿼리에 현재 뷰 반영 (센터/레벨 기억) */
 function updateURL() {
   const c = map.getCenter(), z = map.getLevel()
   router.replace({ query: { ...route.query, center: `${c.getLat()},${c.getLng()}`, zoomLevel: z } })
   lat.value = c.getLat(); lng.value = c.getLng(); level.value = z
 }
+
 function zoomIn(){ if (map) map.setLevel(map.getLevel() - 1) }
 function zoomOut(){ if (map) { const n = map.getLevel() + 1; if (n <= MAX_ZOOM_OUT_LEVEL) map.setLevel(n) } }
 function moveToCurrentLocation(){
@@ -269,18 +319,6 @@ function moveToCurrentLocation(){
     },
     ()=>alert('현재 위치를 가져올 수 없습니다.')
   )
-}
-
-/* DEV 목데이터 (추후 삭제) */
-function seedMocks(n = 120){
-  listings.value = genMocks(n, lat.value, lng.value)
-  rebuildMarkers()
-  fitToBounds()
-  if (map.getLevel() < CLUSTER_MIN_LEVEL + 1) map.setLevel(CLUSTER_MIN_LEVEL + 1)
-}
-function clearMocks(){
-  listings.value = []
-  rebuildMarkers()
 }
 
 /* 정리 */
@@ -300,23 +338,15 @@ onBeforeUnmount(() => {
 .map-wrap{
   position: relative;
   width: 100%;
-  height: calc(100dvh - var(--header-h, 56px) - var(--footer-h, 56px));
+  height: calc(100dvh - var(--header-h, 60px) - var(--footer-h, 64px));
   min-height: 420px;
   overscroll-behavior: contain;
   touch-action: none;
 }
 @supports not (height: 100dvh) {
-  .map-wrap{ height: calc(100vh - var(--header-h, 56px) - var(--footer-h, 56px)); }
+  .map-wrap{ height: calc(100vh - var(--header-h, 60px) - var(--footer-h, 64px)); }
 }
 .map-root{ width:100%; height:100%; }
-
-.dev-toolbar{
-  position: absolute; left:10px; top:10px; z-index:1100;
-  display:flex; gap:6px;
-}
-.dev-toolbar>button{
-  padding:6px 10px; border-radius:8px; border:1px solid #e2e8f0; background:#fff; cursor:pointer; font-size:12px;
-}
 
 .overlay-container{
   pointer-events:auto;

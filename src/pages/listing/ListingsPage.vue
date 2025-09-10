@@ -88,15 +88,16 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import ListingCard from '@/pages/listing/components/ListingCard.vue'
 import ListingCardGrid from '@/pages/listing/components/ListingCardGrid.vue'
 
 import gridIcon from '@/assets/icons/grid-icon.png'
 import listIcon from '@/assets/icons/list-icon.png'
-import bookmarkIcon from '@/assets/icons/bookmark.png'
+import bookmarkIcon from '@/assets/icons/folder.png'
 
 const router = useRouter()
 
@@ -118,44 +119,82 @@ function goBookmarks() {
   router.push({ name: 'my-bookmarks' })
 }
 
-/** 더미 데이터 10개 */
-const items = ref([
-  { id: 101, img: 'https://picsum.photos/seed/101/600/400', category: '일반음식점/양식', dealType: '월세', deposit: 2000, rent: 160, premium: 3500, areaPyeong: 10, location: '제주시 애월읍' },
-  { id: 102, img: 'https://picsum.photos/seed/102/600/400', category: '주류음식점/양식', dealType: '매매', salePrice: 30000, rent: 400, premium: 20500, areaPyeong: 24, location: '부천시 상동' },
-  { id: 103, img: 'https://picsum.photos/seed/103/600/400', category: '카페', dealType: '월세', deposit: 1000, rent: 90, premium: 2500, areaPyeong: 12, location: '서울 강남구 역삼동' },
-  { id: 104, img: 'https://picsum.photos/seed/104/600/400', category: '베이커리', dealType: '월세', deposit: 3000, rent: 220, premium: 5000, areaPyeong: 18, location: '분당구 정자동' },
-  { id: 105, img: 'https://picsum.photos/seed/105/600/400', category: '일반음식점/한식', dealType: '매매', salePrice: 45000, rent: 0, premium: 0, areaPyeong: 30, location: '부산 수영구 광안동' },
-  { id: 106, img: 'https://picsum.photos/seed/106/600/400', category: '편의점', dealType: '월세', deposit: 5000, rent: 320, premium: 8000, areaPyeong: 20, location: '서울 마포구 합정동' },
-  { id: 107, img: 'https://picsum.photos/seed/107/600/400', category: '사무실', dealType: '월세', deposit: 10000, rent: 650, premium: null, areaPyeong: 35, location: '서울 성수동' },
-  { id: 108, img: 'https://picsum.photos/seed/108/600/400', category: '주류음식점/한식', dealType: '월세', deposit: 1500, rent: 120, premium: 1500, areaPyeong: 11, location: '광주 동구 충장로' },
-  { id: 109, img: 'https://picsum.photos/seed/109/600/400', category: '카페', dealType: '매매', salePrice: 22000, rent: 180, premium: 3000, areaPyeong: 16, location: '대구 수성구 범어동' },
-  { id: 110, img: 'https://picsum.photos/seed/110/600/400', category: '일반음식점/중식', dealType: '월세', deposit: 2500, rent: 190, premium: 2800, areaPyeong: 14, location: '인천 연수구 송도동' },
-])
+/** 카드 매핑 */
+function m2toPyeong(m2) {
+  const n = Number(m2)
+  return Number.isFinite(n) ? Number((n / 3.305785).toFixed(1)) : undefined
+}
+function mapListing(r) {
+  return {
+    id: r.id,
+    img: r.images?.[0] || 'https://placehold.co/600x400?text=IMG',
+    category: r.industry,
+    dealType: r.dealType,
+    deposit: r.deposit,
+    rent: r.rent,
+    salePrice: r.salePrice,
+    premium: r.premium,
+    areaPyeong: m2toPyeong(r?.area?.exclusive ?? r?.area?.supply * 0.75),
+    location: r.address,
+    lat: r.lat,
+    lng: r.lng,
+  }
+}
 
-/** 페이지네이션 (8개/페이지, 5개 윈도우) */
+/** 데이터 & 페이징 상태 */
 const pageSize = 8
 const currentPage = ref(1)
-const totalPages = computed(() => Math.max(1, Math.ceil(items.value.length / pageSize)))
+const rawItems = ref([])
+
+const sortedItems = computed(() =>
+  rawItems.value.slice().sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+)
+const totalItems = computed(() => sortedItems.value.length)
+const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / pageSize)))
 
 const paginatedItems = computed(() => {
   const start = (currentPage.value - 1) * pageSize
-  return items.value.slice(start, start + pageSize)
+  const end = start + pageSize
+  return sortedItems.value.slice(start, end)
 })
 
-function goPage(p) { currentPage.value = Math.min(Math.max(1, p), totalPages.value) }
+async function fetchAll() {
+  try {
+    const { data } = await axios.get('/listings')
+    const rows = Array.isArray(data) ? data : []
+    rawItems.value = rows.map(mapListing)
+    if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
+  } catch (e) {
+    console.warn('[listings] fetchAll fail:', e)
+    rawItems.value = []
+    currentPage.value = 1
+  }
+}
+
+/** 페이지 이동 */
+function goPage(p) {
+  const np = Math.min(Math.max(1, p), totalPages.value)
+  if (np === currentPage.value) return
+  currentPage.value = np
+  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+}
 function prevPage() { goPage(currentPage.value - 1) }
 function nextPage() { goPage(currentPage.value + 1) }
 function goFirst()  { goPage(1) }
 function goLast()   { goPage(totalPages.value) }
 
-watch(totalPages, (t) => { if (currentPage.value > t) currentPage.value = t })
-
+/** 페이지 윈도우 */
 const windowSize = 5
 const windowStart = computed(() => Math.floor((currentPage.value - 1) / windowSize) * windowSize + 1)
 const windowEnd   = computed(() => Math.min(windowStart.value + windowSize - 1, totalPages.value))
 const visiblePageNumbers = computed(() =>
   Array.from({ length: windowEnd.value - windowStart.value + 1 }, (_, i) => windowStart.value + i)
 )
+
+/** 초기 로딩 */
+onMounted(() => {
+  fetchAll()
+})
 </script>
 
 <style scoped>
@@ -178,6 +217,7 @@ const visiblePageNumbers = computed(() =>
   width: 24px;
   height: 24px;
   display: block;
+  margin-right: 18px;
 }
 
 .listings-page {
@@ -221,16 +261,18 @@ const visiblePageNumbers = computed(() =>
 .grid-mode {
   margin-top: 8px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
+/* 그리드 아이템이 내부 콘텐츠 때문에 폭을 밀어내지 않도록 */
+.grid-mode > * { min-width: 0; }
 
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 6px;
-  margin: 16px 0 4px;
+  margin: 12px 0;
 }
 
 .page-btn,

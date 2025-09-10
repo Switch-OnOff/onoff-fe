@@ -1,10 +1,31 @@
 <!-- pages/listing/ListingDetailPage.vue -->
 <template>
   <div class="detail-page">
-    <SimpleHeader title="매물 상세" />
+    <SimpleHeader title="매물 상세">
+      <!-- 북마크 -->
+      <template #action>
+        <button
+          class="header-bookmark-btn"
+          @click="toggleBookmark"
+          :aria-pressed="isBookmarked"
+          aria-label="북마크"
+        >
+          <img
+            :src="bookmarkIconSrc"
+            :alt="isBookmarked ? '북마크됨' : '북마크 추가'"
+            :class="{ pop: bookmarking }"
+          />
+        </button>
+      </template>
+    </SimpleHeader>
 
     <!-- 사진 -->
-    <section class="gallery">
+    <section class="gallery"
+      @mouseenter="pauseAuto"
+      @mouseleave="resumeAuto"
+      @touchstart.passive="pauseAuto"
+      @touchend.passive="resumeAuto"
+    >
       <div class="gallery-track" ref="galleryRef" @scroll.passive="onGalleryScroll">
         <img
           v-for="(src, i) in images"
@@ -13,8 +34,26 @@
           :alt="listing.storeName || '매장 사진'"
           class="slide"
           loading="lazy"
+          @error="onImgError"
         />
       </div>
+
+      <!-- 좌우 네비 버튼 (이미지가 2장 이상일 때만) -->
+      <button
+        v-if="hasMultiple"
+        type="button"
+        class="gallery-nav left"
+        aria-label="이전 사진"
+        @click="prevSlide"
+      >‹</button>
+      <button
+        v-if="hasMultiple"
+        type="button"
+        class="gallery-nav right"
+        aria-label="다음 사진"
+        @click="nextSlide"
+      >›</button>
+
       <div class="gallery-indicator bodyRegular12px">
         {{ currentSlide }} / {{ images.length }}
       </div>
@@ -96,7 +135,7 @@
       </div>
     </section>
 
-    <!-- 카카오맵 기반 위치 컴포넌트 -->
+    <!-- 카카오맵 -->
     <section class="section">
       <KakaoMapAddress
         :address="listing.address"
@@ -110,7 +149,7 @@
 
     <!-- 상세설명 -->
     <section class="section description">
-      <p class="bodyBold18px">상세설명</p>
+      <p class="bodyBold16px">상세설명</p>
       <div class="desc-card">
         <ul class="desc-list">
           <li
@@ -141,50 +180,65 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
+import axios from 'axios' 
+
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import ShareSheet from '@/components/common/ShareSheet.vue'
 import KakaoMapAddress from '@/components/map/KakaoMapAddress.vue'
+import fallbackImg from '@/assets/images/fallback-image.png'
+import emptyStar from '@/assets/icons/empty-star.png'
+import solidStar from '@/assets/icons/solid-star.png'
 
 const route = useRoute()
 
-function getMockById(id) {
-  return {
-    id,
-    images: [
-      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1529429612779-c8e40ef2f36d?q=80&w=1200&auto=format&fit=crop'
-    ],
-    industry: '일반음식점/양식',
-    storeName: '블루빈스 강남점',
-    dealType: '월세',
-    deposit: 2000,
-    rent: 160,
-    premium: 3500,
-    mgmtFee: 10,
-    transfer: { type: '협의', date: '' },
-    shopType: '근린상가',
-    area: { supply: 66, exclusive: 49.5 },
-    floor: { current: 1, total: 12 },
-    parking: { type: '가능', count: 3, paid: true },
-    restroom: '공용',
-    address: '제주 제주시 애월읍 애월해안로 212',
-    deliveryLevel: '보통',
-    takeoutLevel: '많음',
-    description:
-      '지하철 ○○역 도보 2분 거리의 코너 상권으로, 2면 노출 및 넓은 전면(약 8m)으로 가시성이 매우 우수합니다. 출퇴근·점심 시간대 유동 인구가 풍부하고, 주말에는 인근 아파트·학원가·공원 방문객까지 더해져 요일별로 안정적인 고객 흐름이 형성됩니다. 최근 내부 리모델링으로 바닥/벽체 정비, 급·배수 배관 교체, 전기(약 40kW) 및 가스(25mm) 증설, 1,500 사이즈 후드와 급·배기 라인 보강을 완료했습니다. 홀은 테이블 8세트 기준 28~32석 배치가 가능하며, 동선이 깔끔해 회전율이 좋습니다. 냉난방은 개별 시스템으로 여름·겨울 모두 안정적으로 운영됩니다. 주방에는 6구 렌지와 플랫 그릴, 테이블 냉장·냉동 각 2대(총 4대), 제빙기, 2절 싱크 및 준비대가 갖춰져 있어 즉시 영업이 가능하며, 배달·포장 픽업 동선이 홀과 분리되어 피크 타임 병목을 줄였습니다. 양도 가능일은 ‘협의’이며, 세부 조건 및 포함 내역은 미팅 시 상세 안내드리겠습니다.'
-  }
-}
-
-const listing = ref(getMockById(route.params.id || 1))
+const listing = ref({})
 
 const images = computed(() =>
-  listing.value.images?.length
+  Array.isArray(listing.value.images) && listing.value.images.length
     ? listing.value.images
-    : ['https://placehold.co/1200x900?text=STORE']
+    : [fallbackImg]
 )
+
+function onImgError(e) {
+  const img = e.target
+  img.onerror = null
+  img.src = fallbackImg
+}
+
+/* 북마크 */
+const BM_KEY = 'listing-bookmarks'
+const isBookmarked = ref(false)
+const bookmarking = ref(false)
+const bookmarkIconSrc = computed(() => (isBookmarked.value ? solidStar : emptyStar))
+
+function readBookmarkIds() {
+  try { return JSON.parse(localStorage.getItem(BM_KEY) || '[]') } catch { return [] }
+}
+function writeBookmarkIds(arr) {
+  try { localStorage.setItem(BM_KEY, JSON.stringify(arr)) } catch {}
+}
+function syncBookmarkFlag() {
+  const id = Number(listing.value?.id)
+  if (!id) return
+  const set = new Set(readBookmarkIds())
+  isBookmarked.value = set.has(id)
+}
+function toggleBookmark() {
+  const id = Number(listing.value?.id)
+  if (!id) return
+  const arr = readBookmarkIds()
+  const idx = arr.indexOf(id)
+  if (idx >= 0) arr.splice(idx, 1)
+  else arr.push(id)
+  writeBookmarkIds(arr)
+  isBookmarked.value = idx < 0
+  bookmarking.value = true
+  setTimeout(() => (bookmarking.value = false), 260)
+}
+
+const hasMultiple = computed(() => images.value.length > 1)
 
 const galleryRef = ref(null)
 const currentSlide = ref(1)
@@ -238,8 +292,87 @@ function onGalleryScroll() {
   if (!el) return
   const idx = Math.round(el.scrollLeft / el.clientWidth) + 1
   currentSlide.value = Math.min(Math.max(idx, 1), images.value.length)
+  restartAuto()
 }
-onMounted(() => onGalleryScroll())
+
+/* 오토플레이 */
+const AUTO_MS = 3500
+let autoTimer = null
+let resumeTimer = null
+
+function goSlide(i) {
+  const el = galleryRef.value
+  if (!el) return
+  const idx = Math.min(Math.max(i, 1), images.value.length)
+  el.scrollTo({ left: (idx - 1) * el.clientWidth, behavior: 'smooth' })
+}
+
+function nextSlide() {
+  if (!hasMultiple.value) return
+  const n = currentSlide.value % images.value.length + 1
+  goSlide(n)
+}
+
+function prevSlide() {
+  if (!hasMultiple.value) return
+  const n = (currentSlide.value - 2 + images.value.length) % images.value.length + 1
+  goSlide(n)
+}
+
+function startAuto() {
+  if (!hasMultiple.value || autoTimer) return
+  autoTimer = setInterval(nextSlide, AUTO_MS)
+}
+
+function stopAuto() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null }
+}
+
+function restartAuto() {
+  stopAuto()
+  if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null }
+  resumeTimer = setTimeout(() => startAuto(), 1200)
+}
+
+function pauseAuto() {
+  stopAuto()
+  if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null }
+}
+
+function resumeAuto() {
+  restartAuto()
+}
+
+/* 상세 로드 */
+async function fetchDetail(id) {
+  try {
+    const { data } = await axios.get(`/listings/${id}`)
+    listing.value = data
+    syncBookmarkFlag()
+    requestAnimationFrame(() => {
+      onGalleryScroll()
+      startAuto()
+    })
+  } catch (e) {
+    console.warn('[ListingDetail] fetch fail:', e)
+  }
+}
+
+onMounted(() => {
+  const id = route.params.id || 1
+  fetchDetail(id)
+  document.addEventListener('visibilitychange', onVis)
+})
+
+function onVis() {
+  if (document.hidden) pauseAuto()
+  else resumeAuto()
+}
+
+onBeforeUnmount(() => {
+  pauseAuto()
+  document.removeEventListener('visibilitychange', onVis)
+})
 
 const descriptionParas = computed(() =>
   (listing.value.description || '')
@@ -261,6 +394,29 @@ function contact() { alert('1:1 채팅으로 연결합니다.') }
 .detail-page {
   padding-bottom: 0;
   background: var(--color-white);
+}
+
+/* 헤더 북마크 버튼 */
+.header-bookmark-btn{
+  width: 36px; height: 36px; padding: 0; margin: 0;
+  background: transparent; border: none; display: inline-flex;
+  align-items: center; justify-content: center; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.header-bookmark-btn img{
+  width: 22px; 
+  height: 22px; 
+  display: block;
+  transition: transform .18s ease;
+  margin-right: 18px;
+}
+.header-bookmark-btn img.pop{
+  animation: pop .26s ease;
+}
+@keyframes pop{
+  0%{ transform: scale(1); }
+  50%{ transform: scale(1.25); }
+  100%{ transform: scale(1); }
 }
 
 .gallery {
@@ -295,14 +451,30 @@ function contact() { alert('1:1 채팅으로 연결합니다.') }
   padding: 4px 8px;
 }
 
-.section {
-  padding: 16px;
-  color: var(--color-primary);
+/* 좌우 네비 버튼 */
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,.22);
+  color: var(--color-white);
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background .15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
+.gallery-nav:hover { background: rgba(0,0,0,.32); }
+.gallery-nav.left  { left: 8px; }
+.gallery-nav.right { right: 8px; }
 
-.head {
-  padding-top: 12px;
-}
+.section { padding: 16px; color: var(--color-primary); }
+.head { padding-top: 12px; }
 
 .badge {
   display: inline-flex;
