@@ -1,7 +1,23 @@
 <!-- pages/listing/ListingDetailPage.vue -->
 <template>
   <div class="detail-page">
-    <SimpleHeader title="매물 상세" />
+    <SimpleHeader title="매물 상세">
+      <!-- 북마크 -->
+      <template #action>
+        <button
+          class="header-bookmark-btn"
+          @click="toggleBookmark"
+          :aria-pressed="isBookmarked"
+          aria-label="북마크"
+        >
+          <img
+            :src="bookmarkIconSrc"
+            :alt="isBookmarked ? '북마크됨' : '북마크 추가'"
+            :class="{ pop: bookmarking }"
+          />
+        </button>
+      </template>
+    </SimpleHeader>
 
     <!-- 사진 -->
     <section class="gallery"
@@ -172,6 +188,8 @@ import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import ShareSheet from '@/components/common/ShareSheet.vue'
 import KakaoMapAddress from '@/components/map/KakaoMapAddress.vue'
 import fallbackImg from '@/assets/images/fallback-image.png'
+import emptyStar from '@/assets/icons/empty-star.png'
+import solidStar from '@/assets/icons/solid-star.png'
 
 const route = useRoute()
 
@@ -180,13 +198,44 @@ const listing = ref({})
 const images = computed(() =>
   Array.isArray(listing.value.images) && listing.value.images.length
     ? listing.value.images
-    : [fallbackImg]   // ← 여기!
+    : [fallbackImg]
 )
 
 function onImgError(e) {
   const img = e.target
-  img.onerror = null        // 무한 에러 루프 방지
-  img.src = fallbackImg     // 풀백으로 교체
+  img.onerror = null
+  img.src = fallbackImg
+}
+
+/* 북마크 */
+const BM_KEY = 'listing-bookmarks'
+const isBookmarked = ref(false)
+const bookmarking = ref(false)
+const bookmarkIconSrc = computed(() => (isBookmarked.value ? solidStar : emptyStar))
+
+function readBookmarkIds() {
+  try { return JSON.parse(localStorage.getItem(BM_KEY) || '[]') } catch { return [] }
+}
+function writeBookmarkIds(arr) {
+  try { localStorage.setItem(BM_KEY, JSON.stringify(arr)) } catch {}
+}
+function syncBookmarkFlag() {
+  const id = Number(listing.value?.id)
+  if (!id) return
+  const set = new Set(readBookmarkIds())
+  isBookmarked.value = set.has(id)
+}
+function toggleBookmark() {
+  const id = Number(listing.value?.id)
+  if (!id) return
+  const arr = readBookmarkIds()
+  const idx = arr.indexOf(id)
+  if (idx >= 0) arr.splice(idx, 1)
+  else arr.push(id)
+  writeBookmarkIds(arr)
+  isBookmarked.value = idx < 0
+  bookmarking.value = true
+  setTimeout(() => (bookmarking.value = false), 260)
 }
 
 const hasMultiple = computed(() => images.value.length > 1)
@@ -299,6 +348,7 @@ async function fetchDetail(id) {
   try {
     const { data } = await axios.get(`/listings/${id}`)
     listing.value = data
+    syncBookmarkFlag()
     requestAnimationFrame(() => {
       onGalleryScroll()
       startAuto()
@@ -344,6 +394,29 @@ function contact() { alert('1:1 채팅으로 연결합니다.') }
 .detail-page {
   padding-bottom: 0;
   background: var(--color-white);
+}
+
+/* 헤더 북마크 버튼 */
+.header-bookmark-btn{
+  width: 36px; height: 36px; padding: 0; margin: 0;
+  background: transparent; border: none; display: inline-flex;
+  align-items: center; justify-content: center; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.header-bookmark-btn img{
+  width: 22px; 
+  height: 22px; 
+  display: block;
+  transition: transform .18s ease;
+  margin-right: 18px;
+}
+.header-bookmark-btn img.pop{
+  animation: pop .26s ease;
+}
+@keyframes pop{
+  0%{ transform: scale(1); }
+  50%{ transform: scale(1.25); }
+  100%{ transform: scale(1); }
 }
 
 .gallery {
