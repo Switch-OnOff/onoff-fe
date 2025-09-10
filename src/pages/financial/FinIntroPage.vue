@@ -21,14 +21,15 @@
         </li>
       </ul>
     </main>
-
-    <BottomCTA class="px" label="다음" :reserve-bottom="8" @click="goNext">
-      <template #below>
-        <div class="list-link bodyLight12px" @click="goList">
-          대출·지원금 목록 보기
-        </div>
-      </template>
-    </BottomCTA>
+    <div class="cta-wrap px">
+      <BottomCTA label="다음" :reserve-bottom="8" @click="goNext">
+        <template #below>
+          <div class="list-link bodyLight12px" @click="goList">
+            대출·지원금 목록 보기
+          </div>
+        </template>
+      </BottomCTA>
+    </div>
   </div>
 </template>
 
@@ -61,7 +62,7 @@ const goList = () => router.push('/financial/list'); // TODO: 실제 라우트�
 }
 
 .page {
-  height: calc(100vh - 64px);
+  flex: 1;
   display: flex;
   flex-direction: column;
   background: var(--color-white);
@@ -108,6 +109,10 @@ const goList = () => router.push('/financial/list'); // TODO: 실제 라우트�
   height: 100%;
   display: block;
   object-fit: contain;
+}
+
+.cta-wrap {
+  margin-top: auto; /* CTA를 맨 아래로 밀어내기 */
 }
 
 .list-link {
