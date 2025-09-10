@@ -56,7 +56,7 @@ const goToDetail = () => {
 
 .chat-message {
   color: var(--color-darkgray);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -65,6 +65,6 @@ const goToDetail = () => {
 .chat-timestamp {
   margin-left: auto;
   color: var(--color-mediumgray);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 </style>
