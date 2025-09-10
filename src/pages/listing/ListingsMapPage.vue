@@ -177,11 +177,17 @@ onMounted(async () => {
       minClusterSize: 1,
       disableClickZoom: true, 
       styles: [{
-        width: '44px', height: '44px',
+        width: '44px', 
+        height: '44px',
         background: 'var(--color-primary-80)',
-        color: '#fff', borderRadius: '22px',
-        textAlign: 'center', lineHeight: '44px',
-        border: '2px solid #fff',
+        color: 'var(--color-white)', 
+        borderRadius: '12px',
+        textAlign: 'center', 
+        lineHeight: '40px',
+        border: '2px solid var(--color-white)',
+        fontFamily: "'Pretendard', sans=serif",   //편의를 위해 여기서만 직접 폰트 정의(leeday)
+        fontWeight: 700,
+        fontSize: '16px'
       }],
     })
 
