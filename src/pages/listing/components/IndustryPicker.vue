@@ -1,63 +1,59 @@
 <template>
   <div class="industry">
-    <select class="select-box bodyMedium16px" v-model="majorLocal">
-      <option value="">대분류 선택</option>
-      <option v-for="c in categories" :key="c.major" :value="c.major">
-        {{ c.major }}
-      </option>
-    </select>
+    <!-- 대분류 -->
+    <SelectField
+      v-model="majorLocal"
+      :items="majorItems"
+      placeholder="대분류 선택"
+    />
 
-    <select
-      class="select-box bodyMedium16px"
+    <SelectField
       v-model="minorLocal"
-      :disabled="!majorLocal"
-    >
-      <option value="">중분류 선택</option>
-      <option v-for="m in minorList" :key="m" :value="m">
-        {{ m }}
-      </option>
-    </select>
+      :items="minorItems"
+      placeholder="중분류 선택"
+      :class="{ disabled: !majorLocal }"
+    />
   </div>
 </template>
 
 <script setup>
 import { computed, watch, ref } from 'vue'
+import SelectField from '@/pages/listing/components/DropDown.vue'
 
 const props = defineProps({
-  categories: { type: Array, default: () => [] },
+  categories: { type: Array, default: () => [] }, 
   major: String,
   minor: String
 })
+
 const emit = defineEmits(['update:major', 'update:minor'])
 
 const majorLocal = ref(props.major || '')
 const minorLocal = ref(props.minor || '')
 
+/* 드롭다운용 아이템 생성 */
+const majorItems = computed(() =>
+  (props.categories || []).map(c => ({ label: c.major, value: c.major }))
+)
+const minorItems = computed(() => {
+  const f = (props.categories || []).find(c => c.major === majorLocal.value)
+  return (f?.minors || []).map(m => ({ label: m, value: m }))
+})
+
 /* v-model 양방향 바인딩 */
 watch(majorLocal, (v) => {
   emit('update:major', v)
-  if (!v) minorLocal.value = '' // 대분류 비우면 중분류도 초기화
+  if (!v) minorLocal.value = ''      // 대분류 비우면 중분류 초기화
 })
 watch(minorLocal, (v) => emit('update:minor', v))
 
-/* 부모가 props를 바꿨을 때도 로컬 반영 */
-watch(
-  () => props.major,
-  (v) => {
-    if (v !== majorLocal.value) majorLocal.value = v || ''
-    if (!v) minorLocal.value = ''
-  }
-)
-watch(
-  () => props.minor,
-  (v) => {
-    if (v !== minorLocal.value) minorLocal.value = v || ''
-  }
-)
-
-const minorList = computed(() => {
-  const f = props.categories.find((c) => c.major === majorLocal.value)
-  return f ? f.minors : []
+/* 부모에서 props 변경 시 로컬 반영 */
+watch(() => props.major, (v) => {
+  if (v !== majorLocal.value) majorLocal.value = v || ''
+  if (!v) minorLocal.value = ''
+})
+watch(() => props.minor, (v) => {
+  if (v !== minorLocal.value) minorLocal.value = v || ''
 })
 </script>
 
@@ -68,29 +64,10 @@ const minorList = computed(() => {
   gap: 8px;
 }
 
-/* InputSimple.vue 스타일 반영 + 화살표 여유 공간 확보 */
-.select-box {
-  width: 100%;
-  height: 50px;
-  border-radius: 12px;
-  border: 1px solid var(--color-lightgray);
-  padding: 0 8px;
-  padding-right: 36px; 
-  box-sizing: border-box;
-  background: var(--color-white);
-  transition: border 0.2s;
-  font: inherit;
-}
-
-.select-box:focus {
-  border-color: var(--color-primary);
-  outline: none;
-}
-
-/* 비활성화 상태 가독성 */
-.select-box:disabled {
-  background-color: #f7f7f7;
-  color: var(--color-mediumgray);
+/* 중분류 비활성(대분류 미선택 시) */
+.disabled {
+  opacity: .6;
+  pointer-events: none;   /* 클릭/열림 방지 */
   cursor: not-allowed;
 }
 </style>

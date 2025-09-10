@@ -1,7 +1,6 @@
 <template>
   <div class="wizard-page">
     <SimpleHeader title="양도 매물 등록">
-      <!-- 헤더 우측: 테스트용 스킵 버튼 (스텝 1~3에서 표시) -->
       <template #action>
         <button
           v-if="step < 4"
@@ -14,12 +13,14 @@
       </template>
     </SimpleHeader>
 
-    <!-- STEP 1: 진위확인 -->
+    <!-- STEP 1 -->
     <section class="step" v-if="step === 1">
       <h2 class="titleExtra28px">사업자 진위확인</h2>
+      <p class="desc bodyRegular12px">
+        국세청 진위확인으로 사업자 정보를 확인합니다. 등록번호(10자리)·대표자명·개업일자를 입력하세요.
+      </p>
 
       <form class="form" @submit.prevent="onVerify">
-        <!-- 사업자등록번호 (숫자만, 10자리 제한) -->
         <InputField label="사업자등록번호" placeholder="숫자 10자리">
           <input
             class="input-box bodyMedium16px"
@@ -34,14 +35,12 @@
           />
         </InputField>
 
-        <!-- 대표자명 -->
         <InputField
           label="대표자명"
           placeholder="대표자명을 입력하세요"
           v-model="formStep1.ownerName"
         />
 
-        <!-- 개업일자 (숫자만, 8자리 제한) -->
         <InputField label="개업일자" placeholder="예) 20230101">
           <input
             class="input-box bodyMedium16px"
@@ -68,11 +67,10 @@
       </form>
     </section>
 
-    <!-- STEP 2: 기본 정보 -->
+    <!-- STEP 2 -->
     <section class="step" v-else-if="step === 2">
       <h2 class="titleExtra28px">기본 정보</h2>
 
-      <!-- 1단계 정보 요약 -->
       <dl class="biz-kv">
         <div class="kv">
           <dt class="kv-key bodyMedium14px">사업자등록번호</dt>
@@ -88,8 +86,7 @@
         </div>
       </dl>
 
-      <form class="form" @submit.prevent="goStep(3)">
-        <!-- 업종 -->
+      <form class="form" @submit.prevent="onNextStep2">
         <label class="bodyMedium16px">업종</label>
         <IndustryPicker
           v-model:major="formStep2.industryMajor"
@@ -97,10 +94,8 @@
           :categories="INDUSTRY_CATEGORIES"
         />
 
-        <!-- 거래유형 + 금액 입력 묶음 -->
         <label class="bodyMedium16px">거래유형</label>
         <div class="deal-card">
-          <!-- 상단 탭 세그먼트(카드 상단에 붙음) -->
           <div class="deal-seg" role="tablist" aria-label="거래 유형">
             <button
               type="button"
@@ -108,23 +103,17 @@
               :class="{ active: formStep2.dealType === '월세' }"
               :aria-pressed="formStep2.dealType === '월세'"
               @click="formStep2.dealType = '월세'"
-            >
-              월세
-            </button>
+            >월세</button>
             <button
               type="button"
               class="seg-btn bodyMedium14px"
               :class="{ active: formStep2.dealType === '매매' }"
               :aria-pressed="formStep2.dealType === '매매'"
               @click="formStep2.dealType = '매매'"
-            >
-              매매
-            </button>
+            >매매</button>
           </div>
 
-          <!-- 카드 본문 -->
           <div class="deal-body">
-            <!-- 월세 -->
             <template v-if="formStep2.dealType === '월세'">
               <label class="bodyMedium14px label-inline">
                 보증금(만원)
@@ -149,7 +138,6 @@
               />
             </template>
 
-            <!-- 매매 -->
             <template v-else>
               <label class="bodyMedium14px label-inline">
                 매매가(만원)
@@ -165,16 +153,14 @@
           </div>
         </div>
 
-        <!-- 권리금/관리비 -->
         <label class="bodyMedium16px label-inline">
           권리금(만원)
-          <span v-if="premiumWon" class="label-right bodyLight12px">{{ premiumWon }}</span>
+          <span v-if="premiumWon" class="label-right bodyRegular12px">{{ premiumWon }}</span>
         </label>
         <div class="gap-tight">
           <MoneyInput v-model.number="formStep2.premium" />
         </div>
 
-        <!-- 권리금 버튼 그룹(프리셋) -->
         <NumberButtonGroup
           class="nbg-premium"
           :labels="['10만원', '100만원', '1천만원', '1억']"
@@ -188,107 +174,92 @@
         </label>
         <MoneyInput v-model.number="formStep2.mgmtFee" />
 
-        <!-- 양도가능일 -->
         <label class="bodyMedium16px">양도가능일</label>
         <TransferDateField
           v-model:type="formStep2.transfer.type"
           v-model:date="formStep2.transfer.date"
         />
 
-        <!-- 상가형태 -->
         <label class="bodyMedium16px">상가형태</label>
-        <select class="input" v-model="formStep2.shopType">
-          <option value="">선택</option>
-          <option>근린상가</option>
-          <option>로데오/먹자골목</option>
-          <option>오피스상권</option>
-          <option>주상복합</option>
-          <option>몰/쇼핑센터</option>
-          <option>기타/확인필요</option>
-        </select>
+        <SelectField
+          v-model="formStep2.shopType"
+          :items="SHOP_TYPES"
+          placeholder="상가형태 선택"
+        />
 
-        <!-- 면적 -->
         <label class="bodyMedium16px">면적</label>
         <AreaInput
           v-model:m2Supply="formStep2.area.supply"
           v-model:m2Exclusive="formStep2.area.exclusive"
         />
 
-        <!-- 층 정보 -->
         <label class="bodyMedium16px">층 정보</label>
         <FloorInput
-        v-model:isBasement="formStep2.floor.isBasement"
-        v-model:current="formStep2.floor.current"
-        v-model:total="formStep2.floor.total"
+          v-model:isBasement="formStep2.floor.isBasement"
+          v-model:current="formStep2.floor.current"
+          v-model:total="formStep2.floor.total"
         />
 
-        <!-- 주차 -->
         <label class="bodyMedium16px">주차</label>
         <ParkingCard
-        v-model:type="formStep2.parking.type"
-        v-model:count="formStep2.parking.count"
-        v-model:paid="formStep2.parking.paid"
+          v-model:type="formStep2.parking.type"
+          v-model:count="formStep2.parking.count"
+          v-model:paid="formStep2.parking.paid"
         />
 
-        <!-- 화장실 -->
         <label class="bodyMedium16px">화장실</label>
-        <select class="input" v-model="formStep2.restroom">
-          <option value="">선택</option>
-          <option>내부</option>
-          <option>외부(개인)</option>
-          <option>외부(공용)</option>
-        </select>
+        <SelectField
+          v-model="formStep2.restroom"
+          :items="RESTROOM_OPTIONS"
+          placeholder="화장실 선택"
+        />
 
-        <!-- 주소 -->
         <label class="bodyMedium16px">위치(주소)</label>
         <AddressSearch
-        v-model:baseAddress="formStep2.address.base"
-        v-model:detailAddress="formStep2.address.detail"
-        v-model:zonecode="formStep2.address.zip"
+          v-model:baseAddress="formStep2.address.base"
+          v-model:detailAddress="formStep2.address.detail"
+          v-model:zonecode="formStep2.address.zip"
         />
 
-        <div class="row gap">
-          <MedSubmitBtn text="다음" @click="goStep(3)" />
+        <div class="row center submit-row">
+          <MedSubmitBtn text="다음" @click="onNextStep2" />
         </div>
       </form>
     </section>
 
-    <!-- STEP 3 상세 설명 -->
+    <!-- STEP 3 -->
     <section class="step" v-else-if="step === 3">
       <h2 class="titleExtra28px">상세 설명</h2>
-
       <textarea
         class="textarea"
         rows="8"
         v-model="formStep3.description"
         placeholder="상세 설명을 작성하세요."
       ></textarea>
-
-      <div class="row gap">
-        <button class="btn-secondary bodyMedium16px" @click="goStep(2)">
-          이전
-        </button>
+      <div class="row gap submit-row">
         <MedSubmitBtn text="다음" @click="goStep(4)" />
       </div>
     </section>
 
-    <!-- STEP 4: 사진 등록 -->
-    <section class="step" v-else-if="step === 4">
-      <h2 class="titleExtra28px">사진 등록 (3~10장)</h2>
+    <!-- STEP 4 -->
+    <section class="step step-photos" v-else-if="step === 4">
+      <h2 class="titleExtra28px">사진 등록 (1~5장)</h2>
 
-      <input type="file" multiple accept="image/*" @change="onFiles" />
-      <div class="thumbs">
-        <img v-for="(p, i) in photosPreview" :key="i" :src="p" alt="" />
-      </div>
-      <p class="hint bodyRegular12px">최소 3장, 최대 10장 업로드</p>
+      <PhotoUploader
+        v-model="photos"
+        :max="5"
+        :min="1"
+        :capture="true"
+      />
 
-      <div class="row gap">
-        <button class="btn-secondary bodyMedium16px" @click="goStep(3)">
-          이전
-        </button>
+      <p class="desc bodyRegular12px">
+        사진은 최소 1장, 최대 5장까지 등록할 수 있어요.
+      </p>
+
+      <div class="row center submit-row">
         <MedSubmitBtn
           text="등록 완료"
-          :disabled="photos.length < 3 || photos.length > 10"
+          :disabled="!canSubmit"
           @click="submitAll"
         />
       </div>
@@ -299,6 +270,7 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import MedSubmitBtn from '@/components/button/MedSubmitBtn.vue'
@@ -309,14 +281,16 @@ import MoneyInput from '@/pages/listing/components/MoneyInput.vue'
 import AreaInput from '@/pages/listing/components/AreaInput.vue'
 import TransferDateField from '@/pages/listing/components/TransferDateField.vue'
 import AddressSearch from '@/pages/listing/components/AddressSearch.vue'
-import KakaoMapAddress from '@/components/map/KakaoMapAddress.vue'
 import NumberButtonGroup from '@/components/input/NumberButtonGroup.vue'
 import FloorInput from '@/pages/listing/components/FloorInput.vue'
 import ParkingCard from '@/pages/listing/components/ParkingCard.vue'
+import SelectField from '@/pages/listing/components/DropDown.vue'
+import PhotoUploader from '@/pages/listing/components/PhotoUploader.vue'
 
 const step = ref(1)
 const verifying = ref(false)
 const errorMsg = ref('')
+const router = useRouter()
 
 const INDUSTRY_CATEGORIES = [
   { major: '일반음식점', minors: ['한식', '중식', '양식', '분식', '치킨', '카페/디저트'] },
@@ -324,18 +298,22 @@ const INDUSTRY_CATEGORIES = [
   { major: '소매', minors: ['편의점', '잡화', '의류', '기타'] },
 ]
 
-const formStep1 = reactive({
-  bNo: '',
-  ownerName: '',
-  openDt: '', // YYYYMMDD
-})
+const SHOP_TYPES = [
+  { label: '근린상가', value: '근린상가' },
+  { label: '로데오/먹자골목', value: '로데오/먹자골목' },
+  { label: '오피스상권', value: '오피스상권' },
+  { label: '주상복합', value: '주상복합' },
+  { label: '몰/쇼핑센터', value: '몰/쇼핑센터' },
+  { label: '기타/확인필요', value: '기타/확인필요' },
+]
+const RESTROOM_OPTIONS = [
+  { label: '내부', value: '내부' },
+  { label: '외부(개인)', value: '외부(개인)' },
+  { label: '외부(공용)', value: '외부(공용)' },
+]
 
-const verified = reactive({
-  ok: false,
-  bNo: '',
-  ownerName: '',
-  openDt: '',
-})
+const formStep1 = reactive({ bNo: '', ownerName: '', openDt: '' })
+const verified = reactive({ ok: false, bNo: '', ownerName: '', openDt: '' })
 
 const formStep2 = reactive({
   industryMajor: '',
@@ -346,23 +324,22 @@ const formStep2 = reactive({
   salePrice: null,
   premium: null,
   mgmtFee: null,
-  transfer: { type: '협의', date: '' }, // '날짜' | '협의' | '즉시'
+  transfer: { type: '협의', date: '' },
   shopType: '',
-  area: { supply: null, exclusive: null }, // m2
+  area: { supply: null, exclusive: null },
   floor: { isBasement: false, current: null, total: null },
   parking: { type: '', count: null, paid: false },
   restroom: '',
-  address: { base: '', detail: '' },
+  address: { base: '', detail: '', zip: '' },
 })
 
 const mgmtFeeWon = computed(() => manToKoreanWon(formStep2.mgmtFee))
+const formStep3 = reactive({ description: '' })
 
-const formStep3 = reactive({
-  description: '',
-})
-
-const photos = ref([])
-const photosPreview = ref([])
+const photos = ref([]) // File[]
+const MAX_PHOTOS = 5
+const MIN_PHOTOS = 1
+const canSubmit = computed(() => photos.value.length >= MIN_PHOTOS && photos.value.length <= MAX_PHOTOS)
 
 function goStep(n) { step.value = n }
 
@@ -400,17 +377,11 @@ async function onVerify() {
     } else {
       errorMsg.value = data?.message || '진위확인 실패'
     }
-  } catch (e) {
+  } catch {
     errorMsg.value = '서버 오류로 확인에 실패했습니다.'
   } finally {
     verifying.value = false
   }
-}
-
-function onFiles(e) {
-  const files = Array.from(e.target.files || [])
-  photos.value = files.slice(0, 10)
-  photosPreview.value = photos.value.map((f) => URL.createObjectURL(f))
 }
 
 function addAmount(field, delta) {
@@ -419,13 +390,15 @@ function addAmount(field, delta) {
   formStep2[field] = Math.max(0, next)
 }
 
-/** 금액(만원) → 한글 원 표기 */
 function manToKoreanWon(num) {
+  if (num === null || num === undefined || num === '') return ''
   const n = Number(num)
-  if (!n) return ''
-  let rest = Math.floor(n * 10000) // 원
+  if (Number.isNaN(n)) return ''
+  if (n === 0) return '0원'
+
+  let rest = Math.floor(n * 10000)
   const eok = Math.floor(rest / 100000000)
-  rest = rest % 100000000
+  rest %= 100000000
   const man = Math.floor(rest / 10000)
   const won = rest % 10000
 
@@ -441,6 +414,41 @@ const depositWon = computed(() => manToKoreanWon(formStep2.deposit))
 const rentWon    = computed(() => manToKoreanWon(formStep2.rent))
 const saleWon    = computed(() => manToKoreanWon(formStep2.salePrice))
 const premiumWon = computed(() => manToKoreanWon(formStep2.premium))
+
+function onNextStep2() {
+  const missing = []
+  if (!formStep2.industryMajor) missing.push('업종(대분류)')
+  if (!formStep2.industryMinor) missing.push('업종(중분류)')
+
+  if (formStep2.dealType === '월세') {
+    if (formStep2.deposit === null) missing.push('보증금')
+    if (formStep2.rent === null) missing.push('월세')
+  } else {
+    if (formStep2.salePrice === null) missing.push('매매가')
+  }
+
+  if (!formStep2.transfer?.type) missing.push('양도가능일')
+  if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date) missing.push('양도가능일(날짜)')
+
+  if (!formStep2.shopType) missing.push('상가형태')
+  if (formStep2.area.supply === null) missing.push('공급면적')
+  if (formStep2.area.exclusive === null) missing.push('전용면적')
+  if (formStep2.floor.current === null) missing.push('해당층')
+
+  if (!formStep2.parking?.type) missing.push('주차 형태')
+  if (formStep2.parking?.type && formStep2.parking.type !== '없음' && formStep2.parking.count === null) {
+    missing.push('주차 대수')
+  }
+
+  if (!formStep2.restroom) missing.push('화장실')
+  if (!formStep2.address.base) missing.push('기본주소')
+
+  if (missing.length) {
+    alert('다음 항목을 입력해주세요:\n- ' + missing.join('\n- '))
+    return
+  }
+  goStep(3)
+}
 
 const payload = computed(() => {
   const restroomForDb = (() => {
@@ -475,16 +483,47 @@ const payload = computed(() => {
 })
 
 async function submitAll() {
-  try {
-    const fd = new FormData()
-    fd.append('data', JSON.stringify(payload.value))
-    photos.value.forEach((f, i) => fd.append('photos', f, f.name || `photo_${i}.jpg`))
-    await axios.post('/api/listings', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
-    alert('등록이 완료되었습니다.')
-  } catch (e) {
-    alert('등록 실패. 잠시 후 다시 시도해주세요.')
+  if (!photos.value || photos.value.length === 0) {
+    alert('사진을 최소 1장 등록해 주세요.');
+    return;
   }
-}
+
+  try {
+    const fd = new FormData();
+    fd.append('data', JSON.stringify(payload.value));
+    photos.value.forEach((f, i) =>
+      fd.append('photos', f, f.name || `photo_${i}.jpg`)
+    );
+
+    const { data, headers } = await axios.post('/api/listings', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+
+    let id =
+      data?.id ??
+      data?.listingId ??
+      data?.result?.id ??
+      data?.slug ??
+      data?.data?.id ??
+      data?.data?.slug
+    if (!id && headers?.location) {
+      const m = headers.location.match(/\/listing\/([^/?#]+)/)
+      if (m) id = m[1]
+    }
+
+    alert('등록 완료')
+
+    if (id) {
+      await router.push({ name: 'listing-detail', params: { id } })
+    } else if (headers?.location) {
+      await router.push(headers.location)
+    } else {
+      await router.push({ name: 'listing-list' })
+    }
+   } catch {
+     alert('등록 실패. 잠시 후 다시 시도해주세요.')
+   }
+ }
 </script>
 
 <style scoped>
@@ -498,13 +537,17 @@ async function submitAll() {
   overflow-x: hidden;
 }
 
-/* 단계 제목 */
 .step > h2 {
   color: var(--color-primary);
-  margin: 0 0 16px;
+  margin: 0 0 8px;
 }
 
-/* 헤더 우측 스킵 버튼 (임시) */
+.desc {
+  color: var(--color-darkgray);
+  margin: 0 0 14px;
+  line-height: 1.45;
+}
+
 .header-skip {
   background: transparent;
   border: 1px solid var(--color-lightgray);
@@ -516,32 +559,29 @@ async function submitAll() {
 
 .step { display: block; }
 
-/* === 폼 간격 커스터마이징 === */
-.form { display: block; } /* gap 제거 */
-
+.form { display: block; }
 .form > label {
   display: block;
   color: var(--color-primary);
   margin: 0;
 }
+.form > label + * { margin-top: 6px; margin-bottom: 18px; }
 
-.form > label + * {
-  margin-top: 6px;
-  margin-bottom: 18px;
-}
-
-/* 라벨 우측 금액(한글표기) 배치 */
 .label-inline {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  width: 100%;
+  gap: 6px;
 }
-.label-right {
+.label-inline .label-right {
+  margin-left: auto;
   color: var(--color-darkgray);
-  margin-left: 8px;
+  text-align: right;
 }
 
-/* 입력 기본 */
+.deal-body .label-inline { justify-content: space-between; }
+.deal-body .label-inline .label-right { margin-left: 8px; }
+
 .input,
 .textarea,
 select {
@@ -554,8 +594,10 @@ select {
 }
 .textarea { resize: vertical; }
 
-.row { display: flex; gap: 8px; }
-.row.gap { justify-content: space-between; }
+.row { width: 100%; display: flex; gap: 8px; }
+.row.center  { justify-content: center; }
+.row.gap     { justify-content: space-between; }
+.submit-row  { margin-top: 20px; }
 
 .btn-secondary {
   background: var(--color-white);
@@ -568,16 +610,13 @@ select {
 
 .error { color: var(--color-error); }
 
-/* ===== 거래유형 카드 ===== */
 .deal-card {
   border: 1px solid var(--color-lightgray);
   border-radius: 12px;
-  overflow: hidden;     /* 탭과 카드가 한 몸처럼 */
+  overflow: hidden;
   background: #fff;
   margin-bottom: 18px;
 }
-
-/* 상단 탭 세그먼트 */
 .deal-seg {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -597,19 +636,11 @@ select {
   color: var(--color-primary);
   font-weight: 600;
 }
-
-/* 카드 본문 */
 .deal-body { padding: 12px; }
 .deal-body > label { margin-top: 2px; }
 .deal-body > label + * { margin-top: 6px; }
+.deal-body :deep(.number-button-group) { margin-top: 8px; margin-bottom: 12px; }
 
-/* 카드 내부 NumberButtonGroup 기본 간격 */
-.deal-body :deep(.number-button-group) {
-  margin-top: 8px;
-  margin-bottom: 12px;
-}
-
-/* 공통 세그먼트(다른 곳에서 쓰일 수 있어 유지) */
 .seg {
   display: inline-flex;
   border: 1px solid var(--color-lightgray);
@@ -626,23 +657,11 @@ select {
 }
 .seg-btn.active { background: var(--color-primary-10); color: var(--color-primary); }
 
-/* 2열 그리드 */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .mt8 { margin-top: 8px; }
 
-/* 썸네일 */
-.thumbs {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 8px; margin-top: 8px;
-}
-.thumbs img {
-  width: 100%; height: 74px; object-fit: cover;
-  border-radius: 8px; border: 1px solid var(--color-lightgray);
-}
-
 .hint { color: var(--color-darkgray); }
 
-/* 요약표 */
 .biz-kv {
   display: grid;
   grid-template-columns: 1fr;
@@ -656,7 +675,6 @@ select {
 .kv-key { color: var(--color-lightblack); }
 .kv-val { color: var(--color-black); }
 
-/* 페이지 내 슬롯 인풋 스타일 */
 .input-box {
   width: 100%;
   height: 50px;
@@ -671,15 +689,5 @@ select {
 .input-box:focus { border-color: var(--color-primary); }
 .input-box::placeholder { color: var(--color-mediumgray); }
 
-/* 권리금: 라벨 - 인풋 간 6px, 인풋 - 버튼 간 6px */
-.form > label + .gap-tight {
-  margin-top: 6px;
-  margin-bottom: 6px; 
-}
-
-/* 권리금 버튼 그룹: 위쪽 8px, 아래(다음 라벨) 24px */
-:deep(.nbg-premium.number-button-group) {
-  margin-top: 8px !important;
-  margin-bottom: 24px !important;
-}
+.step-photos { margin-left: -0.5rem; margin-right: -0.5rem; }
 </style>

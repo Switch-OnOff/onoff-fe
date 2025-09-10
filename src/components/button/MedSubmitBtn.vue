@@ -38,7 +38,8 @@ const isWhiteBg = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 330px;
+  width: 100%;
+  min-width: 330px;
   height: 35px;    
   padding: 0;
   border: none;
