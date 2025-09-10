@@ -1,20 +1,18 @@
 import { defineStore } from 'pinia';
 
-type User = { id: string; name: string } | null;
-
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    token: '' as string,
-    user: null as User,
+    token: '',
+    user: null,
   }),
   actions: {
     restore() {
       const t = localStorage.getItem('accessToken') || '';
       this.token = t;
-      // 필요하다면 여기서 사용자 정보도 복원
+      // 필요하다면 사용자 정보 복원
       // this.user = JSON.parse(localStorage.getItem('me') || 'null')
     },
-    setToken(t: string) {
+    setToken(t) {
       this.token = t;
       localStorage.setItem('accessToken', t);
     },
