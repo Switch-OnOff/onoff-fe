@@ -19,6 +19,14 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+
+  position: fixed;
+  top: 60px;
+  z-index: 100;
+
+  width: 393px;
+
+  background-color: #fff;
 }
 
 .market-img {

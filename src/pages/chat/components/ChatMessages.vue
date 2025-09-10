@@ -118,7 +118,7 @@ defineExpose({ scrollToBottom, isScrolledToBottom, checkScroll, isAtBottom });
 .messages {
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: 5rem 1rem 1rem;
   flex-grow: 1;
   overflow-y: auto;
 }
