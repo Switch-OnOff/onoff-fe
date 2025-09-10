@@ -3,9 +3,8 @@ import HomePage from '@/pages/home/HomePage.vue';
 import NotFoundPage from '@/pages/home/NotFoundPage.vue';
 import authRoutes from './auth.js';
 import listingRoutes from './listing.js';
+import chatRoutes from './chat.js';
 import financialRoutes from './financial';
-import ChatDetailPage from '@/pages/chat/ChatDetailPage.vue';
-import ChatListPage from '@/pages/chat/ChatListPage.vue';
 
 const routes = [
   {
