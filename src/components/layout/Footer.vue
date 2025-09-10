@@ -40,7 +40,7 @@ const route = useRoute();
 const navItems = [
   { path: '/', label: '홈', icon: homeIcon, iconActive: homeIconActive },
   {
-    path: '/loan',
+    path: '/financial',
     label: '대출·지원금',
     icon: loanIcon,
     iconActive: loanIconActive,
