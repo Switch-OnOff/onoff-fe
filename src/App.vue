@@ -32,8 +32,8 @@ const hideHeader = computed(() => !!route.meta.hideHeader);
 const hideFooter = computed(() => !!route.meta.hideFooter);
 
 onMounted(() => {
-  // authStore.restore()
-});
+  authStore.restore()
+})
 </script>
 
 <style scoped>
@@ -58,9 +58,6 @@ onMounted(() => {
   flex: 1;
   overflow-x: hidden; /* 방어용 */
   padding: 60px 0 64px 0; /* 푸터 가림 방지 */
-}
-.main-content.has-header {
-  padding-top: 60px;
 }
 </style>
 
