@@ -35,7 +35,7 @@ const close = () => {
 
 <style scoped>
 .popover-wrapper {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
