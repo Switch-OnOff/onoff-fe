@@ -1,10 +1,31 @@
 <!-- pages/listing/ListingDetailPage.vue -->
 <template>
   <div class="detail-page">
-    <SimpleHeader title="매물 상세" />
+    <SimpleHeader title="매물 상세">
+      <!-- 북마크 -->
+      <template #action>
+        <button
+          class="header-bookmark-btn"
+          @click="toggleBookmark"
+          :aria-pressed="isBookmarked"
+          aria-label="북마크"
+        >
+          <img
+            :src="bookmarkIconSrc"
+            :alt="isBookmarked ? '북마크됨' : '북마크 추가'"
+            :class="{ pop: bookmarking }"
+          />
+        </button>
+      </template>
+    </SimpleHeader>
 
     <!-- 사진 -->
-    <section class="gallery">
+    <section class="gallery"
+      @mouseenter="pauseAuto"
+      @mouseleave="resumeAuto"
+      @touchstart.passive="pauseAuto"
+      @touchend.passive="resumeAuto"
+    >
       <div class="gallery-track" ref="galleryRef" @scroll.passive="onGalleryScroll">
         <img
           v-for="(src, i) in images"
@@ -13,8 +34,26 @@
           :alt="listing.storeName || '매장 사진'"
           class="slide"
           loading="lazy"
+          @error="onImgError"
         />
       </div>
+
+      <!-- 좌우 네비 버튼 (이미지가 2장 이상일 때만) -->
+      <button
+        v-if="hasMultiple"
+        type="button"
+        class="gallery-nav left"
+        aria-label="이전 사진"
+        @click="prevSlide"
+      >‹</button>
+      <button
+        v-if="hasMultiple"
+        type="button"
+        class="gallery-nav right"
+        aria-label="다음 사진"
+        @click="nextSlide"
+      >›</button>
+
       <div class="gallery-indicator bodyRegular12px">
         {{ currentSlide }} / {{ images.length }}
       </div>
@@ -96,7 +135,7 @@
       </div>
     </section>
 
-    <!-- 카카오맵 기반 위치 컴포넌트 -->
+    <!-- 카카오맵 -->
     <section class="section">
       <KakaoMapAddress
         :address="listing.address"
@@ -141,13 +180,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios' 
 
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import ShareSheet from '@/components/common/ShareSheet.vue'
 import KakaoMapAddress from '@/components/map/KakaoMapAddress.vue'
+import fallbackImg from '@/assets/images/fallback-image.png'
+import emptyStar from '@/assets/icons/empty-star.png'
+import solidStar from '@/assets/icons/solid-star.png'
 
 const route = useRoute()
 
@@ -156,8 +198,47 @@ const listing = ref({})
 const images = computed(() =>
   Array.isArray(listing.value.images) && listing.value.images.length
     ? listing.value.images
-    : ['https://placehold.co/1200x900?text=STORE']
-) /** 이 부분 나중에 로고 또는 관련 icon 깔린 폴백 이미지 하나 정해서 넣어둘 것 (leeday) */
+    : [fallbackImg]
+)
+
+function onImgError(e) {
+  const img = e.target
+  img.onerror = null
+  img.src = fallbackImg
+}
+
+/* 북마크 */
+const BM_KEY = 'listing-bookmarks'
+const isBookmarked = ref(false)
+const bookmarking = ref(false)
+const bookmarkIconSrc = computed(() => (isBookmarked.value ? solidStar : emptyStar))
+
+function readBookmarkIds() {
+  try { return JSON.parse(localStorage.getItem(BM_KEY) || '[]') } catch { return [] }
+}
+function writeBookmarkIds(arr) {
+  try { localStorage.setItem(BM_KEY, JSON.stringify(arr)) } catch {}
+}
+function syncBookmarkFlag() {
+  const id = Number(listing.value?.id)
+  if (!id) return
+  const set = new Set(readBookmarkIds())
+  isBookmarked.value = set.has(id)
+}
+function toggleBookmark() {
+  const id = Number(listing.value?.id)
+  if (!id) return
+  const arr = readBookmarkIds()
+  const idx = arr.indexOf(id)
+  if (idx >= 0) arr.splice(idx, 1)
+  else arr.push(id)
+  writeBookmarkIds(arr)
+  isBookmarked.value = idx < 0
+  bookmarking.value = true
+  setTimeout(() => (bookmarking.value = false), 260)
+}
+
+const hasMultiple = computed(() => images.value.length > 1)
 
 const galleryRef = ref(null)
 const currentSlide = ref(1)
@@ -211,15 +292,67 @@ function onGalleryScroll() {
   if (!el) return
   const idx = Math.round(el.scrollLeft / el.clientWidth) + 1
   currentSlide.value = Math.min(Math.max(idx, 1), images.value.length)
+  restartAuto()
 }
 
-// 서버에서 상세 가져오기
+/* 오토플레이 */
+const AUTO_MS = 3500
+let autoTimer = null
+let resumeTimer = null
+
+function goSlide(i) {
+  const el = galleryRef.value
+  if (!el) return
+  const idx = Math.min(Math.max(i, 1), images.value.length)
+  el.scrollTo({ left: (idx - 1) * el.clientWidth, behavior: 'smooth' })
+}
+
+function nextSlide() {
+  if (!hasMultiple.value) return
+  const n = currentSlide.value % images.value.length + 1
+  goSlide(n)
+}
+
+function prevSlide() {
+  if (!hasMultiple.value) return
+  const n = (currentSlide.value - 2 + images.value.length) % images.value.length + 1
+  goSlide(n)
+}
+
+function startAuto() {
+  if (!hasMultiple.value || autoTimer) return
+  autoTimer = setInterval(nextSlide, AUTO_MS)
+}
+
+function stopAuto() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null }
+}
+
+function restartAuto() {
+  stopAuto()
+  if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null }
+  resumeTimer = setTimeout(() => startAuto(), 1200)
+}
+
+function pauseAuto() {
+  stopAuto()
+  if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null }
+}
+
+function resumeAuto() {
+  restartAuto()
+}
+
+/* 상세 로드 */
 async function fetchDetail(id) {
   try {
-    const { data } = await axios.get(`/listings/${id}`) // baseURL=/api (main.js에서 세팅)
+    const { data } = await axios.get(`/listings/${id}`)
     listing.value = data
-    // 이미지 지표 초기화
-    requestAnimationFrame(() => onGalleryScroll())
+    syncBookmarkFlag()
+    requestAnimationFrame(() => {
+      onGalleryScroll()
+      startAuto()
+    })
   } catch (e) {
     console.warn('[ListingDetail] fetch fail:', e)
   }
@@ -228,6 +361,17 @@ async function fetchDetail(id) {
 onMounted(() => {
   const id = route.params.id || 1
   fetchDetail(id)
+  document.addEventListener('visibilitychange', onVis)
+})
+
+function onVis() {
+  if (document.hidden) pauseAuto()
+  else resumeAuto()
+}
+
+onBeforeUnmount(() => {
+  pauseAuto()
+  document.removeEventListener('visibilitychange', onVis)
 })
 
 const descriptionParas = computed(() =>
@@ -250,6 +394,29 @@ function contact() { alert('1:1 채팅으로 연결합니다.') }
 .detail-page {
   padding-bottom: 0;
   background: var(--color-white);
+}
+
+/* 헤더 북마크 버튼 */
+.header-bookmark-btn{
+  width: 36px; height: 36px; padding: 0; margin: 0;
+  background: transparent; border: none; display: inline-flex;
+  align-items: center; justify-content: center; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.header-bookmark-btn img{
+  width: 22px; 
+  height: 22px; 
+  display: block;
+  transition: transform .18s ease;
+  margin-right: 18px;
+}
+.header-bookmark-btn img.pop{
+  animation: pop .26s ease;
+}
+@keyframes pop{
+  0%{ transform: scale(1); }
+  50%{ transform: scale(1.25); }
+  100%{ transform: scale(1); }
 }
 
 .gallery {
@@ -284,14 +451,30 @@ function contact() { alert('1:1 채팅으로 연결합니다.') }
   padding: 4px 8px;
 }
 
-.section {
-  padding: 16px;
-  color: var(--color-primary);
+/* 좌우 네비 버튼 */
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,.22);
+  color: var(--color-white);
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background .15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
+.gallery-nav:hover { background: rgba(0,0,0,.32); }
+.gallery-nav.left  { left: 8px; }
+.gallery-nav.right { right: 8px; }
 
-.head {
-  padding-top: 12px;
-}
+.section { padding: 16px; color: var(--color-primary); }
+.head { padding-top: 12px; }
 
 .badge {
   display: inline-flex;
