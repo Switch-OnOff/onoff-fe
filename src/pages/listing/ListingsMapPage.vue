@@ -38,7 +38,7 @@ import FloatingButtonStack from '@/pages/listing/components/FloatingButtonStack.
 import ListingMiniCard from '@/pages/listing/components/ListingMiniCard.vue'
 import ClusterSheet from '@/pages/listing/components/ClusterSheet.vue'
 import routerInstance from '@/router'
-import pinImgUrl from '@/assets/icons/listing-pin.png'
+import pinImgUrl from '@/assets/icons/map/listing-pin (1).png'
 import fallbackThumb from '@/assets/images/fallback-image.png'
 
 
