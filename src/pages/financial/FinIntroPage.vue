@@ -34,12 +34,16 @@ import SimpleHeader from '@/components/layout/SimpleHeader.vue';
 import TopMessage from './components/TopMessage.vue';
 import BottomCTA from './components/BottomCTA.vue';
 import { useRouter } from 'vue-router';
+
 import docImg from '@/assets/icons/financial/document.png';
+import checkImg from '@/assets/icons/financial/check.png';
+import barchartImg from '@/assets/icons/financial/barchart.png';
+import notificationImg from '@/assets/icons/financial/notification.png';
 
 const features = [
-  { text: '조건 충족 여부를 직관적으로 보여줘요', icon: null },
-  { text: '한도, 금리, 조건을 쉽게 비교해요', icon: null },
-  { text: '필요 서류와 다음 행동을 안내해요', icon: null },
+  { text: '조건 충족 여부를 직관적으로 보여줘요', icon: checkImg },
+  { text: '한도, 금리, 조건을 쉽게 비교해요', icon: barchartImg },
+  { text: '필요 서류와 다음 행동을 안내해요', icon: notificationImg },
 ];
 
 const router = useRouter();
@@ -86,9 +90,20 @@ const goList = () => router.push('/financial/list'); // TODO: 실제 라우트�
   margin-bottom: 0.75rem;
 }
 
+.icon-box {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: 0 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
 .icon-box img {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: contain;
 }
 
