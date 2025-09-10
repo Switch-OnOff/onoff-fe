@@ -28,17 +28,13 @@
       </div>
     </main>
 
-    <!-- CTA -->
-    <BottomCTA
-      class="px"
-      :label="ctaLabel"
-      :reserve-bottom="8"
-      @click="onPrimary"
-    >
-      <template #below>
-        <div class="cta-spacer"></div>
-      </template>
-    </BottomCTA>
+    <div class="cta-wrap px">
+      <BottomCTA :label="ctaLabel" :reserve-bottom="8" @click="onPrimary">
+        <template #below>
+          <div class="cta-spacer"></div>
+        </template>
+      </BottomCTA>
+    </div>
   </div>
 </template>
 
@@ -141,7 +137,7 @@ const goList = () => router.push('/financial/list');
 }
 
 .page {
-  height: calc(100vh - 64px);
+  flex: 1;
   display: flex;
   flex-direction: column;
   background: var(--color-white);
@@ -201,6 +197,9 @@ const goList = () => router.push('/financial/list');
   border: 2px solid var(--color-lightgray);
   border-radius: 4px;
   background: #fff;
+}
+.cta-wrap {
+  margin-top: auto; /* CTA를 맨 아래로 밀어내기 */
 }
 .cta-spacer {
   height: 1.185rem;

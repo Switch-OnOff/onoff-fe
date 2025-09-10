@@ -17,7 +17,7 @@
         />
       </RouterView>
     </main>
-    <Footer v-if="!hideFooter" />
+    <Footer v-if="!hideFooter"></Footer>
   </div>
 </template>
 
@@ -32,8 +32,8 @@ const hideHeader = computed(() => !!route.meta.hideHeader);
 const hideFooter = computed(() => !!route.meta.hideFooter);
 
 onMounted(() => {
-  authStore.restore()
-})
+  authStore.restore();
+});
 </script>
 
 <style scoped>
@@ -44,9 +44,11 @@ onMounted(() => {
   max-width: 393px;
 
   margin: 0 auto; /* 데스크톱에서 가운데 정렬 */
+  min-height: 100svh;
+  min-height: 100dvh;
   min-height: 100vh;
-  background-color: #fff;
 
+  background-color: #fff;
   display: flex;
   flex-direction: column;
 
@@ -56,6 +58,10 @@ onMounted(() => {
 
 .main-content {
   flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
   overflow-x: hidden; /* 방어용 */
   padding: 60px 0 64px 0; /* 푸터 가림 방지 */
 }

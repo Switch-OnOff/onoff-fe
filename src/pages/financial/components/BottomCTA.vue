@@ -19,6 +19,8 @@ defineEmits(['click']);
 .cta {
   position: sticky;
   bottom: 0;
+  left: 0;
+  right: 0;
   background: var(--color-white);
 
   /* 가로는 0으로 두고, 페이지의 .px로만 통일 관리 */
