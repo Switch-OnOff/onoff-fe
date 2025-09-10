@@ -16,6 +16,9 @@
     <!-- STEP 1 -->
     <section class="step" v-if="step === 1">
       <h2 class="titleExtra28px">사업자 진위확인</h2>
+      <p class="desc bodyRegular12px">
+        국세청 진위확인으로 사업자 정보를 확인합니다. 등록번호(10자리)·대표자명·개업일자를 입력하세요.
+      </p>
 
       <form class="form" @submit.prevent="onVerify">
         <InputField label="사업자등록번호" placeholder="숫자 10자리">
@@ -83,7 +86,7 @@
         </div>
       </dl>
 
-      <form class="form" @submit.prevent="goStep(3)">
+      <form class="form" @submit.prevent="onNextStep2">
         <label class="bodyMedium16px">업종</label>
         <IndustryPicker
           v-model:major="formStep2.industryMajor"
@@ -219,7 +222,7 @@
         />
 
         <div class="row center submit-row">
-          <MedSubmitBtn text="다음" @click="goStep(3)" />
+          <MedSubmitBtn text="다음" @click="onNextStep2" />
         </div>
       </form>
     </section>
@@ -240,16 +243,18 @@
 
     <!-- STEP 4 -->
     <section class="step step-photos" v-else-if="step === 4">
-      <h2 class="titleExtra28px">사진 등록</h2>
+      <h2 class="titleExtra28px">사진 등록 (1~5장)</h2>
 
       <PhotoUploader
         v-model="photos"
         :max="5"
         :min="1"
         :capture="true"
-      >
-        <template #label>사진 등록</template>
-      </PhotoUploader>
+      />
+
+      <p class="desc bodyRegular12px">
+        사진은 최소 1장, 최대 5장까지 등록할 수 있어요.
+      </p>
 
       <div class="row center submit-row">
         <MedSubmitBtn
@@ -385,7 +390,7 @@ function addAmount(field, delta) {
 
 function manToKoreanWon(num) {
   const n = Number(num)
-  if (!n) return ''
+  if (!n && n !== 0) return ''
   let rest = Math.floor(n * 10000)
   const eok = Math.floor(rest / 100000000)
   rest %= 100000000
@@ -403,6 +408,41 @@ const depositWon = computed(() => manToKoreanWon(formStep2.deposit))
 const rentWon    = computed(() => manToKoreanWon(formStep2.rent))
 const saleWon    = computed(() => manToKoreanWon(formStep2.salePrice))
 const premiumWon = computed(() => manToKoreanWon(formStep2.premium))
+
+function onNextStep2() {
+  const missing = []
+  if (!formStep2.industryMajor) missing.push('업종(대분류)')
+  if (!formStep2.industryMinor) missing.push('업종(중분류)')
+
+  if (formStep2.dealType === '월세') {
+    if (formStep2.deposit === null) missing.push('보증금')
+    if (formStep2.rent === null) missing.push('월세')
+  } else {
+    if (formStep2.salePrice === null) missing.push('매매가')
+  }
+
+  if (!formStep2.transfer?.type) missing.push('양도가능일')
+  if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date) missing.push('양도가능일(날짜)')
+
+  if (!formStep2.shopType) missing.push('상가형태')
+  if (formStep2.area.supply === null) missing.push('공급면적')
+  if (formStep2.area.exclusive === null) missing.push('전용면적')
+  if (formStep2.floor.current === null) missing.push('해당층')
+
+  if (!formStep2.parking?.type) missing.push('주차 형태')
+  if (formStep2.parking?.type && formStep2.parking.type !== '없음' && formStep2.parking.count === null) {
+    missing.push('주차 대수')
+  }
+
+  if (!formStep2.restroom) missing.push('화장실')
+  if (!formStep2.address.base) missing.push('기본주소')
+
+  if (missing.length) {
+    alert('다음 항목을 입력해주세요:\n- ' + missing.join('\n- '))
+    return
+  }
+  goStep(3)
+}
 
 const payload = computed(() => {
   const restroomForDb = (() => {
@@ -462,7 +502,13 @@ async function submitAll() {
 
 .step > h2 {
   color: var(--color-primary);
-  margin: 0 0 16px;
+  margin: 0 0 8px;
+}
+
+.desc {
+  color: var(--color-darkgray);
+  margin: 0 0 14px;
+  line-height: 1.45;
 }
 
 .header-skip {
@@ -482,10 +528,7 @@ async function submitAll() {
   color: var(--color-primary);
   margin: 0;
 }
-.form > label + * {
-  margin-top: 6px;
-  margin-bottom: 18px;
-}
+.form > label + * { margin-top: 6px; margin-bottom: 18px; }
 
 .label-inline {
   display: flex;
@@ -517,6 +560,7 @@ select {
 .row { width: 100%; display: flex; gap: 8px; }
 .row.center  { justify-content: center; }
 .row.gap     { justify-content: space-between; }
+.submit-row  { margin-top: 20px; }
 
 .btn-secondary {
   background: var(--color-white);
@@ -558,10 +602,7 @@ select {
 .deal-body { padding: 12px; }
 .deal-body > label { margin-top: 2px; }
 .deal-body > label + * { margin-top: 6px; }
-.deal-body :deep(.number-button-group) {
-  margin-top: 8px;
-  margin-bottom: 12px;
-}
+.deal-body :deep(.number-button-group) { margin-top: 8px; margin-bottom: 12px; }
 
 .seg {
   display: inline-flex;
@@ -608,11 +649,8 @@ select {
   background: var(--color-white);
   transition: border 0.2s;
 }
-
 .input-box:focus { border-color: var(--color-primary); }
 .input-box::placeholder { color: var(--color-mediumgray); }
 
-.submit-row {
-  margin-top: 24px;   /* 원하는 만큼 조절 */
-}
+.step-photos { margin-left: -0.5rem; margin-right: -0.5rem; }
 </style>
