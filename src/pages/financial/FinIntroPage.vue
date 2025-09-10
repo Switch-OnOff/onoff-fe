@@ -22,10 +22,13 @@
       </ul>
     </main>
 
-    <BottomCTA class="px" label="다음" @click="goNext" />
-    <div class="list-link bodyLight12px" @click="goList">
-      대출·지원금 목록 보기
-    </div>
+    <BottomCTA class="px" label="다음" :reserve-bottom="8" @click="goNext">
+      <template #below>
+        <div class="list-link bodyLight12px" @click="goList">
+          대출·지원금 목록 보기
+        </div>
+      </template>
+    </BottomCTA>
   </div>
 </template>
 
@@ -109,9 +112,10 @@ const goList = () => router.push('/financial/list'); // TODO: 실제 라우트�
 
 .list-link {
   text-align: center;
-  margin-bottom: 0.5rem;
+  margin: 0;
   color: var(--color-darkgray);
-  font-size: 0.8125rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
   text-decoration: underline;
   cursor: pointer;
 }
