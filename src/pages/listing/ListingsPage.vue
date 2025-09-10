@@ -217,6 +217,7 @@ onMounted(() => {
   width: 24px;
   height: 24px;
   display: block;
+  margin-right: 18px;
 }
 
 .listings-page {
