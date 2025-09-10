@@ -41,7 +41,6 @@ import routerInstance from '@/router'
 import pinImgUrl from '@/assets/icons/map/listing-pin (1).png'
 import fallbackThumb from '@/assets/images/fallback-image.png'
 
-
 /** 지도/클러스터 옵션 */
 const MAX_ZOOM_OUT_LEVEL = 12
 const CLUSTER_MIN_LEVEL  = 5
@@ -112,7 +111,6 @@ function mapServerRow(r) {
     id: r.id,
     lat: r.lat,
     lng: r.lng,
-    title: r.storeName || r.industry || `상가 ${r.id}`,
     thumbnail: r.images?.[0] || fallbackThumb,
     transactionType: isSale ? 'SALE' : 'MONTHLY',
     salePrice: isSale ? (r.salePrice ?? 0) : undefined,
@@ -175,17 +173,17 @@ onMounted(async () => {
       averageCenter: true,
       minLevel: CLUSTER_MIN_LEVEL,
       minClusterSize: 1,
-      disableClickZoom: true, 
+      disableClickZoom: true,
       styles: [{
-        width: '44px', 
+        width: '44px',
         height: '44px',
         background: 'var(--color-primary-80)',
-        color: 'var(--color-white)', 
+        color: 'var(--color-white)',
         borderRadius: '12px',
-        textAlign: 'center', 
+        textAlign: 'center',
         lineHeight: '40px',
         border: '2px solid var(--color-white)',
-        fontFamily: "'Pretendard', sans=serif",   //편의를 위해 여기서만 직접 폰트 정의(leeday)
+        fontFamily: "'Pretendard', sans-serif",
         fontWeight: 700,
         fontSize: '16px'
       }],
