@@ -1,5 +1,5 @@
 <template>
-  <SimpleHeader :title="title" :show-button="false" />
+  <SimpleHeader :title="title" :show-button="false" :show-more-button="true" />
   <div class="home-page">
     <div class="btn-wrapper">
       <SegmentedButton :active="selected === 1" @click="selected = 1"
