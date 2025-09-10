@@ -19,10 +19,8 @@
       @scroll-state-change="handleScrollState"
     />
     <ChatInput @send="sendMessage" />
-    <FloatingBtn
-      v-if="messages.length > 0 && !isAtBottom"
-      @click="handleScrollToBottom"
-    />
+
+    <FloatingBtn v-if="!isAtBottom" @click="handleScrollToBottom" />
   </div>
 </template>
 
@@ -61,7 +59,7 @@ const { messages, sendMessage } = useWebSocket('ws://localhost:8080/ws/chat');
 const chatMessagesRef = ref(null);
 
 // 플로팅 버튼 표시 상태
-const isAtBottom = ref(false);
+const isAtBottom = ref(true);
 const handleScrollState = (atBottom) => {
   isAtBottom.value = atBottom;
 };
