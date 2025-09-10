@@ -54,14 +54,9 @@ function goBack() {
   max-width: 393px;
   width: 100%;
   margin: 0 auto;
-<<<<<<< HEAD
   border-bottom: 0.5px solid var(--color-light);
   padding: 14px 0 14px 16px;
   border-bottom: 0.5px solid var(--color-lightgray);
-=======
-  border-bottom: 0.5px solid var(--color-lightgray);
-  padding: 14px 16px;
->>>>>>> f024fa10d54dac7315f5e76378d4b618674b02be
 }
 
 .back-btn {
