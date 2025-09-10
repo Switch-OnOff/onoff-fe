@@ -20,7 +20,7 @@
 
     <!-- 기본주소/ 검색 결과로만 채움 -->
     <input
-      class="input"
+      class="input bodyMedium16px"
       :value="baseAddress || ''"
       readonly
       placeholder="기본주소"
@@ -28,16 +28,12 @@
 
     <!-- 상세주소/ 사용자가 직접 입력 -->
     <input
-      class="input"
+      class="input bodyMedium16px"
       :value="detailAddress || ''"
       placeholder="상세주소"
       @input="onDetail"
       ref="detailRef"
     />
-
-    <p class="hint bodyRegular12px">
-      지도 좌표는 기본주소 기준으로 설정됩니다. 표시용 주소는 기본+상세를 함께 사용하세요.
-    </p>
 
     <!-- 모달: 다음(카카오) 우편번호 -->
     <div v-if="showPostcode" class="modal" role="dialog" aria-modal="true" aria-label="주소 검색">
@@ -115,7 +111,7 @@ function closePostcode() { showPostcode.value = false }
 <style scoped>
 .addr-card {
   display: grid;
-  gap: 8px;
+  gap: 6px; 
 }
 
 /* 우편번호 + 버튼 한 줄 */
@@ -126,24 +122,30 @@ function closePostcode() { showPostcode.value = false }
   align-items: center;
 }
 
-/* 인풋 공통 */
 .input{
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--color-lightgray);
+  height: 50px;
   border-radius: 12px;
-  background: var(--color-white);
-  font: inherit;
+  border: 1px solid var(--color-lightgray);
+  padding: 0 16px;
   box-sizing: border-box;
+  background: var(--color-white);
+  transition: border 0.2s;
+  font: inherit;
 }
+.input:focus { border-color: var(--color-primary); outline: none; }
+.input::placeholder { color: var(--color-mediumgray); }
+
 .input[readonly] {
   background: #fafafa;
   color: var(--color-lightblack);
 }
-.input:focus { border-color: var(--color-primary); outline: none; }
 
-/* 우편번호 인풋 */
-.input.zip { text-align: center; }
+.input.zip {
+  text-align: center;
+  height: 40px;
+  padding: 0 12px; 
+}
 
 /* 버튼 */
 .btn {
@@ -160,23 +162,23 @@ function closePostcode() { showPostcode.value = false }
 .btn.outline:hover { background: var(--color-primary-10); }
 .btn.outline:active { transform: translateY(0.5px); }
 
-/* 스몰 사이즈 + 조금 더 길게 보이도록 최소 너비 */
+/* 스몰 버튼(40px) */
 .btn.sm {
   height: 40px;
   padding: 0 14px;
-  min-width: 112px; /* ← 버튼 길이 확보 */
+  min-width: 112px;
 }
 
-/* 힌트 */
-.hint { color: var(--color-darkgray); }
-
-/* ===== 모달(주소 검색) ===== */
+/* 모달 */
 .modal {
   position: fixed;
   inset: 0;
   z-index: 9999;
   display: grid;
   place-items: center;
+  /* 화면 여백 확보 → 시트가 항상 화면 안으로 */
+  padding: 12px;                  /* ← 추가 */
+  box-sizing: border-box;         /* ← 추가 */
 }
 .dim {
   position: absolute;
@@ -184,11 +186,13 @@ function closePostcode() { showPostcode.value = false }
   background: rgba(0,0,0,.35);
   backdrop-filter: blur(1px);
 }
+
 .modal-sheet {
   position: relative;
   z-index: 1;
-  width: clamp(320px, 94vw, 520px);
-  height: clamp(360px, 78dvh, 560px);
+  width: 100%;               
+  max-width: 393px;               
+  height: min(560px, 78dvh);      
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
