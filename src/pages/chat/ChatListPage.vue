@@ -37,15 +37,16 @@ const chatInfo = ref();
 const filteredChats = computed(() => {
   if (selected.value === 1) return chatInfo.value; // 전체
   if (selected.value === 2)
-    return chatInfo.value.filter((c) => c.type === '양도');
+    return chatInfo.value.filter((c) => c.role === 'SELLER');
   if (selected.value === 3)
-    return chatInfo.value.filter((c) => c.type === '승계');
+    return chatInfo.value.filter((c) => c.role === 'BUYER');
   return chatInfo.value;
 });
 
 onMounted(async () => {
   const data = await getChatRoom(1);
   chatInfo.value = data;
+  console.log(data);
   console.log(chatInfo.value);
 });
 </script>
