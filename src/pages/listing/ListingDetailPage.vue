@@ -77,7 +77,7 @@
           title="AI 매물 이미지 분석"
         >
           <img :src="aiIcon" alt="" class="ai-icon" />
-          <span class="bodySemiBold12px">AI 이미지 분석</span>
+          <span class="bodySemiBold12px">{{ analyzing ? '분석 중...' : 'AI 이미지 분석' }}</span>
         </button>
       </div>
 
@@ -199,6 +199,16 @@
       :url="shareUrl"
       @close="shareOpen = false"
     />
+
+    <!-- AI 결과 모달 -->
+    <AIModal
+      :open="aiModalOpen"
+      title="AI 이미지 분석 결과"
+      :message="aiResultText"
+      confirmText="닫기"
+      @confirm="aiModalOpen = false"
+      @close="aiModalOpen = false"
+    />
   </div>
 </template>
 
@@ -210,6 +220,8 @@ import axios from 'axios'
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import ShareSheet from '@/components/common/ShareSheet.vue'
 import KakaoMapAddress from '@/components/map/KakaoMapAddress.vue'
+import AIModal from '@/components/modal/AIModal.vue'
+
 import fallbackImg from '@/assets/images/fallback-image.png'
 import emptyStar from '@/assets/icons/empty-star.png'
 import solidStar from '@/assets/icons/solid-star.png'
@@ -419,14 +431,34 @@ async function fetchImagesFor(propertyId) {
   }
 }
 
-/* AI 버튼 */
+/* AI 이미지 분석 */
 const analyzing = ref(false)
+const aiModalOpen = ref(false)
+const aiResultText = ref('')
+
 async function onAnalyze() {
   if (analyzing.value) return
   analyzing.value = true
   try {
-    // TODO: 분석 API 연동
-    // await analyzeImages(listing.value?.id)
+    const id = Number(listing.value?.id || route.params.id)
+    // 예시: 백엔드가 propertyId 기반 분석 결과를 반환한다고 가정
+    // 반환 형태 예: { data: { mix: [{label:'치킨집', percent:60},{label:'주점', percent:40}], summary: '관련 설명 ...' } }
+    const { data } = await axios.get(`http://localhost:8080/api/vision/analyze/property/${id}`)
+    const payload = data?.data || {}
+
+    const mix = Array.isArray(payload.mix) ? payload.mix : []
+    const ratioLine = mix.length
+      ? mix.map(m => `${m.label} ${Math.round(Number(m.percent) || 0)}%`).join(', ')
+      : '분석 비율 데이터가 없습니다.'
+
+    const summary = (payload.summary || '').toString().trim()
+
+    aiResultText.value = summary ? `${ratioLine}\n\n${summary}` : ratioLine
+    aiModalOpen.value = true
+  } catch (e) {
+    console.error('[AI analyze] fail:', e)
+    aiResultText.value = '분석에 실패했습니다. 잠시 후 다시 시도해주세요.'
+    aiModalOpen.value = true
   } finally {
     analyzing.value = false
   }
@@ -510,19 +542,19 @@ function contact() { alert('1:1 채팅으로 연결합니다.') }
 .price-headerline-content{ display:flex; align-items:center; gap:12px; }
 
 .ai-img-chip{
-  margin-left: auto;             /* 우측 붙이기 */
+  margin-left: auto;
   display: inline-flex;
-  flex-direction: row;           /* 가로 배치 */
+  flex-direction: row;
   align-items: center;
-  gap: 4px;                      /* 아이콘-텍스트 간격 */
-  height: 32px;                  /* 길쭉한 높이 */
-  padding: 0 8px;               /* 좌우 여백 */
+  gap: 4px;
+  height: 32px;
+  padding: 0 8px;
   background: #fff;
   border: 1px solid var(--color-lightgray);
   border-radius: 4px;
   cursor: pointer;
   letter-spacing: -0.05em;
-  white-space: nowrap;        
+  white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
   transition: box-shadow .15s ease, transform .1s ease, opacity .15s ease;
 }
