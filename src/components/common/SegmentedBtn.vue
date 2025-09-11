@@ -16,7 +16,9 @@ const props = defineProps({
 <style scoped>
 .segmented-btn {
   color: var(--color-black);
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
+  width: 28px;
+  
   border-radius: 5rem;
   border: 1px solid var(--color-lightgray);
 }
