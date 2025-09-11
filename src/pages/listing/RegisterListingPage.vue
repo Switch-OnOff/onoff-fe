@@ -122,7 +122,9 @@
             <template v-if="formStep2.dealType === '월세'">
               <label class="bodyMedium14px label-inline">
                 보증금(만원)
-                <span v-if="depositWon" class="label-right bodyRegular12px">{{ depositWon }}</span>
+                <span v-if="depositWon" class="label-right bodyRegular12px">{{
+                  depositWon
+                }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.deposit" />
               <NumberButtonGroup
@@ -133,7 +135,9 @@
 
               <label class="bodyMedium14px label-inline">
                 월세(만원)
-                <span v-if="rentWon" class="label-right bodyRegular12px">{{ rentWon }}</span>
+                <span v-if="rentWon" class="label-right bodyRegular12px">{{
+                  rentWon
+                }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.rent" />
               <NumberButtonGroup
@@ -146,7 +150,9 @@
             <template v-else>
               <label class="bodyMedium14px label-inline">
                 매매가(만원)
-                <span v-if="saleWon" class="label-right bodyRegular12px">{{ saleWon }}</span>
+                <span v-if="saleWon" class="label-right bodyRegular12px">{{
+                  saleWon
+                }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.salePrice" />
               <NumberButtonGroup
@@ -160,7 +166,9 @@
 
         <label class="bodyMedium16px label-inline">
           권리금(만원)
-          <span v-if="premiumWon" class="label-right bodyRegular12px">{{ premiumWon }}</span>
+          <span v-if="premiumWon" class="label-right bodyRegular12px">{{
+            premiumWon
+          }}</span>
         </label>
         <div class="gap-tight">
           <MoneyInput v-model.number="formStep2.premium" />
@@ -175,7 +183,9 @@
 
         <label class="bodyMedium16px label-inline">
           관리비(만원)
-          <span v-if="mgmtFeeWon" class="label-right bodyLight12px">{{ mgmtFeeWon }}</span>
+          <span v-if="mgmtFeeWon" class="label-right bodyLight12px">{{
+            mgmtFeeWon
+          }}</span>
         </label>
         <MoneyInput v-model.number="formStep2.mgmtFee" />
 
@@ -256,8 +266,10 @@
     <section class="step" v-else-if="step === 3">
       <h2 class="titleExtra28px">상세 설명</h2>
       <p class="desc-secondary bodyRegular12px">
-        간단한 키워드나 짧은 문장만 입력하셔도 됩니다. 입력하신 내용과 기본 정보(업종, 거래유형, 금액, 면적, 층, 주차, 주소, 양도 가능일 등)를 함께 반영하여
-        문장을 자연스럽게 정리한 <strong>완성형 소개글</strong>로 다듬어 드립니다. 생성 후 직접 수정하실 수 있습니다.
+        간단한 키워드나 짧은 문장만 입력하셔도 됩니다. 입력하신 내용과 기본
+        정보(업종, 거래유형, 금액, 면적, 층, 주차, 주소, 양도 가능일 등)를 함께
+        반영하여 문장을 자연스럽게 정리한 <strong>완성형 소개글</strong>로
+        다듬어 드립니다. 생성 후 직접 수정하실 수 있습니다.
       </p>
 
       <textarea
@@ -269,7 +281,12 @@
 
       <div class="ai-help">
         <div class="ai-tip bodyRegular12px">
-          ✦ 예시: <em>대학가 상권</em>, <em>오피스 밀집</em>, <em>점심 피크</em>, <em>유동인구 많음</em>, <em>주차 3대</em>, <em>최근 전체 인테리어</em>, <em>배달 강세</em>, <em>포장 매출 우수</em>, <em>코너자리</em>, <em>1층 로드샵</em>, <em>가시성 우수</em>, <em>이중출입문</em>, <em>테라스 좌석</em>, <em>환기 우수</em>, <em>정남향</em>
+          ✦ 예시: <em>대학가 상권</em>, <em>오피스 밀집</em>,
+          <em>점심 피크</em>, <em>유동인구 많음</em>, <em>주차 3대</em>,
+          <em>최근 전체 인테리어</em>, <em>배달 강세</em>,
+          <em>포장 매출 우수</em>, <em>코너자리</em>, <em>1층 로드샵</em>,
+          <em>가시성 우수</em>, <em>이중출입문</em>, <em>테라스 좌석</em>,
+          <em>환기 우수</em>, <em>정남향</em>
         </div>
       </div>
 
@@ -277,14 +294,11 @@
       <div class="submit-vertical">
         <MedSubmitBtn
           :text="aiLoading ? '수정중' : 'AI로 글 다듬기'"
-          :color="'var(--color-white)'"              
+          :color="'var(--color-white)'"
           :disabled="aiLoading || !formStep3.description?.trim()"
           @click="generateContent"
         />
-        <MedSubmitBtn
-          text="등록하기"                           
-          @click="goStep(4)"
-        />
+        <MedSubmitBtn text="등록하기" @click="goStep(4)" />
       </div>
     </section>
 
@@ -357,7 +371,8 @@ function showModal(message, opts = {}) {
   modal.title = opts.title ?? '알림';
   modal.message = message;
   modal.confirmText = opts.confirmText ?? '확인';
-  modal.onConfirm = typeof opts.onConfirm === 'function' ? opts.onConfirm : null;
+  modal.onConfirm =
+    typeof opts.onConfirm === 'function' ? opts.onConfirm : null;
   modal.open = true;
 }
 function handleModalConfirm() {
@@ -367,7 +382,10 @@ function handleModalConfirm() {
 }
 
 const INDUSTRY_CATEGORIES = [
-  { major: '일반음식점', minors: ['한식', '중식', '양식', '분식', '치킨', '카페/디저트'] },
+  {
+    major: '일반음식점',
+    minors: ['한식', '중식', '양식', '분식', '치킨', '카페/디저트'],
+  },
   { major: '서비스업', minors: ['미용', '세탁', '교육', '기타'] },
   { major: '소매', minors: ['편의점', '잡화', '의류', '기타'] },
 ];
@@ -433,7 +451,9 @@ const canSubmit = computed(
   () => photos.value.length >= MIN_PHOTOS && photos.value.length <= MAX_PHOTOS
 );
 
-function goStep(n) { step.value = n; }
+function goStep(n) {
+  step.value = n;
+}
 function skipToNext() {
   if (step.value === 1) {
     verified.bNo = formStep1.bNo;
@@ -445,10 +465,16 @@ function skipToNext() {
 }
 
 function onlyDigitsLen(val, max) {
-  return String(val || '').replace(/\D/g, '').slice(0, max);
+  return String(val || '')
+    .replace(/\D/g, '')
+    .slice(0, max);
 }
-function onBNoInput(e) { formStep1.bNo = onlyDigitsLen(e.target.value, 10); }
-function onOpenDtInput(e) { formStep1.openDt = onlyDigitsLen(e.target.value, 8); }
+function onBNoInput(e) {
+  formStep1.bNo = onlyDigitsLen(e.target.value, 10);
+}
+function onOpenDtInput(e) {
+  formStep1.openDt = onlyDigitsLen(e.target.value, 8);
+}
 
 async function onVerify() {
   errorMsg.value = '';
@@ -534,7 +560,8 @@ function onNextStep2() {
   }
 
   if (!formStep2.transfer?.type) missing.push('양도가능일');
-  if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date) missing.push('양도가능일(날짜)');
+  if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date)
+    missing.push('양도가능일(날짜)');
 
   if (!formStep2.storeName) missing.push('상호명');
   if (!formStep2.shopType) missing.push('상가형태');
@@ -543,7 +570,11 @@ function onNextStep2() {
   if (formStep2.floor.current === null) missing.push('해당층');
 
   if (!formStep2.parking?.type) missing.push('주차 형태');
-  if (formStep2.parking?.type && formStep2.parking.type !== '없음' && formStep2.parking.count === null) {
+  if (
+    formStep2.parking?.type &&
+    formStep2.parking.type !== '없음' &&
+    formStep2.parking.count === null
+  ) {
     missing.push('주차 대수');
   }
 
@@ -553,7 +584,9 @@ function onNextStep2() {
   if (!formStep2.address.base) missing.push('기본주소');
 
   if (missing.length) {
-    showModal('다음 항목을 입력해주세요:\n- ' + missing.join('\n- '), { title: '입력 누락' });
+    showModal('다음 항목을 입력해주세요:\n- ' + missing.join('\n- '), {
+      title: '입력 누락',
+    });
     return;
   }
   goStep(3);
@@ -580,7 +613,9 @@ const payload = computed(() => {
   const base = {
     userId: JSON.parse(sessionStorage.getItem('user') || '{}').userId,
     storeName: formStep2.storeName?.trim() ?? '',
-    industry: `${formStep2.industryMajor ?? ''}/${formStep2.industryMinor ?? ''}`.replace(/\/$/, ''),
+    industry: `${formStep2.industryMajor ?? ''}/${
+      formStep2.industryMinor ?? ''
+    }`.replace(/\/$/, ''),
     shopType: formStep2.shopType ?? '',
     transferType: formStep2.transfer?.type ?? '',
     transferDate: transferDateISO,
@@ -601,17 +636,27 @@ const payload = computed(() => {
     premium: Number(formStep2.premium ?? 0),
     rent: isMonthly ? Number(formStep2.rent ?? 0) : null,
     salePrice: isSale ? Number(formStep2.salePrice ?? 0) : null,
-    address: `${formStep2.address?.base ?? ''} ${formStep2.address?.detail ?? ''}`.trim(),
+    address: `${formStep2.address?.base ?? ''} ${
+      formStep2.address?.detail ?? ''
+    }`.trim(),
   };
-  return Object.fromEntries(Object.entries(base).filter(([, v]) => v !== null && v !== undefined));
+  return Object.fromEntries(
+    Object.entries(base).filter(([, v]) => v !== null && v !== undefined)
+  );
 });
 
 const propertyId = ref(null);
 
 async function createListing() {
   try {
-    const res = await axios.post('http://localhost:8080/api/property/', payload.value);
-    const id = typeof res?.data?.data === 'number' ? res.data.data : res?.data?.id ?? null;
+    const res = await axios.post(
+      'http://localhost:8080/api/property/',
+      payload.value
+    );
+    const id =
+      typeof res?.data?.data === 'number'
+        ? res.data.data
+        : res?.data?.id ?? null;
     propertyId.value = id;
     return id;
   } catch (e) {
@@ -625,7 +670,8 @@ async function createPropertyImg(propertyId) {
     const userId = sessionStorage.getItem('user')
       ? JSON.parse(sessionStorage.getItem('user')).userId
       : null;
-    if (!userId) throw new Error('userId가 없습니다. 로그인 상태를 확인하세요.');
+    if (!userId)
+      throw new Error('userId가 없습니다. 로그인 상태를 확인하세요.');
 
     const formData = new FormData();
     formData.append('content', '이미지 저장');
@@ -672,7 +718,12 @@ function addPhrase(text) {
 
 function togglePhrase(text) {
   const cur = (formStep3.description || '').trim();
-  const lines = cur ? cur.split('\n').map(s => s.trim()).filter(Boolean) : [];
+  const lines = cur
+    ? cur
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
   const i = lines.indexOf(text);
   if (i >= 0) lines.splice(i, 1);
   else lines.push(text);
@@ -688,46 +739,64 @@ function formatTransfer() {
       const m = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       return `양도가능일: ${y}.${m}.${day}`;
-    } catch { return `양도가능일: ${formStep2.transfer.date}`; }
+    } catch {
+      return `양도가능일: ${formStep2.transfer.date}`;
+    }
   }
   return `양도가능일: ${formStep2.transfer.type}`;
 }
 
 function buildContextLines() {
   const lines = [];
-  const ind = [formStep2.industryMajor, formStep2.industryMinor].filter(Boolean).join(' / ');
+  const ind = [formStep2.industryMajor, formStep2.industryMinor]
+    .filter(Boolean)
+    .join(' / ');
   if (ind) lines.push(`업종: ${ind}`);
   if (formStep2.dealType === '월세') {
-    if (formStep2.deposit != null) lines.push(`보증금: ${manToKoreanWon(formStep2.deposit)}`);
-    if (formStep2.rent != null) lines.push(`월세: ${manToKoreanWon(formStep2.rent)}`);
+    if (formStep2.deposit != null)
+      lines.push(`보증금: ${manToKoreanWon(formStep2.deposit)}`);
+    if (formStep2.rent != null)
+      lines.push(`월세: ${manToKoreanWon(formStep2.rent)}`);
   } else {
-    if (formStep2.salePrice != null) lines.push(`매매가: ${manToKoreanWon(formStep2.salePrice)}`);
+    if (formStep2.salePrice != null)
+      lines.push(`매매가: ${manToKoreanWon(formStep2.salePrice)}`);
   }
-  if (formStep2.premium != null) lines.push(`권리금: ${manToKoreanWon(formStep2.premium)}`);
-  if (formStep2.mgmtFee != null) lines.push(`관리비: ${manToKoreanWon(formStep2.mgmtFee)}`);
+  if (formStep2.premium != null)
+    lines.push(`권리금: ${manToKoreanWon(formStep2.premium)}`);
+  if (formStep2.mgmtFee != null)
+    lines.push(`관리비: ${manToKoreanWon(formStep2.mgmtFee)}`);
   if (formStep2.storeName) lines.push(`상호명: ${formStep2.storeName}`);
   if (formStep2.shopType) lines.push(`상가형태: ${formStep2.shopType}`);
   const areas = [];
-  if (formStep2.area.supply != null) areas.push(`공급 ${formStep2.area.supply}㎡`);
-  if (formStep2.area.exclusive != null) areas.push(`전용 ${formStep2.area.exclusive}㎡`);
+  if (formStep2.area.supply != null)
+    areas.push(`공급 ${formStep2.area.supply}㎡`);
+  if (formStep2.area.exclusive != null)
+    areas.push(`전용 ${formStep2.area.exclusive}㎡`);
   if (areas.length) lines.push(`면적: ${areas.join(', ')}`);
   const floorTxt = [];
   if (formStep2.floor.current != null) {
-    const f = formStep2.floor.isBasement ? `지하 ${Math.abs(formStep2.floor.current)}층` : `${formStep2.floor.current}층`;
+    const f = formStep2.floor.isBasement
+      ? `지하 ${Math.abs(formStep2.floor.current)}층`
+      : `${formStep2.floor.current}층`;
     floorTxt.push(f);
   }
-  if (formStep2.floor.total != null) floorTxt.push(`(총 ${formStep2.floor.total}층)`);
+  if (formStep2.floor.total != null)
+    floorTxt.push(`(총 ${formStep2.floor.total}층)`);
   if (floorTxt.length) lines.push(`층: ${floorTxt.join(' ')}`);
   if (formStep2.parking?.type) {
     let p = `주차: ${formStep2.parking.type}`;
-    if (formStep2.parking.type !== '없음' && formStep2.parking.count != null) p += `, ${formStep2.parking.count}대`;
-    if (formStep2.parking.type !== '없음') p += formStep2.parking.paid ? ', 유료' : ', 무료';
+    if (formStep2.parking.type !== '없음' && formStep2.parking.count != null)
+      p += `, ${formStep2.parking.count}대`;
+    if (formStep2.parking.type !== '없음')
+      p += formStep2.parking.paid ? ', 유료' : ', 무료';
     lines.push(p);
   }
   if (formStep2.restroom) lines.push(`화장실: ${formStep2.restroom}`);
   if (formStep2.delivery) lines.push(`배달: ${formStep2.delivery}`);
   if (formStep2.takeout) lines.push(`포장: ${formStep2.takeout}`);
-  const addr = [formStep2.address.base, formStep2.address.detail].filter(Boolean).join(' ');
+  const addr = [formStep2.address.base, formStep2.address.detail]
+    .filter(Boolean)
+    .join(' ');
   if (addr) lines.push(`주소: ${addr}`);
   const t = formatTransfer();
   if (t) lines.push(t);
@@ -743,7 +812,10 @@ async function generateContent() {
     }
     aiLoading.value = true;
 
-    const userSentences = text.split('\n').map(s => s.trim()).filter(Boolean);
+    const userSentences = text
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
     const contextLines = buildContextLines();
 
     const res = await axios.post(
@@ -760,11 +832,15 @@ async function generateContent() {
       formStep3.description = out.trim();
       showModal('AI가 내용을 다듬었습니다. 확인해 주세요.', { title: '완료' });
     } else {
-      showModal('생성 결과가 비어 있습니다. 다시 시도해 주세요.', { title: '안내' });
+      showModal('생성 결과가 비어 있습니다. 다시 시도해 주세요.', {
+        title: '안내',
+      });
     }
   } catch (err) {
     console.error(err);
-    showModal('글 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.', { title: '오류' });
+    showModal('글 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.', {
+      title: '오류',
+    });
   } finally {
     aiLoading.value = false;
   }
@@ -802,8 +878,12 @@ async function generateContent() {
   cursor: pointer;
 }
 
-.step { display: block; }
-.form { display: block; }
+.step {
+  display: block;
+}
+.form {
+  display: block;
+}
 
 .form > label {
   display: block;
@@ -827,8 +907,12 @@ async function generateContent() {
   text-align: right;
 }
 
-.deal-body .label-inline { justify-content: space-between; }
-.deal-body .label-inline .label-right { margin-left: 8px; }
+.deal-body .label-inline {
+  justify-content: space-between;
+}
+.deal-body .label-inline .label-right {
+  margin-left: 8px;
+}
 
 .input,
 .textarea,
@@ -841,14 +925,28 @@ select {
   background: #fff;
   letter-spacing: -0.03em;
 }
-.textarea { resize: vertical; }
+.textarea {
+  resize: vertical;
+}
 
-.row { width: 100%; display: flex; gap: 8px; }
-.row.center { justify-content: center; }
-.row.gap { justify-content: space-between; }
-.submit-row { margin-top: 20px; }
+.row {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+}
+.row.center {
+  justify-content: center;
+}
+.row.gap {
+  justify-content: space-between;
+}
+.submit-row {
+  margin-top: 20px;
+}
 
-.error { color: var(--color-error); }
+.error {
+  color: var(--color-error);
+}
 
 .deal-card {
   border: 1px solid var(--color-lightgray);
@@ -871,17 +969,27 @@ select {
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
-.deal-seg .seg-btn + .seg-btn { border-left: 1px solid var(--color-lightgray); }
-.deal-seg .seg-btn:hover { background: var(--color-primary-10); }
+.deal-seg .seg-btn + .seg-btn {
+  border-left: 1px solid var(--color-lightgray);
+}
+.deal-seg .seg-btn:hover {
+  background: var(--color-primary-10);
+}
 .deal-seg .seg-btn.active {
   background: var(--color-primary-10);
   color: var(--color-primary);
   font-weight: 600;
 }
 
-.deal-body { padding: 12px; }
-.deal-body > label { margin-top: 2px; }
-.deal-body > label + * { margin-top: 6px; }
+.deal-body {
+  padding: 12px;
+}
+.deal-body > label {
+  margin-top: 2px;
+}
+.deal-body > label + * {
+  margin-top: 6px;
+}
 .deal-body :deep(.number-button-group) {
   margin-top: 8px;
   margin-bottom: 12px;
@@ -902,8 +1010,12 @@ select {
   column-gap: 8px;
   align-items: center;
 }
-.kv-key { color: var(--color-lightblack); }
-.kv-val { color: var(--color-black); }
+.kv-key {
+  color: var(--color-lightblack);
+}
+.kv-val {
+  color: var(--color-black);
+}
 
 .input-box {
   width: 100%;
@@ -915,10 +1027,17 @@ select {
   background: var(--color-white);
   transition: border 0.2s;
 }
-.input-box:focus { border-color: var(--color-primary); }
-.input-box::placeholder { color: var(--color-mediumgray); }
+.input-box:focus {
+  border-color: var(--color-primary);
+}
+.input-box::placeholder {
+  color: var(--color-mediumgray);
+}
 
-.step-photos { margin-left: 0rem; margin-right: 0rem; }
+.step-photos {
+  margin-left: 0rem;
+  margin-right: 0rem;
+}
 
 /* 추가 */
 .desc-secondary {
@@ -926,7 +1045,11 @@ select {
   margin: 0 0 12px;
   line-height: 1.5;
 }
-.ai-help { display: grid; gap: 8px; margin: 0 0 10px; }
+.ai-help {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 10px;
+}
 .ai-tip {
   background: var(--color-primary-10);
   border: 1px solid var(--color-lightgray);
@@ -934,8 +1057,14 @@ select {
   padding: 8px 10px;
   color: var(--color-darkgray);
 }
-.chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip-list.wrap { flex-wrap: wrap; }
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip-list.wrap {
+  flex-wrap: wrap;
+}
 .chip {
   border: 1px solid var(--color-lightgray);
   background: #fff;
@@ -944,10 +1073,15 @@ select {
   line-height: 1;
   cursor: pointer;
   font-size: 12px;
-  transition: background .15s ease, border-color .15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.chip:hover { background: var(--color-primary-10); border-color: var(--color-primary); }
-.under-textarea { margin-top: 10px; }
+.chip:hover {
+  background: var(--color-primary-10);
+  border-color: var(--color-primary);
+}
+.under-textarea {
+  margin-top: 10px;
+}
 
 /* 2분할 버튼 */
 .submit-row.two {
@@ -956,7 +1090,9 @@ select {
   gap: 10px;
   margin-top: 14px;
 }
-.submit-row.two .col { width: 50%; }
+.submit-row.two .col {
+  width: 50%;
+}
 
 .submit-vertical {
   display: grid;
