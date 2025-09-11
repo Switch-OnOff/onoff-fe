@@ -6,7 +6,9 @@
       <SegmentedBtn class="tag-segment">현금</SegmentedBtn>
     </div>
     <div class="title">
-      <div class="img-box"><img :src="GovIcon" /></div>
+      <div class="img-box">
+        <img v-if="logoSrc" :src="logoSrc" />
+      </div>
       <div class="titleExtra20px">
         {{ detail?.serviceName || '지원금 상세' }}
       </div>
@@ -54,11 +56,11 @@
 <script setup>
 import SegmentedBtn from '@/components/common/SegmentedBtn.vue';
 import SimpleHeader from '@/components/layout/SimpleHeader.vue';
-import GovIcon from '@/assets/icons/financial/logo_gov.png';
 import BottomCTA from './components/BottomCTA.vue';
 import { onMounted, ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import * as grants from '@/api/grants';
+import { getLogoSrc } from './utils/logo.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -129,6 +131,8 @@ function openLink() {
   const url = detail.value?.serviceLink;
   if (url) window.open(url, '_blank');
 }
+
+const logoSrc = computed(() => getLogoSrc({ mode: 'support' }));
 </script>
 
 <style scoped>

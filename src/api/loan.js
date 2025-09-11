@@ -27,7 +27,8 @@ export function getLoanDetail(loanId) {
 
 export function evaluateLoan(loanId, body) {
   // body: { creditScore, loanAmount, repaymentMonths, income, repayRatio }
-  return api.post(`/api/loan/${loanId}/evaluate`, body).then((res) => res.data);
+  // keep consistent with other helpers: unwrap wrapper { data } => data
+  return api.post(`/api/loan/${loanId}/evaluate`, body).then(unwrap);
 }
 
 export function getTop5Loans() {

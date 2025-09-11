@@ -27,15 +27,17 @@
         :key="store.mode === 'loan' ? it.loanId || it.id : it.serviceId"
         :title="getTitle(it)"
         :desc="getDesc(it)"
+        :item="it"
         @click="goDetail(it)"
       />
+
       <div class="more-wrap" v-if="hasMore">
         <button class="more-btn" @click="loadMore" :disabled="loading">
           {{ loading ? '불러오는 중…' : '더보기' }}
         </button>
       </div>
       <div v-if="!loading && items.length === 0" class="empty bodyLight12px px">
-        조건에 맞는 항목이 없어요. 필터를 줄이거나 검색어를 바꿔봐.
+        조건에 맞는 항목이 없어요.
       </div>
     </section>
 
@@ -212,6 +214,8 @@ function normalizeLoanRow(r = {}) {
     ...r,
     loanId: r.loanId ?? r.id ?? r.loan_id,
     loanName: r.loanName ?? r['상품명'] ?? r.name ?? r.title,
+    loanCompany:
+      r.loanCompany ?? r.loan_company ?? r['loan_company'] ?? r.company ?? '',
     eligibleGroup: r.eligibleGroup ?? r['가입대상'],
     interestType: r.interestType ?? r['금리방식'],
     repaymentMethod: r.repaymentMethod ?? r['상환방식'],

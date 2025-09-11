@@ -6,7 +6,10 @@
       <SegmentedBtn class="tag-segment">현금</SegmentedBtn>
     </div>
     <div class="title">
-      <div class="img-box"><img :src="GovIcon" /></div>
+      <div class="img-box">
+        <img v-if="logoSrc" :src="logoSrc" />
+        <div v-else class="thumb-fallback">…</div>
+      </div>
       <div class="titleExtra20px">{{ detail?.loanName || '대출 상세' }}</div>
     </div>
     <div class="content-box">
@@ -46,11 +49,11 @@
 <script setup>
 import SegmentedBtn from '@/components/common/SegmentedBtn.vue';
 import SimpleHeader from '@/components/layout/SimpleHeader.vue';
-import GovIcon from '@/assets/icons/financial/logo_gov.png';
 import BottomCTA from './components/BottomCTA.vue';
 import { onMounted, ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import * as loans from '@/api/loan';
+import { getLogoSrc } from './utils/logo.js';
 
 const route = useRoute();
 
@@ -99,6 +102,10 @@ async function doEvaluate() {
   if (!id) return;
   result.value = await loans.evaluateLoan(id, form.value);
 }
+
+const logoSrc = computed(() =>
+  getLogoSrc({ mode: 'loan', loanCompany: detail.value?.loanCompany })
+);
 </script>
 
 <style scoped>
