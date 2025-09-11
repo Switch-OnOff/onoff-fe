@@ -45,7 +45,7 @@ const filteredChats = computed(() => {
 
 onMounted(async () => {
   const data = await getChatRoom(1);
-  chatInfo.value = data;
+  chatInfo.value = data.chatUnits;
   console.log(data);
   console.log(chatInfo.value);
 });

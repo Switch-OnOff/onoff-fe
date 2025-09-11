@@ -1,11 +1,11 @@
 <template>
-  <div class="chat-item" @click="goToDetail(partnerId)">
+  <div class="chat-item" @click="goToDetail()">
     <div class="chat-avatar"></div>
     <div class="chat-body">
-      <span class="chat-userid">{{ partnerId }}</span>
-      <span class="chat-message">{{ props.chatInfo.message }}</span>
+      <span class="chat-userid">{{ props.chatInfo.otherUserName }}</span>
+      <span class="chat-message">{{ props.chatInfo.lastMessage }}</span>
     </div>
-    <span class="chat-timestamp">{{ props.chatInfo.time }}</span>
+    <span class="chat-timestamp">{{ formattedTime }}</span>
   </div>
 </template>
 
@@ -20,18 +20,6 @@ const props = defineProps({
   },
 });
 
-const loggedInUserId = 1;
-
-const partnerId = computed(() => {
-  if (!props.chatInfo) {
-    return null;
-  }
-
-  const { buyerId, sellerId } = props.chatInfo;
-
-  return loggedInUserId === buyerId ? sellerId : buyerId;
-});
-
 const router = useRouter();
 
 const goToDetail = (userId) => {
@@ -42,8 +30,37 @@ const goToDetail = (userId) => {
     state: { chatData: props.chatInfo },
   });
 };
-</script>
 
+// 날짜 포맷팅 함수
+const formattedTime = computed(() => {
+  if (!props.chatInfo?.lastMessageTime) return '';
+
+  const date = new Date(props.chatInfo.lastMessageTime);
+  const now = new Date();
+
+  const isToday =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+
+  if (isToday) {
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / 1000 / 60);
+    if (diffMinutes < 1) return '방금 전';
+    if (diffMinutes < 60) return `${diffMinutes}분 전`;
+    const diffHours = Math.floor(diffMinutes / 60);
+
+    return `${diffHours}시간 전`;
+  } else {
+    // MM월 dd일 형식
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${month}월 ${day}일`;
+  }
+});
+</script>
 <style scoped>
 /* 스타일은 기존과 동일합니다. */
 .chat-item {
