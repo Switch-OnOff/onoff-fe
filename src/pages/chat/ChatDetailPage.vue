@@ -56,7 +56,7 @@ const handleSelect = (item) => {
 };
 
 // ✅ useWebSocket 훅 사용
-const { messages, sendMessage } = useWebSocket('ws://localhost:8080/ws/chat');
+const { messages, sendMessage } = useWebSocket('http://localhost:8080/ws/chat');
 
 const chatMessagesRef = ref(null);
 
