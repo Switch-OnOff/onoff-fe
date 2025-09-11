@@ -108,16 +108,20 @@ const hasActiveFilter = computed(
 /* ---- 유틸 ---- */
 const norm = (s = '') => String(s).replace(/\s+/g, '');
 const has = (s, kw) => norm(s).includes(norm(kw));
-
 function applySupportFilters(list) {
   const f = store.supportFilters || {};
   return list.filter((r) => {
-    const okStatus = !f.status || norm(r.service_status) === norm(f.status);
-    const loc = String(r.location || '');
+    const status = r.serviceStatus ?? r['service_status'] ?? '';
+    const loc = String(r.location ?? r['location'] ?? '');
+    const industry = String(r.industry ?? r['industry'] ?? '');
+
+    const okStatus =
+      !f.status ||
+      String(status).replace(/\s+/g, '') ===
+        String(f.status).replace(/\s+/g, '');
     const okSido = !f.sido || loc.includes(f.sido);
     const okSigungu = !f.sigungu || loc.includes(f.sigungu);
-    const okIndustry =
-      !f.industry || String(r.industry || '').includes(f.industry);
+    const okIndustry = !f.industry || industry.includes(f.industry);
     return okStatus && okSido && okSigungu && okIndustry;
   });
 }
@@ -133,30 +137,63 @@ function mapLoanTarget(s) {
 function applyLoanFilters(list) {
   const f = store.loanFilters || {};
   return list.filter((r) => {
-    const okTarget = !f.target || mapLoanTarget(r['가입대상']) === f.target;
+    const eligible = r.eligibleGroup ?? r['가입대상'] ?? '';
+    const loanType = r.loanType ?? r['담보여부'] ?? '';
+    const interest = r.interestType ?? r['금리방식'] ?? '';
+    const repay = (r.repaymentMethod ?? r['상환방식'] ?? '').toString();
+
+    const okTarget =
+      !f.target ||
+      (function mapTarget(s) {
+        const v = String(s).replace(/\s+/g, '');
+        if (v.includes('개인사업자')) return '개인 사업자';
+        if (v.includes('셀러') || v.includes('온라인')) return '온라인셀러';
+        return '기타';
+      })(eligible) === f.target;
+
     const okCollateral =
       !f.collateral ||
-      (f.collateral === '담보대출' && has(r['담보여부'], '담보')) ||
-      (f.collateral === '신용대출' && has(r['담보여부'], '신용'));
+      (f.collateral === '담보대출' && String(loanType).includes('담보')) ||
+      (f.collateral === '신용대출' && String(loanType).includes('신용'));
+
     const okRate =
       !f.rate ||
-      (f.rate === '고정금리' && has(r['금리방식'], '고정')) ||
-      (f.rate === '변동금리' && has(r['금리방식'], '변동'));
-    const repayStr = norm(r['상환방식']);
+      (f.rate === '고정금리' && String(interest).includes('고정')) ||
+      (f.rate === '변동금리' && String(interest).includes('변동'));
+
     const okRepay =
       !f.repay ||
-      (f.repay === '만기일시' && repayStr.includes('만기일시')) ||
-      (f.repay === '원금분할' && repayStr.includes('원금분할')) ||
-      (f.repay === '원리금분할' && repayStr.includes('원리금분할'));
+      (f.repay === '만기일시' && repay.includes('만기일시')) ||
+      (f.repay === '원리금균등' && repay.includes('원리금')) ||
+      (f.repay === '원금균등' && repay.includes('원금'));
+
     return okTarget && okCollateral && okRate && okRepay;
   });
 }
 
 function getTitle(row) {
-  return store.mode === 'loan' ? row['상품명'] : row['service_name'];
+  if (!row) return '';
+  if (store.mode === 'loan')
+    return String(row.loanName ?? row['상품명'] ?? row.name ?? row.title ?? '');
+  return String(row.serviceName ?? row['service_name'] ?? '');
 }
 function getDesc(row) {
-  return row['요약'] || row['summary'] || '';
+  if (!row) return '';
+  if (store.mode === 'loan') {
+    const parts = [
+      row.loanCompany,
+      row.eligibleGroup,
+      row.interestType,
+      row.repaymentMethod,
+    ].filter(Boolean);
+    return parts.join(' · ');
+  }
+  const parts = [
+    row.industry ?? row['industry'],
+    row.location ?? row['location'],
+    row.serviceStatus ?? row['service_status'],
+  ].filter(Boolean);
+  return parts.join(' · ');
 }
 
 /* ---- 자동완성 ---- */
@@ -293,8 +330,9 @@ function resetFilters() {
 }
 
 function goDetail(row) {
-  const loanId = row?.id ?? row?.['상품ID'] ?? row?.loan_id ?? null;
-  const supportId = row?.service_id ?? null;
+  const loanId =
+    row?.loanId ?? row?.id ?? row?.['상품ID'] ?? row?.loan_id ?? null;
+  const supportId = row?.serviceId ?? row?.service_id ?? null;
   const title = getTitle(row);
 
   if (store.mode === 'loan') {
