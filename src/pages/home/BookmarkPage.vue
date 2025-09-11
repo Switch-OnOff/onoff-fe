@@ -18,22 +18,26 @@
         :location="item.location"
         :bookmarked="true"
       />
-      <p v-if="!items.length" class="empty bodyRegular14px">관심 매물이 없습니다.</p>
+      <p v-if="!items.length" class="empty bodyRegular14px">
+        관심 매물이 없습니다.
+      </p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import SimpleHeader from '@/components/layout/SimpleHeader.vue'
-import ListingCard from '@/pages/listing/components/ListingCard.vue'
-import fallbackThumb from '@/assets/images/fallback-image.png'
+import { ref } from 'vue';
+import SimpleHeader from '@/components/layout/SimpleHeader.vue';
+import ListingCard from '@/pages/listing/components/ListingCard.vue';
+import marketThumb1 from '@/assets/images/sample/sample-image1.png';
+import marketThumb2 from '@/assets/images/sample/sample-image2.png';
+import marketThumb3 from '@/assets/images/sample/sample-image3.png';
 
 // 프론트 전용 목데이터
 const items = ref([
   {
     id: 101,
-    img: fallbackThumb,
+    img: marketThumb1,
     industry: '일반음식점/양식',
     transactionType: '월세',
     deposit: 2000,
@@ -45,7 +49,7 @@ const items = ref([
   },
   {
     id: 102,
-    img: '', 
+    img: marketThumb2,
     industry: '카페/디저트',
     transactionType: '매매',
     deposit: null,
@@ -57,7 +61,7 @@ const items = ref([
   },
   {
     id: 103,
-    img: 'https://picsum.photos/seed/store103/300/200',
+    img: marketThumb3,
     industry: '주점/이자카야',
     transactionType: '월세',
     deposit: 5000,
@@ -67,7 +71,7 @@ const items = ref([
     exclusiveArea: 26.8,
     location: '부산 수영구',
   },
-])
+]);
 </script>
 
 <style scoped>
