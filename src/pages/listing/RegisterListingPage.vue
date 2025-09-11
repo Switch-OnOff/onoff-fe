@@ -235,7 +235,7 @@
           placeholder="화장실 선택"
         />
 
-        <!-- ✅ 배달 / 포장 추가 -->
+        <!-- 배달 / 포장 추가 -->
         <label class="bodyMedium16px">배달</label>
         <SelectField
           v-model="formStep2.delivery"
@@ -295,6 +295,16 @@
         />
       </div>
     </section>
+
+    <!-- ⭐ 실패 알림 모달 -->
+    <AlertModal
+      :open="verifyErrorOpen"
+      title="진위확인 실패"
+      :message="verifyErrorMsg"
+      confirmText="확인"
+      @confirm="verifyErrorOpen = false"
+      @close="verifyErrorOpen = false"
+    />
   </div>
 </template>
 
@@ -318,11 +328,20 @@ import FloorInput from '@/pages/listing/components/FloorInput.vue';
 import ParkingCard from '@/pages/listing/components/ParkingCard.vue';
 import SelectField from '@/pages/listing/components/DropDown.vue';
 import PhotoUploader from '@/pages/listing/components/PhotoUploader.vue';
+import AlertModal from '@/components/modal/AlertModal.vue'; // ⭐ 추가
 
 const step = ref(1);
 const verifying = ref(false);
 const errorMsg = ref('');
 const router = useRouter();
+
+// ⭐ 모달 상태
+const verifyErrorOpen = ref(false);
+const verifyErrorMsg = ref('');
+function showVerifyError(message) {
+  verifyErrorMsg.value = message;
+  verifyErrorOpen.value = true;
+}
 
 const INDUSTRY_CATEGORIES = [
   {
@@ -373,14 +392,14 @@ const formStep2 = reactive({
   premium: null,
   mgmtFee: null,
   transfer: { type: '협의', date: '' },
-  storeName: '', // ✅ 상호명
+  storeName: '',
   shopType: '',
   area: { supply: null, exclusive: null },
   floor: { isBasement: false, current: null, total: null },
   parking: { type: '', count: null, paid: false },
   restroom: '',
-  delivery: '', // ✅ 배달
-  takeout: '', // ✅ 포장
+  delivery: '',
+  takeout: '',
   address: { base: '', detail: '', zip: '' },
 });
 
@@ -444,6 +463,16 @@ async function onVerify() {
       goStep(2);
     } else {
       errorMsg.value = '진위확인 실패';
+      showVerifyError(
+        [
+          '사업자 진위확인에 실패했습니다.',
+          '입력하신 정보를 다시 확인해 주세요.',
+          '',
+          '• 등록번호: 숫자 10자리',
+          '• 대표자명: 띄어쓰기 포함 정확히',
+          '• 개업일자: YYYYMMDD 형식'
+        ].join('\n')
+      );
     }
   } catch {
     errorMsg.value = '서버 오류로 확인에 실패했습니다.';
@@ -811,7 +840,7 @@ select {
   border-radius: 12px;
   border: 1px solid var(--color-lightgray);
   padding: 0 16px;
-  margin-bottom: 18px;
+  /* margin-bottom: 18px; */
   box-sizing: border-box;
   background: var(--color-white);
   transition: border 0.2s;
@@ -826,7 +855,7 @@ select {
 }
 
 .step-photos {
-  margin-left: -0.5rem;
-  margin-right: -0.5rem;
+  margin-left: 0rem;
+  margin-right: 0rem;
 }
 </style>
