@@ -36,7 +36,11 @@ const toggleIcon = () => {
 
 const sendMessage = () => {
   if (!textInput.value.trim()) return;
+
+  // 부모로 전송
   emit('send', textInput.value);
+
+  // 입력창 초기화
   textInput.value = '';
 };
 </script>
