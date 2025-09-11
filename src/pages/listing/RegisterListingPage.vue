@@ -274,6 +274,10 @@
       <div class="row gap submit-row">
         <MedSubmitBtn text="다음" @click="goStep(4)" />
       </div>
+
+      <div class="row gap submit-row">
+        <MedSubmitBtn text="생성" @click="generateContent" />
+      </div>
     </section>
 
     <!-- STEP 4 -->
@@ -680,6 +684,35 @@ async function submitAll() {
     showModal('등록 실패. 잠시 후 다시 시도해주세요.', { title: '오류' });
   }
 }
+
+async function generateContent() {
+  try {
+    // textarea 내용 가져오기
+    const textarea = document.querySelector('.textarea');
+    const text = textarea.value;
+
+    if (!text) return alert("내용을 입력해주세요.");
+
+    // 줄바꿈 기준으로 배열 생성
+    const sentences = text
+      .split("\n")
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    // 백엔드 호출
+    const res = await axios.post('http://localhost:8080/api/ghostwrite/generate', {
+      sentences: sentences
+    });
+
+    // 결과를 textarea에 바로 반영
+    textarea.value = res.data.data;
+
+  } catch (err) {
+    console.error(err);
+    alert("글 생성에 실패했습니다.");
+  }
+}
+
 </script>
 
 <style scoped>
