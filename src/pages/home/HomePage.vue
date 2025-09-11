@@ -1,3 +1,4 @@
+<!-- HomePage.vue (수정본) -->
 <template>
   <main class="home">
     <header class="brand-bar">
@@ -18,9 +19,9 @@
       </div>
     </header>
 
-    <!-- 자동 전환 카드뉴스 -->
+    <!-- 배너: 이미지 3장 자동 전환 -->
     <section class="hero">
-      <HeroCarousel :items="news" :h="190" />
+      <BannerHero :items="banners" :h="190" :intervalMs="3000" />
     </section>
 
     <!-- 모드별 액션 타일 (164 × 164) -->
@@ -31,7 +32,6 @@
         :label="a.label"
         :to="a.to"
       >
-        <!-- 중앙 아이콘 슬롯 -->
         <template #icon>
           <img :src="a.icon" alt="" />
         </template>
@@ -48,7 +48,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import SegmentSwitch from '@/pages/home/components/SegmentSwitch.vue'
-import HeroCarousel from '@/pages/home/components/HeroCarousel.vue'
+import BannerHero from '@/pages/home/components/HeroCarousel.vue'
 import SquareNavButton from '@/pages/home/components/SquareNavButton.vue'
 import PolicyBottom from '@/pages/home/components/PolicyBottom.vue' 
 
@@ -57,25 +57,25 @@ import icAdd      from '@/assets/icons/add.png'
 import icBookmark from '@/assets/icons/main-bookmark.png'
 import icMap      from '@/assets/icons/search-map.png'
 
+import b1 from '@/assets/images/home-banner1.png'
+import b2 from '@/assets/images/home-banner2.png'
+import b3 from '@/assets/images/home-banner3.png'
+
 const mode = ref('TRANSFER') // 'TRANSFER' | 'SUCCESSION'
 
-// 카드뉴스 아이템(예시)
-const news = ref([
-  { title: '공지/앱 사용 가이드', text: '처음 사용자라면 여기부터!' },
-  { title: '양도 전 체크리스트', text: '등록 전에 반드시 확인하세요.' },
-  { title: '승계 추천 매물', text: '관심 매물 기반으로 추천해드려요.' },
-])
+// 배너 이미지 배열
+const banners = [b1, b2, b3]
 
 // 모드에 따라 2개씩 노출 (아이콘 포함)
 const actions = computed(() =>
   mode.value === 'TRANSFER'
     ? [
         { label: '등록 매물 관리', to: 'my-listing', icon: icManage },
-        { label: '양도 매물 등록', to: 'listing-new',    icon: icAdd    },
+        { label: '양도 매물 등록', to: 'listing-new', icon: icAdd },
       ]
     : [
-        { label: '관심 매물 목록', to: 'my-bookmark',   icon: icBookmark },
-        { label: '매물 지도 이동', to: 'listing-map', icon: icMap      },
+        { label: '관심 매물 목록', to: 'my-bookmark', icon: icBookmark },
+        { label: '매물 지도 이동', to: 'listing-map', icon: icMap },
       ]
 )
 </script>
@@ -93,14 +93,12 @@ const actions = computed(() =>
 .mode-row { display:flex; align-items:center; justify-content: space-between; }
 .mode-label { color: var(--color-lightblack); }
 
-/* 카드뉴스 영역은 컴포넌트가 높이를 가짐 */
-.hero { }
 
 .nav-grid {
   display: grid;
   grid-template-columns: repeat(2, 164px);
   gap: 12px;
-  justify-content: space-between; /* 좌우 균형 */
+  justify-content: space-between;
 }
 
 .bottom { margin-bottom: 12px; }
