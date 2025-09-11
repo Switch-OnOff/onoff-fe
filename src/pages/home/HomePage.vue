@@ -30,7 +30,12 @@
         :key="a.label"
         :label="a.label"
         :to="a.to"
-      />
+      >
+        <!-- 중앙 아이콘 슬롯 -->
+        <template #icon>
+          <img :src="a.icon" alt="" />
+        </template>
+      </SquareNavButton>
     </section>
 
     <!-- 하단: 정책·대출 (모드 props로 전환) -->
@@ -45,7 +50,12 @@ import { ref, computed } from 'vue'
 import SegmentSwitch from '@/pages/home/components/SegmentSwitch.vue'
 import HeroCarousel from '@/pages/home/components/HeroCarousel.vue'
 import SquareNavButton from '@/pages/home/components/SquareNavButton.vue'
-import PolicyBottom from '@/pages/home/components/PolicyBottom.vue' // ← 통합 컴포넌트
+import PolicyBottom from '@/pages/home/components/PolicyBottom.vue' 
+
+import icManage   from '@/assets/icons/manage.png'
+import icAdd      from '@/assets/icons/add.png'
+import icBookmark from '@/assets/icons/main-bookmark.png'
+import icMap      from '@/assets/icons/search-map.png'
 
 const mode = ref('TRANSFER') // 'TRANSFER' | 'SUCCESSION'
 
@@ -56,16 +66,16 @@ const news = ref([
   { title: '승계 추천 매물', text: '관심 매물 기반으로 추천해드려요.' },
 ])
 
-// 모드에 따라 2개씩 노출 (요구 라벨 4개 재사용)
+// 모드에 따라 2개씩 노출 (아이콘 포함)
 const actions = computed(() =>
   mode.value === 'TRANSFER'
     ? [
-        { label: '등록 매물 관리', to: 'ManageListings' },
-        { label: '양도 매물 등록', to: 'listing-new' },
+        { label: '등록 매물 관리', to: 'ManageListings', icon: icManage },
+        { label: '양도 매물 등록', to: 'listing-new',    icon: icAdd    },
       ]
     : [
-        { label: '관심 매물 목록', to: 'Favorites' },
-        { label: '매물 지도 이동', to: 'listing-map' },
+        { label: '관심 매물 목록', to: 'Favorites',   icon: icBookmark },
+        { label: '매물 지도 이동', to: 'listing-map', icon: icMap      },
       ]
 )
 </script>
