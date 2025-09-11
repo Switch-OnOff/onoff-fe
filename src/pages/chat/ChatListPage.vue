@@ -14,7 +14,11 @@
     </div>
 
     <section class="chat-room">
-      <div v-for="value in filteredChats" :key="value.id">
+      <div
+        v-for="value in filteredChats"
+        :key="value.id"
+        @click="moveToChatRoom(value)"
+      >
         <ChatRoom :chatInfo="value" />
       </div>
     </section>
@@ -26,7 +30,8 @@ import SimpleHeader from '@/components/layout/SimpleHeader.vue';
 import SegmentedButton from '../../components/common/SegmentedBtn.vue';
 import ChatRoom from './components/ChatRoom.vue';
 import { onMounted, ref, computed } from 'vue';
-import { getChatRoom } from '@/api/chat';
+import { getChatDetail, getChatRoom } from '@/api/chat';
+import { useRouter } from 'vue-router';
 
 const title = '채팅';
 const selected = ref(1);
@@ -44,11 +49,28 @@ const filteredChats = computed(() => {
 });
 
 onMounted(async () => {
-  const data = await getChatRoom(1);
+  const raw = sessionStorage.getItem('user'); // 문자열
+  const user = raw ? JSON.parse(raw) : null; // 객체로 변환
+  console.log(user);
+
+  if (!user) {
+    router.push('/auth/login');
+  }
+
+  const data = await getChatRoom(user.userId); // userId 넘기기
   chatInfo.value = data.chatUnits;
-  console.log(data);
-  console.log(chatInfo.value);
 });
+
+const router = useRouter();
+const moveToChatRoom = async (chat) => {
+  const res = await getChatDetail(chat.roomId);
+
+  router.push({
+    path: `/chat-detail/${chat.otherUserName}`,
+    query: { roomId: chat.roomId },
+    state: { chatDetail: res.chatMessages },
+  });
+};
 </script>
 
 <style scoped>

@@ -10,6 +10,17 @@ export const getChatRoom = async (userId) => {
   }
 };
 
+export const getChatDetail = async (roomId) => {
+  try {
+    const res = await axios.get(`/chat/room/${roomId}/messages`);
+    console.log('api');
+    console.log(res.data);
+    return res.data;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 // export const getChatDetail = async (chatRoom) => {
 //   const id = 1;
 //   try {

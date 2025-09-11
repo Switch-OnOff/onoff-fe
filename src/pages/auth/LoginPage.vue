@@ -48,22 +48,22 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import InputSimple from "@/components/input/InputSimple.vue";
-import LgSubmitBtn from "@/components/button/LgSubmitBtn.vue";
-import loginLogo from "@/assets/icons/logo.png";
-import axios from "axios";
+import { ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import InputSimple from '@/components/input/InputSimple.vue';
+import LgSubmitBtn from '@/components/button/LgSubmitBtn.vue';
+import loginLogo from '@/assets/icons/logo.png';
+import axios from 'axios';
 
 // 아이콘
-import eyeOpen from "@/assets/icons/pw_show_eye.png";   // 표시(열린 눈)
-import eyeClosed from "@/assets/icons/pw_hide_eye.png"; // 숨김(가린 눈)
+import eyeOpen from '@/assets/icons/pw_show_eye.png'; // 표시(열린 눈)
+import eyeClosed from '@/assets/icons/pw_hide_eye.png'; // 숨김(가린 눈)
 
 const router = useRouter();
 const route = useRoute();
 
-const userEmail = ref("");
-const password = ref("");
+const userEmail = ref('');
+const password = ref('');
 const showPassword = ref(false);
 
 function toggleShowPassword() {
@@ -72,16 +72,20 @@ function toggleShowPassword() {
 
 async function onLogin() {
   if (!userEmail.value || !password.value) {
-    alert("이메일과 비밀번호를 모두 입력해주세요.");
+    alert('이메일과 비밀번호를 모두 입력해주세요.');
     return;
   }
 
   try {
-    const response = await axios.post('http://localhost:8080/api/user/auth/login', {
-      email: userEmail.value,
-      password: password.value,
-    });
+    const response = await axios.post(
+      'http://localhost:8080/api/user/auth/login',
+      {
+        email: userEmail.value,
+        password: password.value,
+      }
+    );
 
+    const userId = response.data.data.userId;
     const email = response.data.data.email;
     const name = response.data.data.name;
     const contact = response.data.data.contact;
@@ -91,30 +95,29 @@ async function onLogin() {
       // checklistStore.checklistData.userId = userData.userId;
       // axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        // 사용자 정보 객체
-      const userInfo = { email, name, contact }
+      // 사용자 정보 객체
+      const userInfo = { userId, email, name, contact };
 
       // // localStorage에 저장 (자동로그인)
       // localStorage.setItem("user", JSON.stringify(userInfo))
       // localStorage.setItem("token", token)
 
       // 또는 세션스토리지에 저장 (브라우저 종료 시 삭제됨)
-      sessionStorage.setItem("user", JSON.stringify(userInfo))
+      sessionStorage.setItem('user', JSON.stringify(userInfo));
 
-      alert("로그인 성공!")
-      const redirectPath = route.query.redirect || "/"
-      router.push(redirectPath)
-
+      alert('로그인 성공!');
+      const redirectPath = route.query.redirect || '/';
+      router.push(redirectPath);
     } else {
-      alert("로그인 정보가 올바르지 않습니다.");
+      alert('로그인 정보가 올바르지 않습니다.');
     }
   } catch (error) {
     const errorMessage =
       error.response?.data?.message ||
-      "로그인에 실패했습니다.\n아이디나 비밀번호를 확인해주세요.";
+      '로그인에 실패했습니다.\n아이디나 비밀번호를 확인해주세요.';
     alert(errorMessage);
   }
-  
+
   // // 데모 모드 - 로그인 성공 시 홈으로 이동
   // alert("로그인 시도: " + userEmail.value);
   // const redirectPath = route.query.redirect || "/";
@@ -122,11 +125,11 @@ async function onLogin() {
 }
 
 function onSignup() {
-  router.push("/auth/signup-agreement");
+  router.push('/auth/signup-agreement');
 }
 
 function onResetPw() {
-  router.push("/auth/reset-password");
+  router.push('/auth/reset-password');
 }
 </script>
 
