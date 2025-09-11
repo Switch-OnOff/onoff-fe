@@ -1,7 +1,7 @@
 <!-- src/pages/listing/ListingsPage.vue -->
 <template>
   <div class="listings-wrap">
-    <SimpleHeader title="매물 리스트">
+    <SimpleHeader :show-button="false" title="매물 리스트">
       <template #action>
         <button
           class="view-toggle-btn"
@@ -155,7 +155,7 @@ function m2toPyeong(m2) {
 function mapListing(r) {
   return {
     id: r.id,
-    img: r.images?.[0] || fallbackImg, 
+    img: r.images?.[0] || fallbackImg,
     industry: r.industry,
     transactionType: r.transactionType,
     deposit: r.deposit,

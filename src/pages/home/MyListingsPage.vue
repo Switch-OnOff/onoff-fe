@@ -6,24 +6,32 @@
       <div class="seg">
         <button
           class="seg-btn bodyMedium14px"
-          :class="{ on: statusFilter==='ALL' }"
-          @click="statusFilter='ALL'"
-        >전체</button>
+          :class="{ on: statusFilter === 'ALL' }"
+          @click="statusFilter = 'ALL'"
+        >
+          전체
+        </button>
         <button
           class="seg-btn bodyMedium14px"
-          :class="{ on: statusFilter==='게시중' }"
-          @click="statusFilter='게시중'"
-        >게시중</button>
+          :class="{ on: statusFilter === '게시중' }"
+          @click="statusFilter = '게시중'"
+        >
+          게시중
+        </button>
         <button
           class="seg-btn bodyMedium14px"
-          :class="{ on: statusFilter==='검수중' }"
-          @click="statusFilter='검수중'"
-        >검수중</button>
+          :class="{ on: statusFilter === '검수중' }"
+          @click="statusFilter = '검수중'"
+        >
+          검수중
+        </button>
         <button
           class="seg-btn bodyMedium14px"
-          :class="{ on: statusFilter==='숨김' }"
-          @click="statusFilter='숨김'"
-        >숨김</button>
+          :class="{ on: statusFilter === '숨김' }"
+          @click="statusFilter = '숨김'"
+        >
+          숨김
+        </button>
       </div>
 
       <div class="list">
@@ -37,7 +45,7 @@
         />
       </div>
 
-      <div v-if="filtered.length===0" class="empty bodyRegular14px">
+      <div v-if="filtered.length === 0" class="empty bodyRegular14px">
         등록된 매물이 없어요.
       </div>
     </div>
@@ -49,32 +57,35 @@
       confirmText="삭제"
       cancelText="취소"
       @confirm="doDelete"
-      @close="confirmOpen=false"
+      @close="confirmOpen = false"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import SimpleHeader from '@/components/layout/SimpleHeader.vue'
-import ManageListingCard from '@/pages/listing/components/ManageListingCard.vue'
-import AlertModal from '@/components/modal/AlertModal.vue'
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import SimpleHeader from '@/components/layout/SimpleHeader.vue';
+import ManageListingCard from '@/pages/listing/components/ManageListingCard.vue';
+import AlertModal from '@/components/modal/AlertModal.vue';
+import marketThumb1 from '@/assets/images/sample/sample-image1.png';
+import marketThumb2 from '@/assets/images/sample/sample-image2.png';
+import marketThumb3 from '@/assets/images/sample/sample-image3.png';
 
-const router = useRouter()
+const router = useRouter();
 
 // 목데이터 (ListingCard.vue 스키마에 맞춤)
 const items = ref([
   {
     id: 101,
-    img: '',
+    img: marketThumb1,
     industry: '일반음식점/양식',
     transactionType: '월세',
-    deposit: 3000,      // 만원
-    rent: 250,          // 만원
+    deposit: 3000, // 만원
+    rent: 250, // 만원
     salePrice: null,
-    premium: 2000,      // 만원
-    exclusiveArea: 22.4,// 평
+    premium: 2000, // 만원
+    exclusiveArea: 22.4, // 평
     location: '서울 마포구 합정동',
     storeName: '수제버거 9번가', // 선택값(있으면 카드 타이틀에 사용)
     status: '게시중',
@@ -82,7 +93,7 @@ const items = ref([
   },
   {
     id: 102,
-    img: '',
+    img: marketThumb2,
     industry: '카페/디저트',
     transactionType: '매매',
     deposit: null,
@@ -97,7 +108,7 @@ const items = ref([
   },
   {
     id: 103,
-    img: '',
+    img: marketThumb3,
     industry: '주류/바',
     transactionType: '월세',
     deposit: 2000,
@@ -110,14 +121,14 @@ const items = ref([
     status: '숨김',
     updatedAt: '최근 수정 2025-09-03',
   },
-])
+]);
 
-const statusFilter = ref('ALL')
+const statusFilter = ref('ALL');
 
 const filtered = computed(() => {
-  if (statusFilter.value === 'ALL') return items.value
-  return items.value.filter(it => it.status === statusFilter.value)
-})
+  if (statusFilter.value === 'ALL') return items.value;
+  return items.value.filter((it) => it.status === statusFilter.value);
+});
 
 function toCardProps(it) {
   return {
@@ -135,38 +146,45 @@ function toCardProps(it) {
     storeName: it.storeName,
     status: it.status,
     updatedAt: it.updatedAt,
-  }
+  };
 }
 
 function goDetail(id) {
-  router.push({ name: 'listing-detail', params: { id } })
+  router.push({ name: 'listing-detail', params: { id } });
 }
 function editItem(id) {
-  router.push({ name: 'listing-edit', params: { id } })
+  router.push({ name: 'listing-edit', params: { id } });
 }
 
 /* 삭제 확인 */
-const confirmOpen = ref(false)
-const confirmTarget = ref(null)
-const confirmMessage = ref('')
+const confirmOpen = ref(false);
+const confirmTarget = ref(null);
+const confirmMessage = ref('');
 function confirmDelete(id) {
-  confirmTarget.value = id
-  const target = items.value.find(i => i.id === id)
+  confirmTarget.value = id;
+  const target = items.value.find((i) => i.id === id);
   confirmMessage.value = target
-    ? `매물 “${target.storeName || target.industry || id}”를 삭제할까요?\n삭제 후 되돌릴 수 없어요.`
-    : '이 매물을 삭제할까요?'
-  confirmOpen.value = true
+    ? `매물 “${
+        target.storeName || target.industry || id
+      }”를 삭제할까요?\n삭제 후 되돌릴 수 없어요.`
+    : '이 매물을 삭제할까요?';
+  confirmOpen.value = true;
 }
 function doDelete() {
-  if (confirmTarget.value == null) { confirmOpen.value = false; return }
-  items.value = items.value.filter(i => i.id !== confirmTarget.value)
-  confirmTarget.value = null
-  confirmOpen.value = false
+  if (confirmTarget.value == null) {
+    confirmOpen.value = false;
+    return;
+  }
+  items.value = items.value.filter((i) => i.id !== confirmTarget.value);
+  confirmTarget.value = null;
+  confirmOpen.value = false;
 }
 </script>
 
 <style scoped>
-.my-listings-page { background: var(--color-white); }
+.my-listings-page {
+  background: var(--color-white);
+}
 
 .page-body {
   padding: 12px 16px 20px;

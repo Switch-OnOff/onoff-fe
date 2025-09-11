@@ -52,10 +52,10 @@ import BannerHero from '@/pages/home/components/HeroCarousel.vue'
 import SquareNavButton from '@/pages/home/components/SquareNavButton.vue'
 import PolicyBottom from '@/pages/home/components/PolicyBottom.vue' 
 
-import icManage   from '@/assets/icons/manage.png'
-import icAdd      from '@/assets/icons/add.png'
-import icBookmark from '@/assets/icons/main-bookmark.png'
-import icMap      from '@/assets/icons/search-map.png'
+import icManage from '@/assets/icons/manage.png';
+import icAdd from '@/assets/icons/add.png';
+import icBookmark from '@/assets/icons/main-bookmark.png';
+import icMap from '@/assets/icons/search-map.png';
 
 import b1 from '@/assets/images/home-banner1.png'
 import b2 from '@/assets/images/home-banner2.png'
@@ -70,6 +70,7 @@ const banners = [b1, b2, b3]
 const actions = computed(() =>
   mode.value === 'TRANSFER'
     ? [
+        { label: '양도 매물 등록', to: 'listing-new', icon: icAdd },
         { label: '등록 매물 관리', to: 'my-listing', icon: icManage },
         { label: '양도 매물 등록', to: 'listing-new', icon: icAdd },
       ]
@@ -77,21 +78,32 @@ const actions = computed(() =>
         { label: '관심 매물 목록', to: 'my-bookmark', icon: icBookmark },
         { label: '매물 지도 이동', to: 'listing-map', icon: icMap },
       ]
-)
+);
 </script>
 
 <style scoped>
 .home {
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   padding: 1.5rem;
   background: var(--color-white);
 }
 
 /* 상단 */
-.brand-bar { display:flex; flex-direction: column; gap: 12px; }
-.mode-row { display:flex; align-items:center; justify-content: space-between; }
-.mode-label { color: var(--color-lightblack); }
+.brand-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mode-label {
+  color: var(--color-lightblack);
+}
 
 
 .nav-grid {
@@ -101,5 +113,7 @@ const actions = computed(() =>
   justify-content: space-between;
 }
 
-.bottom { margin-bottom: 12px; }
+.bottom {
+  margin-bottom: 12px;
+}
 </style>

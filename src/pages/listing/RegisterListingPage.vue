@@ -1,6 +1,6 @@
 <template>
   <div class="wizard-page">
-    <SimpleHeader title="양도 매물 등록">
+    <SimpleHeader :show-button="false" title="매물 등록">
       <template #action>
         <button
           v-if="step < 4"

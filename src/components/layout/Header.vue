@@ -7,7 +7,12 @@
 
     <!-- 우측 슬롯 (알림, 설정 등 확장 가능) -->
     <div class="right">
-      <slot name="right"></slot>
+      <SegmentedBtn v-if="!isLoginned" class="login-btn" @click="goToLogin"
+        >로그인</SegmentedBtn
+      >
+      <SegmentedBtn v-else class="icon-btn"
+        ><img :src="bellIcon" class="icon"
+      /></SegmentedBtn>
     </div>
   </header>
 </template>
@@ -15,9 +20,28 @@
 <script setup>
 import logo from '@/assets/icons/logo.png';
 import SegmentedBtn from '@/components/common/SegmentedBtn.vue';
-import { ref } from 'vue';
+import bellIcon from '@/assets/icons/bell-icon.png';
+import { onMounted, ref } from 'vue';
+import { useRouter, onBeforeRouteUpdate } from 'vue-router';
 
 const activeTab = ref('give'); // 기본 탭
+const isLoginned = ref(false);
+
+const router = useRouter();
+
+onMounted(() => {
+  const user = sessionStorage.getItem('user');
+  isLoginned.value = user != null;
+});
+
+onBeforeRouteUpdate(() => {
+  const user = sessionStorage.getItem('user');
+  isLoginned.value = user != null;
+});
+
+const goToLogin = () => {
+  router.push('/auth/login');
+};
 </script>
 
 <style scoped>
@@ -127,5 +151,20 @@ const activeTab = ref('give'); // 기본 탭
   background-color: #fff;
   color: var(--color-primary);
   border-radius: 50%;
+}
+
+.login-btn {
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+
+.icon-btn {
+  padding: 6px 10px;
+  border: none;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
 }
 </style>
