@@ -74,7 +74,11 @@
         {{ listing.industry }}
       </div>
 
-      <h1 class="titleExtra24px price-headline">{{ mainPriceLine }}</h1>
+      <div class="price-headerline-content">
+        <h1 class="titleExtra24px price-headline">{{ mainPriceLine }}</h1>
+        <div class="ai-message">버튼</div>
+      </div>
+
       <div class="store-name bodyMedium16px" v-if="listing.storeName">
         {{ listing.storeName }}
       </div>
@@ -416,6 +420,9 @@ async function fetchDetail(id) {
     const data = res?.data?.data || {};
     listing.value = data;
 
+    const pid = data?.propertyId ?? id;
+    await fetchImagesFor(pid);
+
     console.log('데이터 확인', listing.value);
     syncBookmarkFlag();
     requestAnimationFrame(() => {
@@ -425,6 +432,54 @@ async function fetchDetail(id) {
   } catch (e) {
     console.warn('[ListingDetail] fetch fail:', e);
   }
+}
+
+function b64ToDataUrl(b64) {
+  if (!b64) return null;
+  const mime = b64.startsWith('iVBORw0')
+    ? 'image/png'
+    : b64.startsWith('/9j/')
+    ? 'image/jpeg'
+    : 'image/*';
+  return b64.startsWith('data:') ? b64 : `data:${mime};base64,${b64}`;
+}
+
+//사진 데이터 로드
+async function fetchImagesFor(propertyId) {
+  try {
+    const { data } = await axios.get(
+      `http://localhost:8080/api/posts/card/${propertyId}`
+    );
+
+    const payload = data?.data;
+    const rows = Array.isArray(payload) ? payload : [payload];
+    const imgs = rows
+      .map((r) => b64ToDataUrl(r?.representativeImage))
+      .filter(Boolean);
+
+    if (imgs.length) {
+      // 갤러리에서 쓰는 배열에 주입
+      listing.value.images = imgs;
+
+      // 인디케이터/오토플레이 갱신
+      requestAnimationFrame(() => {
+        onGalleryScroll();
+        startAuto();
+      });
+    }
+  } catch (e) {
+    console.warn('[ListingDetail] fetchImages fail:', e);
+  }
+}
+
+// ai 메시지 로드
+async function fetchAiMessage() {
+  try {
+    const res = await axios.get(
+      `http://localhost:8080/api/posts/user/${listing.value.userId}`
+    );
+    const data = res?.data?.data || {};
+  } catch {}
 }
 
 onMounted(() => {
@@ -460,11 +515,6 @@ const shareUrl = computed(() => `${location.origin}${route.fullPath}`);
 function openShare() {
   shareOpen.value = true;
 }
-// 텍스트 관련
-const parkingPaidText = computed(() => {
-  if (listing.value.parking?.type !== '가능') return '';
-  return listing.value.parking?.paid ? '유료' : '무료';
-});
 
 function contact() {
   alert('1:1 채팅으로 연결합니다.');
@@ -596,7 +646,15 @@ function contact() {
   margin: 4px 0 6px;
   color: var(--color-black);
 }
-
+.price-headerline-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.ai-message {
+  background-color: aqua;
+}
 .store-name {
   color: var(--color-darkgray);
   margin-bottom: 10px;

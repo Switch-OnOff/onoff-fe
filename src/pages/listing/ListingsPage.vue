@@ -147,27 +147,54 @@ const filters = ref({
   areaPyeong: { min: 0, max: 200 },
 });
 
+function asDataUrl(base64, mime = 'image/png') {
+  if (!base64 || typeof base64 !== 'string') return null;
+  if (base64 === 'string') return null; // 예시 placeholder 방지
+  if (base64.startsWith('data:')) return base64;
+  const clean = base64.replace(/\s+/g, '');
+  if (clean.length < 50) return null; // 너무 짧으면 이미지 취급 X
+  return `data:${mime};base64,${clean}`;
+}
+
+// id → 이미지 src 맵
+function buildImageMap(rows) {
+  const m = new Map();
+  for (const r of rows || []) {
+    const id = Number(r?.propertyId ?? r?.id);
+    const src = asDataUrl(r?.representativeImage);
+    if (Number.isFinite(id) && src) m.set(id, src);
+  }
+  return m;
+}
+
 function m2toPyeong(m2) {
   const n = Number(m2);
   return Number.isFinite(n) ? Number((n / 3.305785).toFixed(1)) : undefined;
 }
 
-function mapListing(r) {
+function mapListing(r, imagesById) {
+  const idRaw = r?.propertyId ?? r?.id;
+  const id = Number.isFinite(Number(idRaw)) ? Number(idRaw) : undefined;
+
   return {
-    id: r.id,
-    img: r.images?.[0] || fallbackImg,
-    industry: r.industry,
-    transactionType: r.transactionType,
-    deposit: r.deposit,
-    rent: r.rent,
-    salePrice: r.salePrice,
-    premium: r.premium,
+    id,
+    propertyId: r?.propertyId,
+    img: imagesById.get(id) || fallbackImg,
+
+    industry: r?.industry,
+    transactionType: r?.transactionType,
+    deposit: r?.deposit,
+    rent: r?.rent,
+    salePrice: r?.salePrice,
+    premium: r?.premium,
     exclusiveArea: m2toPyeong(
-      r.exclusiveArea ?? r?.area?.exclusive ?? r?.area?.supply * 0.75
+      r?.exclusiveArea ??
+        r?.area?.exclusive ??
+        (r?.area?.supply ? r.area.supply * 0.75 : undefined)
     ),
-    location: r.address,
-    lat: r.lat,
-    lng: r.lng,
+    location: r?.address,
+    lat: r?.lat,
+    lng: r?.lng,
   };
 }
 
@@ -182,19 +209,35 @@ const totalItems = computed(() => sortedItems.value.length);
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(totalItems.value / pageSize))
 );
-
 const paginatedItems = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
-  const end = start + pageSize;
-  return sortedItems.value.slice(start, end);
+  return sortedItems.value.slice(start, start + pageSize);
 });
 
 async function fetchAll() {
   try {
-    const res = await axios.get('http://localhost:8080/api/property/card_list');
-    const list = res?.data?.data;
-    const rows = Array.isArray(list) ? list : [];
-    rawItems.value = rows.map(mapListing);
+    const [listRes, imgRes] = await Promise.all([
+      axios.get('http://localhost:8080/api/property/card_list'),
+      axios.get('http://localhost:8080/api/posts/card_list'),
+    ]);
+
+    const list = Array.isArray(listRes?.data?.data) ? listRes.data.data : [];
+    const images = Array.isArray(imgRes?.data?.data) ? imgRes.data.data : [];
+
+    // id → src
+    const imagesById = buildImageMap(images);
+
+    // 혹시 리스트 row 안에 대표이미지가 같이 오는 환경 대비(보충)
+    for (const r of list) {
+      const id = Number(r?.propertyId ?? r?.id);
+      if (!imagesById.has(id)) {
+        const candidate = asDataUrl(r?.representativeImage);
+        if (Number.isFinite(id) && candidate) imagesById.set(id, candidate);
+      }
+    }
+
+    rawItems.value = list.map((r) => mapListing(r, imagesById));
+
     if (currentPage.value > totalPages.value)
       currentPage.value = totalPages.value;
   } catch (e) {

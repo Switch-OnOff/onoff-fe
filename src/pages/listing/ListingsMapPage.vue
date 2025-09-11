@@ -51,7 +51,9 @@ const router = useRouter();
 
 /** 라우터 쿼리 기반 초기 중심/줌 */
 const initialCenter = (route.query.center &&
-  route.query.center.split(',').map(Number)) || [37.497976, 127.027636];
+  route.query.center.split(',').map(Number)) || [
+  37.4163635638303, 126.884877197434,
+];
 
 const lat = ref(initialCenter[0]);
 const lng = ref(initialCenter[1]);
@@ -182,7 +184,16 @@ async function fetchCardByLocationId(locationId) {
     const raw = res?.data?.data;
     if (!raw) return null;
 
-    return mapServerRow(raw);
+    const card = mapServerRow(raw);
+
+    // 서버 응답에 따라 property 식별자가 raw.id 또는 raw.propertyId일 수 있어 둘 다 시도
+    const pid = raw.propertyId ?? raw.id;
+
+    // 대표 이미지 불러와 thumbnail 교체
+    const imgUrl = await fetchImageByPropertyId(pid);
+    if (imgUrl) card.thumbnail = imgUrl;
+
+    return card;
   } catch (e) {
     console.error('[fetchCardByLocationId] failed:', e);
     return null;
@@ -319,6 +330,45 @@ function rebuildMarkers() {
     clusterer.addMarkers(markers);
   } else {
     markers.forEach((m) => m.setMap && m.setMap(map));
+  }
+}
+
+// --- 이미지 캐시 + 헬퍼 ---
+const imageCache = new Map();
+
+function sniffMime(b64 = '') {
+  if (b64.startsWith('/9j/')) return 'image/jpeg'; // JPEG
+  if (b64.startsWith('iVBOR')) return 'image/png'; // PNG
+  if (b64.startsWith('R0lGOD')) return 'image/gif'; // GIF
+  return 'image/png';
+}
+function toDataUrl(b64) {
+  const mime = sniffMime(b64);
+  return `data:${mime};base64,${b64}`;
+}
+
+/** propertyId로 대표 이미지(Base64) 가져와 data URL로 반환 + 캐시 */
+async function fetchImageByPropertyId(propertyId) {
+  if (!propertyId) return null;
+  if (imageCache.has(propertyId)) return imageCache.get(propertyId);
+
+  try {
+    const res = await axios.get(
+      `http://localhost:8080/api/posts/card/${propertyId}`
+    );
+    const data = res?.data?.data;
+    // API가 배열/단일 두 형태 모두 올 수 있어 방어적으로 처리
+    const b64 = Array.isArray(data)
+      ? data?.[0]?.representativeImage
+      : data?.representativeImage;
+    if (!b64) return null;
+
+    const url = toDataUrl(b64);
+    imageCache.set(propertyId, url);
+    return url;
+  } catch (e) {
+    console.warn('[fetchImageByPropertyId] fail:', e);
+    return null;
   }
 }
 
