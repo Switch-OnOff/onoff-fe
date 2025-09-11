@@ -1,7 +1,7 @@
 <template>
   <div class="wizard-page">
-    <SimpleHeader :show-button="false" title="매물 등록">
-      <template #action>
+    <SimpleHeader :show-button="false" title="매물 등록"/>
+      <!-- <template #action>
         <button
           v-if="step < 4"
           type="button"
@@ -11,7 +11,7 @@
           다음(건너뛰기)
         </button>
       </template>
-    </SimpleHeader>
+    </SimpleHeader> -->
 
     <!-- STEP 1 -->
     <section class="step" v-if="step === 1">
@@ -122,9 +122,7 @@
             <template v-if="formStep2.dealType === '월세'">
               <label class="bodyMedium14px label-inline">
                 보증금(만원)
-                <span v-if="depositWon" class="label-right bodyRegular12px">{{
-                  depositWon
-                }}</span>
+                <span v-if="depositWon" class="label-right bodyRegular12px">{{ depositWon }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.deposit" />
               <NumberButtonGroup
@@ -135,9 +133,7 @@
 
               <label class="bodyMedium14px label-inline">
                 월세(만원)
-                <span v-if="rentWon" class="label-right bodyRegular12px">{{
-                  rentWon
-                }}</span>
+                <span v-if="rentWon" class="label-right bodyRegular12px">{{ rentWon }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.rent" />
               <NumberButtonGroup
@@ -150,9 +146,7 @@
             <template v-else>
               <label class="bodyMedium14px label-inline">
                 매매가(만원)
-                <span v-if="saleWon" class="label-right bodyRegular12px">{{
-                  saleWon
-                }}</span>
+                <span v-if="saleWon" class="label-right bodyRegular12px">{{ saleWon }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.salePrice" />
               <NumberButtonGroup
@@ -166,9 +160,7 @@
 
         <label class="bodyMedium16px label-inline">
           권리금(만원)
-          <span v-if="premiumWon" class="label-right bodyRegular12px">{{
-            premiumWon
-          }}</span>
+          <span v-if="premiumWon" class="label-right bodyRegular12px">{{ premiumWon }}</span>
         </label>
         <div class="gap-tight">
           <MoneyInput v-model.number="formStep2.premium" />
@@ -183,9 +175,7 @@
 
         <label class="bodyMedium16px label-inline">
           관리비(만원)
-          <span v-if="mgmtFeeWon" class="label-right bodyLight12px">{{
-            mgmtFeeWon
-          }}</span>
+          <span v-if="mgmtFeeWon" class="label-right bodyLight12px">{{ mgmtFeeWon }}</span>
         </label>
         <MoneyInput v-model.number="formStep2.mgmtFee" />
 
@@ -265,18 +255,36 @@
     <!-- STEP 3 -->
     <section class="step" v-else-if="step === 3">
       <h2 class="titleExtra28px">상세 설명</h2>
+      <p class="desc-secondary bodyRegular12px">
+        간단한 키워드나 짧은 문장만 입력하셔도 됩니다. 입력하신 내용과 기본 정보(업종, 거래유형, 금액, 면적, 층, 주차, 주소, 양도 가능일 등)를 함께 반영하여
+        문장을 자연스럽게 정리한 <strong>완성형 소개글</strong>로 다듬어 드립니다. 생성 후 직접 수정하실 수 있습니다.
+      </p>
+
       <textarea
-        class="textarea"
+        class="textarea bodyRegular14px"
         rows="8"
         v-model="formStep3.description"
-        placeholder="상세 설명을 작성하세요."
+        placeholder="예시: 대학가·오피스 혼재 상권, 점심 피크 매출 우수, 최근 전체 인테리어, 주차 3대 가능 등 키워드를 자유롭게 적어주세요."
       ></textarea>
-      <div class="row gap submit-row">
-        <MedSubmitBtn text="다음" @click="goStep(4)" />
+
+      <div class="ai-help">
+        <div class="ai-tip bodyRegular12px">
+          ✦ 예시: <em>대학가 상권</em>, <em>오피스 밀집</em>, <em>점심 피크</em>, <em>유동인구 많음</em>, <em>주차 3대</em>, <em>최근 전체 인테리어</em>, <em>배달 강세</em>, <em>포장 매출 우수</em>, <em>코너자리</em>, <em>1층 로드샵</em>, <em>가시성 우수</em>, <em>이중출입문</em>, <em>테라스 좌석</em>, <em>환기 우수</em>, <em>정남향</em>
+        </div>
       </div>
 
-      <div class="row gap submit-row">
-        <MedSubmitBtn text="생성" @click="generateContent" />
+      <!-- 버튼: 위(흰 배경) / 아래(프라이머리) -->
+      <div class="submit-vertical">
+        <MedSubmitBtn
+          :text="aiLoading ? '수정중' : 'AI로 글 다듬기'"
+          :color="'var(--color-white)'"              
+          :disabled="aiLoading || !formStep3.description?.trim()"
+          @click="generateContent"
+        />
+        <MedSubmitBtn
+          text="등록하기"                           
+          @click="goStep(4)"
+        />
       </div>
     </section>
 
@@ -299,7 +307,6 @@
       </div>
     </section>
 
-    <!-- 공용 알림 모달 -->
     <AlertModal
       v-model:open="modal.open"
       :title="modal.title"
@@ -336,9 +343,9 @@ import AlertModal from '@/components/modal/AlertModal.vue';
 const step = ref(1);
 const verifying = ref(false);
 const errorMsg = ref('');
+const aiLoading = ref(false);
 const router = useRouter();
 
-/* 공용 모달 상태 */
 const modal = reactive({
   open: false,
   title: '알림',
@@ -350,8 +357,7 @@ function showModal(message, opts = {}) {
   modal.title = opts.title ?? '알림';
   modal.message = message;
   modal.confirmText = opts.confirmText ?? '확인';
-  modal.onConfirm =
-    typeof opts.onConfirm === 'function' ? opts.onConfirm : null;
+  modal.onConfirm = typeof opts.onConfirm === 'function' ? opts.onConfirm : null;
   modal.open = true;
 }
 function handleModalConfirm() {
@@ -361,10 +367,7 @@ function handleModalConfirm() {
 }
 
 const INDUSTRY_CATEGORIES = [
-  {
-    major: '일반음식점',
-    minors: ['한식', '중식', '양식', '분식', '치킨', '카페/디저트'],
-  },
+  { major: '일반음식점', minors: ['한식', '중식', '양식', '분식', '치킨', '카페/디저트'] },
   { major: '서비스업', minors: ['미용', '세탁', '교육', '기타'] },
   { major: '소매', minors: ['편의점', '잡화', '의류', '기타'] },
 ];
@@ -430,9 +433,7 @@ const canSubmit = computed(
   () => photos.value.length >= MIN_PHOTOS && photos.value.length <= MAX_PHOTOS
 );
 
-function goStep(n) {
-  step.value = n;
-}
+function goStep(n) { step.value = n; }
 function skipToNext() {
   if (step.value === 1) {
     verified.bNo = formStep1.bNo;
@@ -444,16 +445,10 @@ function skipToNext() {
 }
 
 function onlyDigitsLen(val, max) {
-  return String(val || '')
-    .replace(/\D/g, '')
-    .slice(0, max);
+  return String(val || '').replace(/\D/g, '').slice(0, max);
 }
-function onBNoInput(e) {
-  formStep1.bNo = onlyDigitsLen(e.target.value, 10);
-}
-function onOpenDtInput(e) {
-  formStep1.openDt = onlyDigitsLen(e.target.value, 8);
-}
+function onBNoInput(e) { formStep1.bNo = onlyDigitsLen(e.target.value, 10); }
+function onOpenDtInput(e) { formStep1.openDt = onlyDigitsLen(e.target.value, 8); }
 
 async function onVerify() {
   errorMsg.value = '';
@@ -539,8 +534,7 @@ function onNextStep2() {
   }
 
   if (!formStep2.transfer?.type) missing.push('양도가능일');
-  if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date)
-    missing.push('양도가능일(날짜)');
+  if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date) missing.push('양도가능일(날짜)');
 
   if (!formStep2.storeName) missing.push('상호명');
   if (!formStep2.shopType) missing.push('상가형태');
@@ -549,11 +543,7 @@ function onNextStep2() {
   if (formStep2.floor.current === null) missing.push('해당층');
 
   if (!formStep2.parking?.type) missing.push('주차 형태');
-  if (
-    formStep2.parking?.type &&
-    formStep2.parking.type !== '없음' &&
-    formStep2.parking.count === null
-  ) {
+  if (formStep2.parking?.type && formStep2.parking.type !== '없음' && formStep2.parking.count === null) {
     missing.push('주차 대수');
   }
 
@@ -563,112 +553,79 @@ function onNextStep2() {
   if (!formStep2.address.base) missing.push('기본주소');
 
   if (missing.length) {
-    showModal('다음 항목을 입력해주세요:\n- ' + missing.join('\n- '), {
-      title: '입력 누락',
-    });
+    showModal('다음 항목을 입력해주세요:\n- ' + missing.join('\n- '), { title: '입력 누락' });
     return;
   }
   goStep(3);
 }
 
 const payload = computed(() => {
-  // 화장실 값 통일
   const restroomForDb = (() => {
     if (formStep2.restroom === '외부(공용)') return '공용';
     if (formStep2.restroom === '외부(개인)') return '개인';
     return formStep2.restroom;
   })();
 
-  // 지하층은 음수 처리
   const currentFloorNumber = formStep2.floor?.isBasement
     ? -Math.abs(Number(formStep2.floor?.current ?? 1))
     : Number(formStep2.floor?.current ?? 0);
 
-  // 거래 유형 플래그
   const isMonthly = formStep2.dealType === '월세';
   const isSale = formStep2.dealType === '매매';
 
-  // 날짜(transferDate)는 ISO 8601 문자열 기대로 가정
   const transferDateISO = formStep2.transfer?.date
     ? new Date(formStep2.transfer.date).toISOString()
     : null;
 
   const base = {
-    // ----- 매핑 시작 (백엔드 키) -----
     userId: JSON.parse(sessionStorage.getItem('user') || '{}').userId,
     storeName: formStep2.storeName?.trim() ?? '',
-    industry: `${formStep2.industryMajor ?? ''}/${
-      formStep2.industryMinor ?? ''
-    }`.replace(/\/$/, ''),
+    industry: `${formStep2.industryMajor ?? ''}/${formStep2.industryMinor ?? ''}`.replace(/\/$/, ''),
     shopType: formStep2.shopType ?? '',
-    transferType: formStep2.transfer?.type ?? '', // 예: '권리양도', '시설양도' 등
-    transferDate: transferDateISO, // 예: '2025-09-11T15:57:39.253Z'
-
+    transferType: formStep2.transfer?.type ?? '',
+    transferDate: transferDateISO,
     currentFloor: currentFloorNumber,
     totalFloor: Number(formStep2.floor?.total ?? 0),
-
-    parkingType: formStep2.parking?.type ?? '없음', // 예: '지하/지상/없음'
+    parkingType: formStep2.parking?.type ?? '없음',
     parkingCount: Number(formStep2.parking?.count ?? 0),
     parkingPaid: Boolean(formStep2.parking?.paid ?? false),
-
-    restroom: restroomForDb, // '공용' | '개인' | '내부' 등
-    deliveryLevel: formStep2.delivery ?? '', // 예: '불가/가능/우수' 등 레벨 문자열
+    restroom: restroomForDb,
+    deliveryLevel: formStep2.delivery ?? '',
     takeoutLevel: formStep2.takeout ?? '',
-
     supplyArea: Number(formStep2.area?.supply ?? 0),
     exclusiveArea: Number(formStep2.area?.exclusive ?? 0),
-
     description: (formStep3.description ?? '').trim(),
-    transactionType: formStep2.dealType ?? '', // '월세' | '매매'
-
+    transactionType: formStep2.dealType ?? '',
     deposit: isMonthly ? Number(formStep2.deposit ?? 0) : null,
     mgmtFee: Number(formStep2.mgmtFee ?? 0),
     premium: Number(formStep2.premium ?? 0),
     rent: isMonthly ? Number(formStep2.rent ?? 0) : null,
     salePrice: isSale ? Number(formStep2.salePrice ?? 0) : null,
-
-    address: `${formStep2.address?.base ?? ''} ${
-      formStep2.address?.detail ?? ''
-    }`.trim(),
-    // ----- 매핑 끝 -----
+    address: `${formStep2.address?.base ?? ''} ${formStep2.address?.detail ?? ''}`.trim(),
   };
-
-  // null/undefined 제거(백엔드가 빈 필드 거부 시 유용)
-  return Object.fromEntries(
-    Object.entries(base).filter(([, v]) => v !== null && v !== undefined)
-  );
+  return Object.fromEntries(Object.entries(base).filter(([, v]) => v !== null && v !== undefined));
 });
 
 const propertyId = ref(null);
 
-// 매물 데이터 등록 API
 async function createListing() {
   try {
-    const res = await axios.post(
-      'http://localhost:8080/api/property/',
-      payload.value
-    );
-    // 서버 응답이 { success, code, message, data: <number> } 라고 하셨으니:
-    const id =
-      typeof res?.data?.data === 'number'
-        ? res.data.data
-        : res?.data?.id ?? null;
+    const res = await axios.post('http://localhost:8080/api/property/', payload.value);
+    const id = typeof res?.data?.data === 'number' ? res.data.data : res?.data?.id ?? null;
     propertyId.value = id;
-    return id; // <- 반환해두면 아래에서 바로 사용 가능
+    return id;
   } catch (e) {
     propertyId.value = null;
-    throw e; // <- submitAll에서 catch되도록
+    throw e;
   }
 }
 
-//매물 사진 데이터 등록 API
 async function createPropertyImg(propertyId) {
   try {
     const userId = sessionStorage.getItem('user')
       ? JSON.parse(sessionStorage.getItem('user')).userId
       : null;
-    if (!userId)
-      throw new Error('userId가 없습니다. 로그인 상태를 확인하세요.');
+    if (!userId) throw new Error('userId가 없습니다. 로그인 상태를 확인하세요.');
 
     const formData = new FormData();
     formData.append('content', '이미지 저장');
@@ -680,7 +637,6 @@ async function createPropertyImg(propertyId) {
       formData,
       { headers: { 'Content-Type': 'multipart/form-data' } }
     );
-    console.log('게시글 등록 완료:', res.data);
     return res.data;
   } catch (err) {
     console.error('게시글 등록 실패:', err);
@@ -696,18 +652,12 @@ async function submitAll() {
 
   try {
     const id = await createListing();
-    console.log('Created listing with ID:', id);
-
     await createPropertyImg(id);
-
     showModal('등록 완료', {
       title: '완료',
       onConfirm: () => {
-        if (id) {
-          router.push({ name: 'listing-detail', params: { id } });
-        } else {
-          router.push({ name: 'listing-list' });
-        }
+        if (id) router.push({ name: 'listing-detail', params: { id } });
+        else router.push({ name: 'listing-list' });
       },
     });
   } catch {
@@ -715,39 +665,113 @@ async function submitAll() {
   }
 }
 
+function addPhrase(text) {
+  const cur = (formStep3.description || '').trim();
+  formStep3.description = cur ? `${cur}\n${text}` : text;
+}
+
+function togglePhrase(text) {
+  const cur = (formStep3.description || '').trim();
+  const lines = cur ? cur.split('\n').map(s => s.trim()).filter(Boolean) : [];
+  const i = lines.indexOf(text);
+  if (i >= 0) lines.splice(i, 1);
+  else lines.push(text);
+  formStep3.description = lines.join('\n');
+}
+
+function formatTransfer() {
+  if (!formStep2.transfer?.type) return '';
+  if (formStep2.transfer.type === '날짜' && formStep2.transfer.date) {
+    try {
+      const d = new Date(formStep2.transfer.date);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `양도가능일: ${y}.${m}.${day}`;
+    } catch { return `양도가능일: ${formStep2.transfer.date}`; }
+  }
+  return `양도가능일: ${formStep2.transfer.type}`;
+}
+
+function buildContextLines() {
+  const lines = [];
+  const ind = [formStep2.industryMajor, formStep2.industryMinor].filter(Boolean).join(' / ');
+  if (ind) lines.push(`업종: ${ind}`);
+  if (formStep2.dealType === '월세') {
+    if (formStep2.deposit != null) lines.push(`보증금: ${manToKoreanWon(formStep2.deposit)}`);
+    if (formStep2.rent != null) lines.push(`월세: ${manToKoreanWon(formStep2.rent)}`);
+  } else {
+    if (formStep2.salePrice != null) lines.push(`매매가: ${manToKoreanWon(formStep2.salePrice)}`);
+  }
+  if (formStep2.premium != null) lines.push(`권리금: ${manToKoreanWon(formStep2.premium)}`);
+  if (formStep2.mgmtFee != null) lines.push(`관리비: ${manToKoreanWon(formStep2.mgmtFee)}`);
+  if (formStep2.storeName) lines.push(`상호명: ${formStep2.storeName}`);
+  if (formStep2.shopType) lines.push(`상가형태: ${formStep2.shopType}`);
+  const areas = [];
+  if (formStep2.area.supply != null) areas.push(`공급 ${formStep2.area.supply}㎡`);
+  if (formStep2.area.exclusive != null) areas.push(`전용 ${formStep2.area.exclusive}㎡`);
+  if (areas.length) lines.push(`면적: ${areas.join(', ')}`);
+  const floorTxt = [];
+  if (formStep2.floor.current != null) {
+    const f = formStep2.floor.isBasement ? `지하 ${Math.abs(formStep2.floor.current)}층` : `${formStep2.floor.current}층`;
+    floorTxt.push(f);
+  }
+  if (formStep2.floor.total != null) floorTxt.push(`(총 ${formStep2.floor.total}층)`);
+  if (floorTxt.length) lines.push(`층: ${floorTxt.join(' ')}`);
+  if (formStep2.parking?.type) {
+    let p = `주차: ${formStep2.parking.type}`;
+    if (formStep2.parking.type !== '없음' && formStep2.parking.count != null) p += `, ${formStep2.parking.count}대`;
+    if (formStep2.parking.type !== '없음') p += formStep2.parking.paid ? ', 유료' : ', 무료';
+    lines.push(p);
+  }
+  if (formStep2.restroom) lines.push(`화장실: ${formStep2.restroom}`);
+  if (formStep2.delivery) lines.push(`배달: ${formStep2.delivery}`);
+  if (formStep2.takeout) lines.push(`포장: ${formStep2.takeout}`);
+  const addr = [formStep2.address.base, formStep2.address.detail].filter(Boolean).join(' ');
+  if (addr) lines.push(`주소: ${addr}`);
+  const t = formatTransfer();
+  if (t) lines.push(t);
+  return lines;
+}
+
 async function generateContent() {
   try {
-    // textarea 내용 가져오기
-    const textarea = document.querySelector('.textarea');
-    const text = textarea.value;
+    const text = (formStep3.description || '').trim();
+    if (!text) {
+      showModal('내용을 입력해 주세요.', { title: '안내' });
+      return;
+    }
+    aiLoading.value = true;
 
-    if (!text) return alert('내용을 입력해주세요.');
+    const userSentences = text.split('\n').map(s => s.trim()).filter(Boolean);
+    const contextLines = buildContextLines();
 
-    // 줄바꿈 기준으로 배열 생성
-    const sentences = text
-      .split('\n')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-
-    // 백엔드 호출
     const res = await axios.post(
       'http://localhost:8080/api/ghostwrite/generate',
       {
-        sentences: sentences,
+        sentences: [...contextLines, '---', ...userSentences],
+        tone: '담백하고 신뢰감 있는 문장',
+        style: '상업용 점포 소개',
       }
     );
 
-    // 결과를 textarea에 바로 반영
-    textarea.value = res.data.data;
+    const out = res?.data?.data;
+    if (typeof out === 'string' && out.trim().length > 0) {
+      formStep3.description = out.trim();
+      showModal('AI가 내용을 다듬었습니다. 확인해 주세요.', { title: '완료' });
+    } else {
+      showModal('생성 결과가 비어 있습니다. 다시 시도해 주세요.', { title: '안내' });
+    }
   } catch (err) {
     console.error(err);
-    alert('글 생성에 실패했습니다.');
+    showModal('글 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.', { title: '오류' });
+  } finally {
+    aiLoading.value = false;
   }
 }
 </script>
 
 <style scoped>
-/* 기존 스타일 그대로 */
 .wizard-page {
   max-width: 393px;
   width: 100%;
@@ -778,20 +802,14 @@ async function generateContent() {
   cursor: pointer;
 }
 
-.step {
-  display: block;
-}
-
-.form {
-  display: block;
-}
+.step { display: block; }
+.form { display: block; }
 
 .form > label {
   display: block;
   color: var(--color-primary);
   margin: 0;
 }
-
 .form > label + * {
   margin-top: 6px;
   margin-bottom: 18px;
@@ -809,46 +827,28 @@ async function generateContent() {
   text-align: right;
 }
 
-.deal-body .label-inline {
-  justify-content: space-between;
-}
-.deal-body .label-inline .label-right {
-  margin-left: 8px;
-}
+.deal-body .label-inline { justify-content: space-between; }
+.deal-body .label-inline .label-right { margin-left: 8px; }
 
 .input,
 .textarea,
 select {
   width: 100%;
+  height: 20rem;
   padding: 10px 12px;
   border: 1px solid var(--color-lightgray);
-  border-radius: 8px;
-  font: inherit;
+  border-radius: 12px;
   background: #fff;
+  letter-spacing: -0.03em;
 }
+.textarea { resize: vertical; }
 
-.textarea {
-  resize: vertical;
-}
+.row { width: 100%; display: flex; gap: 8px; }
+.row.center { justify-content: center; }
+.row.gap { justify-content: space-between; }
+.submit-row { margin-top: 20px; }
 
-.row {
-  width: 100%;
-  display: flex;
-  gap: 8px;
-}
-.row.center {
-  justify-content: center;
-}
-.row.gap {
-  justify-content: space-between;
-}
-.submit-row {
-  margin-top: 20px;
-}
-
-.error {
-  color: var(--color-error);
-}
+.error { color: var(--color-error); }
 
 .deal-card {
   border: 1px solid var(--color-lightgray);
@@ -871,27 +871,17 @@ select {
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
-.deal-seg .seg-btn + .seg-btn {
-  border-left: 1px solid var(--color-lightgray);
-}
-.deal-seg .seg-btn:hover {
-  background: var(--color-primary-10);
-}
+.deal-seg .seg-btn + .seg-btn { border-left: 1px solid var(--color-lightgray); }
+.deal-seg .seg-btn:hover { background: var(--color-primary-10); }
 .deal-seg .seg-btn.active {
   background: var(--color-primary-10);
   color: var(--color-primary);
   font-weight: 600;
 }
 
-.deal-body {
-  padding: 12px;
-}
-.deal-body > label {
-  margin-top: 2px;
-}
-.deal-body > label + * {
-  margin-top: 6px;
-}
+.deal-body { padding: 12px; }
+.deal-body > label { margin-top: 2px; }
+.deal-body > label + * { margin-top: 6px; }
 .deal-body :deep(.number-button-group) {
   margin-top: 8px;
   margin-bottom: 12px;
@@ -912,12 +902,8 @@ select {
   column-gap: 8px;
   align-items: center;
 }
-.kv-key {
-  color: var(--color-lightblack);
-}
-.kv-val {
-  color: var(--color-black);
-}
+.kv-key { color: var(--color-lightblack); }
+.kv-val { color: var(--color-black); }
 
 .input-box {
   width: 100%;
@@ -929,15 +915,53 @@ select {
   background: var(--color-white);
   transition: border 0.2s;
 }
-.input-box:focus {
-  border-color: var(--color-primary);
-}
-.input-box::placeholder {
-  color: var(--color-mediumgray);
-}
+.input-box:focus { border-color: var(--color-primary); }
+.input-box::placeholder { color: var(--color-mediumgray); }
 
-.step-photos {
-  margin-left: 0rem;
-  margin-right: 0rem;
+.step-photos { margin-left: 0rem; margin-right: 0rem; }
+
+/* 추가 */
+.desc-secondary {
+  color: var(--color-darkgray);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+.ai-help { display: grid; gap: 8px; margin: 0 0 10px; }
+.ai-tip {
+  background: var(--color-primary-10);
+  border: 1px solid var(--color-lightgray);
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: var(--color-darkgray);
+}
+.chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-list.wrap { flex-wrap: wrap; }
+.chip {
+  border: 1px solid var(--color-lightgray);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  line-height: 1;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background .15s ease, border-color .15s ease;
+}
+.chip:hover { background: var(--color-primary-10); border-color: var(--color-primary); }
+.under-textarea { margin-top: 10px; }
+
+/* 2분할 버튼 */
+.submit-row.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.submit-row.two .col { width: 50%; }
+
+.submit-vertical {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 14px;
 }
 </style>

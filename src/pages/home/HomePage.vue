@@ -72,7 +72,6 @@ const actions = computed(() =>
     ? [
         { label: '양도 매물 등록', to: 'listing-new', icon: icAdd },
         { label: '등록 매물 관리', to: 'my-listing', icon: icManage },
-        { label: '양도 매물 등록', to: 'listing-new', icon: icAdd },
       ]
     : [
         { label: '관심 매물 목록', to: 'my-bookmark', icon: icBookmark },
@@ -114,6 +113,7 @@ const actions = computed(() =>
 }
 
 .bottom {
+  margin-top: 8px;
   margin-bottom: 12px;
 }
 </style>
