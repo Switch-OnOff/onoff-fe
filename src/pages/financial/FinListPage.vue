@@ -13,7 +13,7 @@
       :show-dropdown="true"
       :has-filter="true"
       :filter-active="hasActiveFilter || openFilter"
-      :label-key="store.mode === 'loan' ? '상품명' : 'service_name'"
+      :label-key="store.mode === 'loan' ? 'loanName' : 'serviceName'"
       :initial-max="5"
       :max="12"
       @submit="onSubmitSearch"
@@ -24,18 +24,20 @@
     <section class="results">
       <ListItemCard
         v-for="it in items"
-        :key="store.mode === 'loan' ? it.id || it['상품명'] : it.service_id"
+        :key="store.mode === 'loan' ? it.loanId || it.id : it.serviceId"
         :title="getTitle(it)"
         :desc="getDesc(it)"
+        :item="it"
         @click="goDetail(it)"
       />
+
       <div class="more-wrap" v-if="hasMore">
         <button class="more-btn" @click="loadMore" :disabled="loading">
           {{ loading ? '불러오는 중…' : '더보기' }}
         </button>
       </div>
       <div v-if="!loading && items.length === 0" class="empty bodyLight12px px">
-        조건에 맞는 항목이 없어요. 필터를 줄이거나 검색어를 바꿔봐.
+        조건에 맞는 항목이 없어요.
       </div>
     </section>
 
@@ -72,12 +74,14 @@ import SupportFilterPanel from './components/SupportFilterPanel.vue';
 import LoanFilterPanel from './components/LoanFilterPanel.vue';
 import ListItemCard from './components/ListItemCard.vue';
 import FilterSheet from './components/FilterSheet.vue';
+import * as grants from '@/api/grants';
+import * as loans from '@/api/loan';
+import BottomNavSpace from '@/components/layout/Footer.vue';
 
 const store = useFinancialStore();
 const router = useRouter();
 
-const API_BASE = 'http://localhost:3000';
-const endpoints = { loan: `${API_BASE}/loan`, support: `${API_BASE}/support` };
+// 서버 API 사용 (mock 제거)
 
 const items = ref([]);
 const page = ref(1);
@@ -108,16 +112,20 @@ const hasActiveFilter = computed(
 /* ---- 유틸 ---- */
 const norm = (s = '') => String(s).replace(/\s+/g, '');
 const has = (s, kw) => norm(s).includes(norm(kw));
-
 function applySupportFilters(list) {
   const f = store.supportFilters || {};
   return list.filter((r) => {
-    const okStatus = !f.status || norm(r.service_status) === norm(f.status);
-    const loc = String(r.location || '');
+    const status = r.serviceStatus ?? r['service_status'] ?? '';
+    const loc = String(r.location ?? r['location'] ?? '');
+    const industry = String(r.industry ?? r['industry'] ?? '');
+
+    const okStatus =
+      !f.status ||
+      String(status).replace(/\s+/g, '') ===
+        String(f.status).replace(/\s+/g, '');
     const okSido = !f.sido || loc.includes(f.sido);
     const okSigungu = !f.sigungu || loc.includes(f.sigungu);
-    const okIndustry =
-      !f.industry || String(r.industry || '').includes(f.industry);
+    const okIndustry = !f.industry || industry.includes(f.industry);
     return okStatus && okSido && okSigungu && okIndustry;
   });
 }
@@ -133,42 +141,113 @@ function mapLoanTarget(s) {
 function applyLoanFilters(list) {
   const f = store.loanFilters || {};
   return list.filter((r) => {
-    const okTarget = !f.target || mapLoanTarget(r['가입대상']) === f.target;
+    const eligible = r.eligibleGroup ?? r['가입대상'] ?? '';
+    const loanType = r.loanType ?? r['담보여부'] ?? '';
+    const interest = r.interestType ?? r['금리방식'] ?? '';
+    const repay = (r.repaymentMethod ?? r['상환방식'] ?? '').toString();
+
+    const okTarget =
+      !f.target ||
+      (function mapTarget(s) {
+        const v = String(s).replace(/\s+/g, '');
+        if (v.includes('개인사업자')) return '개인 사업자';
+        if (v.includes('셀러') || v.includes('온라인')) return '온라인셀러';
+        return '기타';
+      })(eligible) === f.target;
+
     const okCollateral =
       !f.collateral ||
-      (f.collateral === '담보대출' && has(r['담보여부'], '담보')) ||
-      (f.collateral === '신용대출' && has(r['담보여부'], '신용'));
+      (f.collateral === '담보대출' && String(loanType).includes('담보')) ||
+      (f.collateral === '신용대출' && String(loanType).includes('신용'));
+
     const okRate =
       !f.rate ||
-      (f.rate === '고정금리' && has(r['금리방식'], '고정')) ||
-      (f.rate === '변동금리' && has(r['금리방식'], '변동'));
-    const repayStr = norm(r['상환방식']);
+      (f.rate === '고정금리' && String(interest).includes('고정')) ||
+      (f.rate === '변동금리' && String(interest).includes('변동'));
+
     const okRepay =
       !f.repay ||
-      (f.repay === '만기일시' && repayStr.includes('만기일시')) ||
-      (f.repay === '원금분할' && repayStr.includes('원금분할')) ||
-      (f.repay === '원리금분할' && repayStr.includes('원리금분할'));
+      (f.repay === '만기일시' && repay.includes('만기일시')) ||
+      (f.repay === '원리금균등' && repay.includes('원리금')) ||
+      (f.repay === '원금균등' && repay.includes('원금'));
+
     return okTarget && okCollateral && okRate && okRepay;
   });
 }
 
 function getTitle(row) {
-  return store.mode === 'loan' ? row['상품명'] : row['service_name'];
+  if (!row) return '';
+  if (store.mode === 'loan')
+    return String(row.loanName ?? row['상품명'] ?? row.name ?? row.title ?? '');
+  return String(row.serviceName ?? row['service_name'] ?? row.name ?? '');
 }
 function getDesc(row) {
-  return row['요약'] || row['summary'] || '';
+  if (!row) return '';
+  if (store.mode === 'loan') {
+    const parts = [
+      row.loanCompany,
+      row.eligibleGroup,
+      row.interestType,
+      row.repaymentMethod,
+    ].filter(Boolean);
+    return parts.join(' · ');
+  }
+  const parts = [
+    row.industry ?? row['industry'],
+    row.location ?? row['location'],
+    row.serviceStatus ?? row['service_status'],
+  ].filter(Boolean);
+  return parts.join(' · ');
+}
+
+/* ---- 응답 정규화(필드 케이스 보정) ---- */
+function normalizeSupportRow(r = {}) {
+  return {
+    ...r,
+    serviceId: r.serviceId ?? r.service_id ?? r.id,
+    serviceName: r.serviceName ?? r.service_name ?? r.name ?? r.title,
+    serviceStatus: r.serviceStatus ?? r.service_status,
+  };
+}
+function normalizeLoanRow(r = {}) {
+  return {
+    ...r,
+    loanId: r.loanId ?? r.id ?? r.loan_id,
+    loanName: r.loanName ?? r['상품명'] ?? r.name ?? r.title,
+    loanCompany:
+      r.loanCompany ?? r.loan_company ?? r['loan_company'] ?? r.company ?? '',
+    eligibleGroup: r.eligibleGroup ?? r['가입대상'],
+    interestType: r.interestType ?? r['금리방식'],
+    repaymentMethod: r.repaymentMethod ?? r['상환방식'],
+  };
+}
+function normalizeList(mode, arr = []) {
+  if (!Array.isArray(arr)) return [];
+  return mode === 'loan'
+    ? arr.map(normalizeLoanRow)
+    : arr.map(normalizeSupportRow);
 }
 
 /* ---- 자동완성 ---- */
 async function getSuggestions(q) {
   if (!store.mode) return [];
-  const url = new URL(endpoints[store.mode]);
-  url.searchParams.set('_limit', '1500');
-  if (q) url.searchParams.set('q', q);
-
-  const r = await fetch(url.toString());
-  if (!r.ok) return [];
-  let arr = await r.json();
+  let arr = [];
+  try {
+    if (store.mode === 'loan') {
+      arr = normalizeList('loan', (await loans.searchLoans(q || '')) || []);
+    } else {
+      if (!q) {
+        arr = normalizeList('support', (await grants.getTop5Grants()) || []);
+      } else {
+        arr = normalizeList(
+          'support',
+          (await grants.searchGrants(q || '')) || []
+        );
+      }
+    }
+  } catch {
+    arr = [];
+  }
 
   // 모드별 필터 적용
   if (store.mode === 'support' && hasActiveSupport.value)
@@ -208,16 +287,43 @@ async function loadMore() {
     (store.mode === 'support' && hasActiveSupport.value) ||
     (store.mode === 'loan' && hasActiveLoan.value)
   ) {
-    const url = new URL(endpoints[store.mode]);
-    url.searchParams.set('_limit', '3000');
-    if (q) url.searchParams.set('q', q);
-
-    const r = await fetch(url.toString());
-    let arr = await r.json();
-    arr =
-      store.mode === 'support'
-        ? applySupportFilters(arr)
-        : applyLoanFilters(arr);
+    let arr = [];
+    try {
+      if (store.mode === 'loan') {
+        // 서버 필터 API 사용
+        const f = store.loanFilters || {};
+        arr = normalizeList(
+          'loan',
+          (await loans.filterLoans({
+            eligibleGroup: f.target || undefined,
+            loanType:
+              f.collateral === '담보대출'
+                ? '담보'
+                : f.collateral === '신용대출'
+                ? '신용'
+                : undefined,
+            interestType: f.rate || undefined,
+            repaymentMethod: f.repay || undefined,
+          })) || []
+        );
+      } else {
+        // 서버 필터 API 사용 (location = 시도 + 시군구)
+        const f = store.supportFilters || {};
+        const locationParam = f.sigungu
+          ? `${f.sido || ''} ${f.sigungu}`.trim()
+          : f.sido || '';
+        arr = normalizeList(
+          'support',
+          (await grants.filterGrants({
+            serviceStatus: f.status || undefined,
+            location: locationParam || undefined,
+            industry: f.industry || undefined,
+          })) || []
+        );
+      }
+    } catch {
+      arr = [];
+    }
 
     const start = (page.value - 1) * pageSize;
     const slice = arr.slice(start, start + pageSize);
@@ -230,21 +336,37 @@ async function loadMore() {
     return;
   }
 
-  // 필터 OFF → 서버 페이지네이션 그대로 사용
-  const base = new URL(endpoints[store.mode]);
-  base.searchParams.set('_page', String(page.value));
-  base.searchParams.set('_limit', String(pageSize));
-  if (q) base.searchParams.set('q', q);
-
-  const r = await fetch(base.toString());
-  const arr = await r.json();
-
-  items.value.push(...arr);
-
-  const total = Number(r.headers.get('X-Total-Count') || 0);
-  hasMore.value =
-    arr.length === pageSize && (total === 0 || items.value.length < total);
-  if (hasMore.value) page.value += 1;
+  // 필터 OFF → 서버 페이지네이션 그대로 사용 (단, 현재 백엔드 스펙에 맞춰 간단 페이징)
+  try {
+    let arr = [];
+    if (store.mode === 'loan') {
+      arr = normalizeList('loan', (await loans.searchLoans(q || '')) || []);
+    } else {
+      if (q) {
+        arr = normalizeList('support', (await grants.searchGrants(q)) || []);
+      } else {
+        const f = store.supportFilters || {};
+        const locationParam = f.sigungu
+          ? `${f.sido || ''} ${f.sigungu}`.trim()
+          : f.sido || '';
+        arr = normalizeList(
+          'support',
+          (await grants.filterGrants({
+            serviceStatus: f.status || undefined,
+            location: locationParam || undefined,
+            industry: f.industry || undefined,
+          })) || []
+        );
+      }
+    }
+    const start = (page.value - 1) * pageSize;
+    const slice = arr.slice(start, start + pageSize);
+    items.value.push(...slice);
+    hasMore.value = start + slice.length < arr.length;
+    if (hasMore.value) page.value += 1;
+  } catch {
+    hasMore.value = false;
+  }
 
   loading.value = false;
 }
@@ -260,9 +382,24 @@ function onSubmitSearch(payload) {
   if (typeof payload === 'string') {
     q = payload.trim();
   } else if (payload && typeof payload === 'object') {
+    // 드롭다운에서 항목 선택 시: ID가 있으면 바로 상세로 이동
+    const loanId = payload.loanId ?? payload.id ?? null;
+    const serviceId = payload.serviceId ?? null;
+    if (store.mode === 'loan' && loanId) {
+      router.push({ path: '/financial/loan-detail', query: { id: loanId } });
+      return;
+    }
+    if (store.mode === 'support' && serviceId) {
+      router.push({
+        path: '/financial/support-detail',
+        query: { id: serviceId },
+      });
+      return;
+    }
+    // ID가 없으면 제목 기반 검색 수행
     q = String(
-      payload['service_name'] ??
-        payload['상품명'] ??
+      payload['serviceName'] ??
+        payload['loanName'] ??
         payload['name'] ??
         payload['title'] ??
         ''
@@ -292,9 +429,24 @@ function resetFilters() {
   }
 }
 
+// 새로 진입할 때마다 검색/필터/페이지 상태 초기화
+function resetAllState() {
+  store.$patch({
+    search: '',
+    supportFilters: { status: '', sido: '', sigungu: '', industry: '' },
+    loanFilters: { target: '', collateral: '', rate: '', repay: '' },
+  });
+  searchLocal.value = '';
+  openFilter.value = false;
+  page.value = 1;
+  items.value = [];
+  hasMore.value = true;
+}
+
 function goDetail(row) {
-  const loanId = row?.id ?? row?.['상품ID'] ?? row?.loan_id ?? null;
-  const supportId = row?.service_id ?? null;
+  const loanId =
+    row?.loanId ?? row?.id ?? row?.['상품ID'] ?? row?.loan_id ?? null;
+  const supportId = row?.serviceId ?? row?.service_id ?? null;
   const title = getTitle(row);
 
   if (store.mode === 'loan') {
@@ -318,7 +470,9 @@ function goDetail(row) {
 }
 
 onMounted(() => {
-  searchLocal.value = store.search || '';
+  resetAllState();
+  searchLocal.value = '';
+  if (!store.mode) store.setMode('support');
   loadList();
 });
 </script>

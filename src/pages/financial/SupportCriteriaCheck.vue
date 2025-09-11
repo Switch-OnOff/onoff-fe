@@ -50,103 +50,51 @@
 </template>
 
 <script setup>
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import SimpleHeader from '@/components/layout/SimpleHeader.vue';
-import TopMessage from './components/TopMessage.vue';
-import BottomCTA from './components/BottomCTA.vue';
-import { useRouter, useRoute } from 'vue-router';
-import { ref, onMounted, computed } from 'vue';
+import TopMessage from '@/pages/financial/components/TopMessage.vue';
+import BottomCTA from '@/pages/financial/components/BottomCTA.vue';
 import { useFinancialStore } from '@/stores/financial';
+import * as grants from '@/api/grants';
 
-const router = useRouter();
-const route = useRoute();
 const store = useFinancialStore();
+const route = useRoute();
+const router = useRouter();
 
-/** ====== 데이터 로드 ====== */
-const API_BASE = 'http://localhost:3000';
 const loading = ref(false);
 const service = ref(null);
-const criteriaItems = ref([]); // string[]
-
-/** 선택 값 v-model (문자열 배열) */
+const criteriaItems = ref([]);
 const selected = ref([]);
 
-async function fetchSupportByServiceId(serviceId) {
-  const res = await fetch(
-    `${API_BASE}/support?service_id=${serviceId}&_limit=1`
-  );
-  if (!res.ok) throw new Error('support fetch failed');
-  const arr = await res.json();
-  return arr?.[0] || null;
-}
-
-/** 유틸: 줄바꿈/불릿/공백 정리 */
-function parseLines(str = '') {
-  return String(str)
-    .split(/\r?\n|·|\u2022/g)
-    .map((s) => s.replace(/\s+/g, ' ').trim())
+function parseLines(txt = '') {
+  return String(txt)
+    .split(/\r?\n|\n/g)
+    .map((s) => s.trim())
     .filter(Boolean);
 }
 
-/** 현재 서비스 id: 쿼리 ?id=1 → 없으면 스토어/첫건 */
-const currentId = computed(() => {
-  const q = Number(route.query.id || 0);
-  return q || Number(store.support?.currentServiceId || 0) || 0;
-});
+async function resolveServiceId() {
+  let id = Number(route.query.id || 0);
+  if (id) return id;
+  const kw = sessionStorage.getItem('financial-keyword') || '';
+  if (!kw) return 0;
+  const arr = (await grants.searchGrants(kw)) || [];
+  const hit = arr.find((x) => x.serviceName?.includes(kw)) || arr[0];
+  return hit?.serviceId || 0;
+}
 
-async function loadService() {
+onMounted(async () => {
   loading.value = true;
   try {
-    let svc = null;
+    const id = await resolveServiceId();
+    if (!id) throw new Error('no serviceId');
 
-    if (currentId.value) {
-      const r = await fetch(
-        `${API_BASE}/support?service_id=${currentId.value}&_limit=1`
-      );
-      if (r.ok) {
-        const arr = await r.json();
-        svc = arr?.[0] || null;
-      }
-    }
-    if (!svc) {
-      const kw = (sessionStorage.getItem('financial-keyword') || '').trim();
-      if (kw) {
-        // 정확 매칭
-        let r = await fetch(
-          `${API_BASE}/support?service_name=${encodeURIComponent(kw)}&_limit=1`
-        );
-        if (r.ok) {
-          const arr = await r.json();
-          svc = arr?.[0] || null;
-        }
-        // like 매칭
-        if (!svc) {
-          r = await fetch(
-            `${API_BASE}/support?service_name_like=${encodeURIComponent(
-              kw
-            )}&_limit=1`
-          );
-          if (r.ok) {
-            const arr = await r.json();
-            svc = arr?.[0] || null;
-          }
-        }
-      }
-    }
+    const chk = await grants.getGrantChecklist(id);
+    criteriaItems.value = parseLines(chk.selectionCriteria || '');
 
-    if (!svc) {
-      const r = await fetch(`${API_BASE}/support?_limit=1`);
-      if (r.ok) {
-        const arr = await r.json();
-        svc = arr?.[0] || null;
-      }
-    }
+    service.value = await grants.getGrantDetail(id);
 
-    service.value = svc;
-
-    const raw = service.value?.selection_criteria || '';
-    criteriaItems.value = parseLines(raw);
-
-    // 이전 선택 복원
     selected.value = store.support?.criteria?.selected || [];
   } catch (e) {
     console.error('서비스 로드 실패:', e);
@@ -155,23 +103,26 @@ async function loadService() {
   } finally {
     loading.value = false;
   }
+});
+
+function toggle(item) {
+  const i = selected.value.indexOf(item);
+  if (i >= 0) selected.value.splice(i, 1);
+  else selected.value.push(item);
 }
 
-/** 다음으로 */
 function goNext() {
-  // 선택 결과 스토어에 저장
-  store.support = {
-    ...store.support,
-    currentServiceId: service.value?.service_id || currentId.value || null,
-    criteria: {
-      ...(store.support?.criteria || {}),
-      selected: [...selected.value],
+  store.$patch({
+    support: {
+      ...(store.support || {}),
+      criteria: { selected: [...selected.value] },
     },
-  };
-  router.push('/financial/support-docs');
+  });
+  router.push({
+    path: '/financial/support-docs',
+    query: { id: service.value?.serviceId },
+  });
 }
-
-onMounted(loadService);
 </script>
 
 <style scoped>

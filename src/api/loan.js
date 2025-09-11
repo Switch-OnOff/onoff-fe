@@ -1,11 +1,19 @@
 import { api, unwrap } from './client';
 
+export function searchLoans(keywordOrOpts) {
+  const params =
+    typeof keywordOrOpts === 'string' || keywordOrOpts == null
+      ? { keyword: keywordOrOpts }
+      : { ...keywordOrOpts };
+  return api.get('/api/loan/search', { params }).then(unwrap);
+}
+
 export function filterLoans({
   eligibleGroup,
   loanType,
   interestType,
   repaymentMethod,
-}) {
+} = {}) {
   return api
     .get('/api/loan/filter', {
       params: { eligibleGroup, loanType, interestType, repaymentMethod },
@@ -17,19 +25,10 @@ export function getLoanDetail(loanId) {
   return api.get(`/api/loan/${loanId}`).then(unwrap);
 }
 
-export function evaluateLoan(
-  loanId,
-  { creditScore, loanAmount, repaymentMonths, income, repayRatio }
-) {
-  return api
-    .post(`/api/loan/${loanId}/evaluate`, {
-      creditScore,
-      loanAmount,
-      repaymentMonths,
-      income,
-      repayRatio,
-    })
-    .then((res) => res.data); // 이건 래핑 없이 예시가 있어서 그대로
+export function evaluateLoan(loanId, body) {
+  // body: { creditScore, loanAmount, repaymentMonths, income, repayRatio }
+  // keep consistent with other helpers: unwrap wrapper { data } => data
+  return api.post(`/api/loan/${loanId}/evaluate`, body).then(unwrap);
 }
 
 export function getTop5Loans() {

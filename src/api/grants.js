@@ -1,10 +1,14 @@
 import { api, unwrap } from './client';
 
-export function searchGrants(keyword) {
-  return api.get('/api/grants/search', { params: { keyword } }).then(unwrap);
+export function searchGrants(keywordOrOpts) {
+  const params =
+    typeof keywordOrOpts === 'string' || keywordOrOpts == null
+      ? { keyword: keywordOrOpts }
+      : { ...keywordOrOpts };
+  return api.get('/api/grants/search', { params }).then(unwrap);
 }
 
-export function filterGrants({ serviceStatus, location, industry }) {
+export function filterGrants({ serviceStatus, location, industry } = {}) {
   return api
     .get('/api/grants/filter', {
       params: { serviceStatus, location, industry },
