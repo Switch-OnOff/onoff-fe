@@ -21,6 +21,16 @@ const routes = [
   ...financialRoutes,
   ...myPageRoutes,
   {
+  path: '/bookmark',
+  name: 'my-bookmark',
+  component: () => import('@/pages/home/BookmarkPage.vue'),
+  },
+  {
+  path: '/mylisting',
+  name: 'my-listing',
+  component: () => import('@/pages/home/MyListingsPage.vue'),
+  },
+  {
     // 정의되지 않은 모든 경로 처리
     path: '/:pathMatch(.*)*',
     name: 'not-found',

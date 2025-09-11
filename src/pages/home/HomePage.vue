@@ -70,11 +70,11 @@ const news = ref([
 const actions = computed(() =>
   mode.value === 'TRANSFER'
     ? [
-        { label: '등록 매물 관리', to: 'ManageListings', icon: icManage },
+        { label: '등록 매물 관리', to: 'my-listing', icon: icManage },
         { label: '양도 매물 등록', to: 'listing-new',    icon: icAdd    },
       ]
     : [
-        { label: '관심 매물 목록', to: 'Favorites',   icon: icBookmark },
+        { label: '관심 매물 목록', to: 'my-bookmark',   icon: icBookmark },
         { label: '매물 지도 이동', to: 'listing-map', icon: icMap      },
       ]
 )
