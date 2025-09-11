@@ -103,7 +103,9 @@ const onFileChange = (event) => {
 const logOut = () => {
   const res = sessionStorage.removeItem('user');
   console.log(res);
-  router.push('/');
+  router.push('/').then(() => {
+    window.location.reload();
+  });
 };
 </script>
 
