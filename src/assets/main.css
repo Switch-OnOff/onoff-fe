@@ -173,3 +173,10 @@ body {
   font-weight: 400;
   font-family: 'Pretendard', sans-serif;
 }
+
+/* Body - Light (300) */
+.bodyLight20px {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 300;
+  font-family: 'Pretendard', sans-serif;
+}
