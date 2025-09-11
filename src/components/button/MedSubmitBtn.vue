@@ -1,6 +1,6 @@
 <template>
   <button
-    class="btn-med-wrapper bodyMedium20px"
+    class="btn-med-wrapper bodyMedium18px"
     :class="{ 'white-bg': isWhiteBg }"
     :style="{ backgroundColor: isWhiteBg ? '#ffffff' : color }"
     type="button"
