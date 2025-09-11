@@ -72,9 +72,9 @@ const handleScrollToBottom = () => {
 
 <style scoped>
 .chat-container {
-  position: relative; /* ✅ 플로팅 버튼의 기준점이 됨 */
+  position: relative;
   display: flex;
   flex-direction: column;
-  height: 82vh; /* ✅ 높이가 고정되어 있어야 내부에서 스크롤이 생김 */
+  height: 82vh;
 }
 </style>

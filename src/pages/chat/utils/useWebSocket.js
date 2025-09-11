@@ -8,7 +8,7 @@ export function useWebSocket(url, topic = '/topic/notify') {
   let client = null;
 
   const connect = () => {
-    const socket = new SockJS(url); // ⚠ URL은 반드시 http:// 또는 https://
+    const socket = new SockJS(url);
     client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
@@ -18,16 +18,33 @@ export function useWebSocket(url, topic = '/topic/notify') {
     client.onConnect = () => {
       console.log('STOMP 연결됨');
       client.subscribe(topic, (msg) => {
-        messages.value.push(JSON.parse(msg.body));
+        messages.value.push({
+          ...JSON.parse(msg.body),
+          self: false, // 서버에서 받은 메시지 → 상대방 메시지
+        });
       });
     };
 
     client.activate();
   };
 
-  const sendMessage = (destination, msg) => {
+  // src/composables/useWebSocket.js
+  const sendMessage = (msg, destination = '/app/chat') => {
+    if (!msg) {
+      console.error('⚠️ sendMessage: msg가 undefined임!');
+      return;
+    }
+
+    console.log(msg);
     if (client && client.connected) {
       client.publish({ destination, body: JSON.stringify(msg) });
+
+      messages.value.push({
+        text: msg,
+        self: true,
+      });
+
+      console.log(messages.value);
     }
   };
 
