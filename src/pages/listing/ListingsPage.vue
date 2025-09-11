@@ -155,7 +155,7 @@ function m2toPyeong(m2) {
 function mapListing(r) {
   return {
     id: r.id,
-    img: r.images?.[0] || fallbackImg, // ← 여기만 교체
+    img: r.images?.[0] || fallbackImg, 
     industry: r.industry,
     transactionType: r.transactionType,
     deposit: r.deposit,
