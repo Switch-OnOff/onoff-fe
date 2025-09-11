@@ -1,98 +1,107 @@
 <template>
-  <div class="home-page">
-    <section class="welcome">
-      <div class="tab-box">
-        <!-- <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'give' }"
-          @click="activeTab = 'give'"
-        >
-          양도할게용
-        </button>
-        <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'take' }"
-          @click="activeTab = 'take'"
-        >
-          승계할게요오옹
-        </button> -->
+  <main class="home">
+    <header class="brand-bar">
+      <div class="mode-row">
+        <span class="mode-label bodyBold18px">
+          {{ mode === 'TRANSFER' ? '양도/폐업자' : '승계/창업자' }}
+        </span>
+        <SegmentSwitch
+          v-model="mode"
+          left-text="양도"
+          right-text="승계"
+          size="md"
+          :track-on="'var(--color-primary-10)'"
+          :track-off="'var(--color-primary-10)'"
+          :handle-bg="'var(--color-white)'"
+          :text-color="'var(--color-black)'"
+        />
       </div>
+    </header>
 
-      <!-- 탭 내용 -->
-      <div class="tab-content">
-        <div v-if="activeTab === 'give'">
-          <h3>양도할 분들을 위한 안내</h3>
-          <p>가게를 양도하고 싶으신가요? 필요한 절차와 정보를 확인하세요.</p>
-        </div>
-        <div v-else-if="activeTab === 'take'">
-          <h3>승계할 분들을 위한 안내</h3>
-          <p>가게를 승계하려는 분들을 위한 매물 정보와 팁을 확인하세요.</p>
-        </div>
-      </div>
+    <!-- 자동 전환 카드뉴스 -->
+    <section class="hero">
+      <HeroCarousel :items="news" :h="190" />
     </section>
-  </div>
+
+    <!-- 모드별 액션 타일 (164 × 164) -->
+    <section class="nav-grid">
+      <SquareNavButton
+        v-for="a in actions"
+        :key="a.label"
+        :label="a.label"
+        :to="a.to"
+      >
+        <!-- 중앙 아이콘 슬롯 -->
+        <template #icon>
+          <img :src="a.icon" alt="" />
+        </template>
+      </SquareNavButton>
+    </section>
+
+    <!-- 하단: 정책·대출 (모드 props로 전환) -->
+    <section class="bottom">
+      <PolicyBottom :mode="mode" />
+    </section>
+  </main>
 </template>
 
 <script setup>
-import SegmentedBtn from '@/components/common/SegmentedBtn.vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue'
+import SegmentSwitch from '@/pages/home/components/SegmentSwitch.vue'
+import HeroCarousel from '@/pages/home/components/HeroCarousel.vue'
+import SquareNavButton from '@/pages/home/components/SquareNavButton.vue'
+import PolicyBottom from '@/pages/home/components/PolicyBottom.vue' 
 
-const activeTab = ref('give'); // 기본 탭
+import icManage   from '@/assets/icons/manage.png'
+import icAdd      from '@/assets/icons/add.png'
+import icBookmark from '@/assets/icons/main-bookmark.png'
+import icMap      from '@/assets/icons/search-map.png'
+
+const mode = ref('TRANSFER') // 'TRANSFER' | 'SUCCESSION'
+
+// 카드뉴스 아이템(예시)
+const news = ref([
+  { title: '공지/앱 사용 가이드', text: '처음 사용자라면 여기부터!' },
+  { title: '양도 전 체크리스트', text: '등록 전에 반드시 확인하세요.' },
+  { title: '승계 추천 매물', text: '관심 매물 기반으로 추천해드려요.' },
+])
+
+// 모드에 따라 2개씩 노출 (아이콘 포함)
+const actions = computed(() =>
+  mode.value === 'TRANSFER'
+    ? [
+        { label: '등록 매물 관리', to: 'ManageListings', icon: icManage },
+        { label: '양도 매물 등록', to: 'listing-new',    icon: icAdd    },
+      ]
+    : [
+        { label: '관심 매물 목록', to: 'Favorites',   icon: icBookmark },
+        { label: '매물 지도 이동', to: 'listing-map', icon: icMap      },
+      ]
+)
 </script>
 
 <style scoped>
-.home-page {
-  padding: 16px;
+.home {
+  display: flex; flex-direction: column;
+  gap: 16px;
+  padding: 1.5rem;
+  background: var(--color-white);
 }
 
-.welcome {
-  text-align: center;
-  margin-top: 40px;
+/* 상단 */
+.brand-bar { display:flex; flex-direction: column; gap: 12px; }
+.mode-row { display:flex; align-items:center; justify-content: space-between; }
+.mode-label { color: var(--color-lightblack); }
+
+/* 카드뉴스 영역은 컴포넌트가 높이를 가짐 */
+.hero { }
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 164px);
+  gap: 12px;
+  justify-content: space-between; /* 좌우 균형 */
 }
 
-.btn-wrapper {
-  border: 1px solid var(--color-darkgray);
-  padding: 5px;
-  border-radius: 5rem;
-}
-
-.option-btn {
-  border-style: none !important;
-}
-
-/* 탭 버튼 영역 */
-.tab-box {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  border-bottom: 2px solid var(--color-light, #eee);
-  margin-bottom: 20px;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 12px;
-  font-size: 16px;
-  font-weight: bold;
-  color: var(--color-primary, #0e0b80);
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.tab-btn.active {
-  border-bottom: 3px solid var(--color-primary, #0e0b80);
-  color: var(--color-primary, #0e0b80);
-}
-
-/* 탭 내용 */
-.tab-content {
-  padding: 16px;
-  background: var(--color-light, #f9f9f9);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  text-align: left;
-}
+.bottom { margin-bottom: 12px; }
 </style>

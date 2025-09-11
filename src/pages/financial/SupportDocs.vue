@@ -45,98 +45,50 @@
 </template>
 
 <script setup>
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import SimpleHeader from '@/components/layout/SimpleHeader.vue';
-import TopMessage from './components/TopMessage.vue';
-import BottomCTA from './components/BottomCTA.vue';
-import { useRouter, useRoute } from 'vue-router';
-import { ref, onMounted, computed } from 'vue';
+import TopMessage from '@/pages/financial/components/TopMessage.vue';
+import BottomCTA from '@/pages/financial/components/BottomCTA.vue';
 import { useFinancialStore } from '@/stores/financial';
+import * as grants from '@/api/grants';
 
-const router = useRouter();
-const route = useRoute();
 const store = useFinancialStore();
-
-const API_BASE = 'http://localhost:3000';
+const route = useRoute();
+const router = useRouter();
 
 const loading = ref(false);
 const service = ref(null);
-const docItems = ref([]); // string[]
-const selected = ref([]); // 체크된 서류들
+const docItems = ref([]);
+const selected = ref([]);
 
-const currentId = computed(() => {
-  const q = Number(route.query.id || 0);
-  return q || Number(store.support?.currentServiceId || 0) || 0;
-});
-
-async function fetchSupportByServiceId(serviceId) {
-  const res = await fetch(
-    `${API_BASE}/support?service_id=${serviceId}&_limit=1`
-  );
-  if (!res.ok) throw new Error('support fetch failed');
-  const arr = await res.json();
-  return arr?.[0] || null;
-}
-
-function parseLines(str = '') {
-  return String(str)
-    .split(/\r?\n|·|\u2022/g)
-    .map((s) => s.replace(/\s+/g, ' ').trim())
+function parseLines(txt = '') {
+  return String(txt)
+    .split(/\r?\n|\n/g)
+    .map((s) => s.trim())
     .filter(Boolean);
 }
 
-async function loadService() {
+async function resolveServiceId() {
+  let id = Number(route.query.id || 0);
+  if (id) return id;
+  const kw = sessionStorage.getItem('financial-keyword') || '';
+  if (!kw) return 0;
+  const arr = (await grants.searchGrants(kw)) || [];
+  const hit = arr.find((x) => x.serviceName?.includes(kw)) || arr[0];
+  return hit?.serviceId || 0;
+}
+
+onMounted(async () => {
   loading.value = true;
   try {
-    let svc = null;
+    const id = await resolveServiceId();
+    if (!id) throw new Error('no serviceId');
 
-    if (currentId.value) {
-      const r = await fetch(
-        `${API_BASE}/support?service_id=${currentId.value}&_limit=1`
-      );
-      if (r.ok) {
-        const arr = await r.json();
-        svc = arr?.[0] || null;
-      }
-    }
-    if (!svc) {
-      const kw = (sessionStorage.getItem('financial-keyword') || '').trim();
-      if (kw) {
-        // 정확 매칭
-        let r = await fetch(
-          `${API_BASE}/support?service_name=${encodeURIComponent(kw)}&_limit=1`
-        );
-        if (r.ok) {
-          const arr = await r.json();
-          svc = arr?.[0] || null;
-        }
-        // like 매칭
-        if (!svc) {
-          r = await fetch(
-            `${API_BASE}/support?service_name_like=${encodeURIComponent(
-              kw
-            )}&_limit=1`
-          );
-          if (r.ok) {
-            const arr = await r.json();
-            svc = arr?.[0] || null;
-          }
-        }
-      }
-    }
-    if (!svc) {
-      const r = await fetch(`${API_BASE}/support?_limit=1`);
-      if (r.ok) {
-        const arr = await r.json();
-        svc = arr?.[0] || null;
-      }
-    }
+    const chk = await grants.getGrantChecklist(id);
+    docItems.value = parseLines(chk.requiredDocuments || '');
+    service.value = await grants.getGrantDetail(id);
 
-    service.value = svc;
-
-    const raw = service.value?.required_documents || '';
-    docItems.value = parseLines(raw);
-
-    // 이전 선택 복원
     selected.value = store.support?.docs?.selected || [];
   } catch (e) {
     console.error('서비스 로드 실패:', e);
@@ -145,38 +97,28 @@ async function loadService() {
   } finally {
     loading.value = false;
   }
+});
+
+function toggle(item) {
+  const i = selected.value.indexOf(item);
+  if (i >= 0) selected.value.splice(i, 1);
+  else selected.value.push(item);
+}
+
+function finish() {
+  store.$patch({
+    support: {
+      ...(store.support || {}),
+      docs: { selected: [...selected.value] },
+    },
+  });
+  router.push('/financial/result');
 }
 
 function goNext() {
-  // 선택 결과 저장
-  store.support = {
-    ...store.support,
-    currentServiceId: service.value?.service_id || currentId.value || null,
-    docs: {
-      ...(store.support?.docs || {}),
-      selected: [...selected.value],
-    },
-  };
-
-  // 간단한 상태 계산(선정기준 + 서류)
-  const criteriaCount = (store.support?.criteria?.selected || []).length;
-  const docsCount = (store.support?.docs?.selected || []).length;
-  const totalReq = docItems.value?.length || 0;
-  // 예시 로직: 서류 모두 준비 + 기준 일부라도 체크 → eligible, 일부 빠짐 → caution, 전혀 아님 → ineligible
-  let status = 'ineligible';
-  if (criteriaCount > 0 && docsCount === totalReq) status = 'eligible';
-  else if (criteriaCount > 0 || docsCount > 0) status = 'caution';
-
-  const product = service.value?.service_name || '지원금';
-  router.push({
-    path: '/financial/result',
-    query: { status, product },
-  });
+  finish();
 }
-
-onMounted(loadService);
 </script>
-
 <style scoped>
 .px {
   padding-left: 2rem;

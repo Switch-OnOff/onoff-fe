@@ -104,24 +104,23 @@
           <tbody>
             <tr>
               <th scope="row" class="bodyRegular14px">상가형태</th>
-              <td class="bodyMedium16px">{{ listing.shopType || '-' }}</td>
+              <td class="bodyMedium16px">{{ shopTypeText }}</td>
             </tr>
             <tr>
               <th scope="row" class="bodyRegular14px">공급/전용</th>
               <td class="bodyMedium16px">
-                <span v-if="listing.area?.supply"
-                  >{{ listing.area.supply }}m²</span
+                <span v-if="listing.supplyArea">{{ listing.supplyArea }}m²</span
                 ><span v-else>-</span>
                 <span> / </span>
-                <span v-if="listing.area?.exclusive"
-                  >{{ listing.area.exclusive }}m²</span
+                <span v-if="listing.exclusiveArea"
+                  >{{ listing.exclusiveArea }}m²</span
                 ><span v-else>-</span>
                 <span
                   class="value-hint bodyRegular14px"
-                  v-if="listing.area?.supply || listing.area?.exclusive"
+                  v-if="listing.supplyArea || listing.exclusiveArea"
                 >
-                  (≈ {{ toPyeong(listing.area?.supply) }}평 /
-                  {{ toPyeong(listing.area?.exclusive) }}평)
+                  (≈ {{ toPyeong(listing.supplyArea) }}평 /
+                  {{ toPyeong(listing.exclusiveArea) }}평)
                 </span>
               </td>
             </tr>
@@ -132,11 +131,11 @@
             <tr>
               <th scope="row" class="bodyRegular14px">주차</th>
               <td class="bodyMedium16px">
-                <template v-if="listing.parking?.type === '가능'">
-                  가능 ({{ listing.parking?.count ?? '?' }}대 /
-                  {{ listing.parking?.paid ? '유료' : '무료' }})
+                <template v-if="listing.parkingType === '가능'">
+                  가능 ({{ listing.parkingCount ?? '?' }}대 /
+                  {{ listing.parkingPaid ? '유료' : '무료' }})
                 </template>
-                <template v-else>{{ listing.parking?.type || '-' }}</template>
+                <template v-else>{{ listing.parkingType || '-' }}</template>
               </td>
             </tr>
             <tr>
@@ -291,10 +290,19 @@ const currentSlide = ref(1);
 
 function fmt(v) {
   const n = Number(v);
-  if (!Number.isFinite(n)) return '-';
-  const eok = Math.floor(n / 10000);
-  const man = n % 10000;
-  return eok > 0 ? `${eok}억 ${man.toLocaleString()}` : man.toLocaleString();
+  if (!Number.isFinite(n) || n <= 0) return '-';
+
+  const eok = Math.floor(n / 10000); // 억 단위
+  const man = n % 10000; // 만 단위
+
+  if (man === 0) {
+    return `${eok}억`;
+  }
+
+  const manStr =
+    man % 1000 === 0 ? `${man / 1000}천` : man.toLocaleString('ko-KR');
+
+  return eok > 0 ? `${eok}억 ${manStr}` : manStr;
 }
 
 const mainPriceLine = computed(() => {
@@ -315,7 +323,7 @@ const mgmtText = computed(() =>
 );
 
 const transferText = computed(() => {
-  const t = listing.value.transfer?.type;
+  const t = listing.value.transferType;
   if (!t) return '-';
   if (t === '지정') return listing.value.transfer?.date || '협의';
   return t;
@@ -328,8 +336,8 @@ function toPyeong(m2) {
 }
 
 const floorText = computed(() => {
-  const c = listing.value.floor?.current ?? '-';
-  const t = listing.value.floor?.total ?? '-';
+  const c = listing.value.currentFloor ?? '-';
+  const t = listing.value.totalFloor ?? '-';
   return `${c}/${t}층`;
 });
 
@@ -402,8 +410,13 @@ function resumeAuto() {
 /* 상세 로드 */
 async function fetchDetail(id) {
   try {
-    const { data } = await axios.get(`/listings/${id}`);
+    const res = await axios.get(
+      `http://localhost:8080/api/property/detail/${id}`
+    );
+    const data = res?.data?.data || {};
     listing.value = data;
+
+    console.log('데이터 확인', listing.value);
     syncBookmarkFlag();
     requestAnimationFrame(() => {
       onGalleryScroll();
@@ -442,10 +455,16 @@ const shareTitle = computed(() => listing.value.storeName || '매물 상세');
 const shareText = computed(
   () => `${listing.value.industry} · ${mainPriceLine.value}`
 );
+const shopTypeText = computed(() => listing.value.shopType || '상가');
 const shareUrl = computed(() => `${location.origin}${route.fullPath}`);
 function openShare() {
   shareOpen.value = true;
 }
+// 텍스트 관련
+const parkingPaidText = computed(() => {
+  if (listing.value.parking?.type !== '가능') return '';
+  return listing.value.parking?.paid ? '유료' : '무료';
+});
 
 function contact() {
   alert('1:1 채팅으로 연결합니다.');

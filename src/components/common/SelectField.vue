@@ -209,7 +209,10 @@ watch(
   position: absolute;
   z-index: 30;
   left: 0;
-  right: 0;
+  /* dropdown이 버튼 너비보다 좁아지지 않되, 내용 길이에 맞게 넓어지도록 */
+  min-width: 100%;
+  width: max-content;
+  white-space: nowrap;
   top: calc(100% + 8px);
   background: #fff;
   border: 1px solid var(--color-lightgray);

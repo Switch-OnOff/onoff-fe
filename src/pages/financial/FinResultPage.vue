@@ -54,7 +54,7 @@ const router = useRouter();
 
 // 쿼리 파라미터로 분기: eligible | ineligible | caution
 const status = computed(() => route.query.status || 'caution');
-const productName = computed(() => route.query.product || '새희망자금'); // 없으면 기본값
+const productName = computed(() => route.query.product || '지원/대출 상품');
 // 노란불일 때 보완 개수(쿼리로 넘길 수 있음: ?missing=3)
 const missingCount = computed(() => Number(route.query.missing || 3));
 
@@ -91,20 +91,28 @@ const topProps = computed(() => {
   };
 });
 
-// 사유/체크리스트(예시 데이터, API 연동 시 교체)
+// 조언/체크리스트: 쿼리로 커스터마이즈 가능 (?reasons=a,b,c)
 const reasons = computed(() => {
+  const raw = route.query.reasons;
+  if (typeof raw === 'string' && raw.trim()) {
+    return raw
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 6); // 안전상 최대 6개 제한
+  }
   if (isIneligible.value) {
     return [
-      '1번 조건이 충족되지 않았어요',
-      '5인 이상 매장이 아니에요',
-      '연매출 요건을 만족하지 않아요',
+      '요건을 더 충족해야 합니다',
+      '담보/소득 조건을 확인해 주세요',
+      '필요 서류를 준비해 주세요',
     ];
   }
   if (isCaution.value) {
     return [
-      '무엇을 준비하세요',
-      '이것이 선행되어야 해요',
-      '알파벳을 거꾸로 외우세요',
+      '조건을 일부 보완하면 승인 가능성이 있어요',
+      '신용 정보와 상환 계획을 점검하세요',
+      '상담을 통해 대안 상품을 확인해 보세요',
     ];
   }
   return [];
