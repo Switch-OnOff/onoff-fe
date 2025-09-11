@@ -26,10 +26,16 @@ import Header from './components/layout/Header.vue';
 import Footer from './components/layout/Footer.vue';
 import { useRoute } from 'vue-router';
 import { computed, onMounted } from 'vue';
+import { useAuthStore } from '@/stores/auth';
 
 const route = useRoute();
 const hideHeader = computed(() => !!route.meta.hideHeader);
 const hideFooter = computed(() => !!route.meta.hideFooter);
+const authStore = useAuthStore();
+
+onMounted(() => {
+  authStore.restore();
+});
 </script>
 
 <style scoped>

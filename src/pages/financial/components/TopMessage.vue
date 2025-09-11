@@ -11,7 +11,11 @@
       <br />
 
       <!-- highlight (ex. 새희망자금) -->
-      <strong v-if="highlight" class="hl bodyBold24px">{{ highlight }}</strong>
+      <slot name="highlight">
+        <strong v-if="highlight" class="hl bodyBold24px">{{
+          highlight
+        }}</strong>
+      </slot>
 
       <!-- suffix -->
       <span v-if="suffix"> {{ suffix }}</span>

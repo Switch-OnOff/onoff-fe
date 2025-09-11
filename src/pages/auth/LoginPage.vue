@@ -5,10 +5,10 @@
     <form @submit.prevent="onLogin" class="login-form">
       <!-- 이메일 -->
       <InputSimple
-        v-model="username"
+        v-model="userEmail"
         type="text"
         placeholder="이메일을 입력하세요."
-        autocomplete="username"
+        autocomplete="userEmail"
       />
 
       <!-- 비밀번호 -->
@@ -62,7 +62,7 @@ import eyeClosed from "@/assets/icons/pw_hide_eye.png"; // 숨김(가린 눈)
 const router = useRouter();
 const route = useRoute();
 
-const username = ref("");
+const userEmail = ref("");
 const password = ref("");
 const showPassword = ref(false);
 
@@ -71,30 +71,40 @@ function toggleShowPassword() {
 }
 
 async function onLogin() {
-  if (!username.value || !password.value) {
-    alert("아이디와 비밀번호를 모두 입력해주세요.");
+  if (!userEmail.value || !password.value) {
+    alert("이메일과 비밀번호를 모두 입력해주세요.");
     return;
   }
 
-  // 백엔드 연동 주석 처리
-  /*
   try {
-    const response = await axios.post("/api/auth/login", {
-      username: username.value,
+    const response = await axios.post('http://localhost:8080/api/user/auth/login', {
+      email: userEmail.value,
       password: password.value,
     });
 
-    const token = response.data.token;
-    const userData = response.data.user;
+    const email = response.data.data.email;
+    const name = response.data.data.name;
+    const contact = response.data.data.contact;
 
-    if (token && userData) {
+    if (email && name && contact) {
       // authStore.login(userData, token);
       // checklistStore.checklistData.userId = userData.userId;
       // axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      alert("로그인 성공!");
-      const redirectPath = route.query.redirect || "/";
-      router.push(redirectPath);
+        // 사용자 정보 객체
+      const userInfo = { email, name, contact }
+
+      // // localStorage에 저장 (자동로그인)
+      // localStorage.setItem("user", JSON.stringify(userInfo))
+      // localStorage.setItem("token", token)
+
+      // 또는 세션스토리지에 저장 (브라우저 종료 시 삭제됨)
+      sessionStorage.setItem("user", JSON.stringify(userInfo))
+
+      alert("로그인 성공!")
+      const redirectPath = route.query.redirect || "/"
+      router.push(redirectPath)
+
     } else {
       alert("로그인 정보가 올바르지 않습니다.");
     }
@@ -104,12 +114,11 @@ async function onLogin() {
       "로그인에 실패했습니다.\n아이디나 비밀번호를 확인해주세요.";
     alert(errorMessage);
   }
-  */
   
-  // 데모 모드 - 로그인 성공 시 홈으로 이동
-  alert("로그인 시도: " + username.value);
-  const redirectPath = route.query.redirect || "/";
-  router.push(redirectPath);
+  // // 데모 모드 - 로그인 성공 시 홈으로 이동
+  // alert("로그인 시도: " + userEmail.value);
+  // const redirectPath = route.query.redirect || "/";
+  // router.push(redirectPath);
 }
 
 function onSignup() {
