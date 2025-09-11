@@ -62,6 +62,7 @@ const hasQueryView = !!(route.query.center && route.query.zoomLevel);
 
 /** 상태 */
 const listings = ref([]); // 지도에 올릴 매물(전체)
+const propertyLocations = ref([]); // 지도에 올릴 매물 위치 데이터
 const selected = ref(null); // 미니카드(오버레이) 선택 상태
 const isBottomSheetOpen = ref(false); // 바텀시트 열림 여부
 const clusterItems = ref([]); // 해당 클러스터에 포함된 매물 목록
@@ -134,14 +135,11 @@ function mapServerRow(r) {
 /* 서버에서 목록 로드 */
 async function fetchListings() {
   try {
-    const { data } = await axios.get('/listings', {
-      params: { _sort: 'id', _order: 'desc' },
-    });
-    const rows = Array.isArray(data) ? data : data?.data || [];
-    listings.value = rows
-      .filter((r) => Number.isFinite(r.lat) && Number.isFinite(r.lng))
-      .map(mapServerRow);
+    const res = await axios.get('http://localhost:8080/api/property/card_list');
+    const list = res?.data?.data;
+    listings.value = Array.isArray(list) ? list : [];
 
+    console.log('확인', listings.value);
     rebuildMarkers();
 
     if (hasQueryView) {
@@ -156,6 +154,20 @@ async function fetchListings() {
   } catch (e) {
     console.error('[Map fetchListings] failed:', e);
     alert('지도를 불러오지 못했습니다.');
+  }
+}
+
+/*지도 위치 데이터 로드*/
+async function fetchLocationData() {
+  try {
+    const res = await axios.get(
+      'http://localhost:8080/api/property/property_location'
+    );
+    const list = res?.data?.data;
+    propertyLocations.value = Array.isArray(list) ? list : [];
+  } catch (e) {
+    console.error('[Map fetchLocationData] failed:', e);
+    alert('매물 위치 데이터를 불러오지 못했습니다.');
   }
 }
 
@@ -210,6 +222,7 @@ onMounted(async () => {
       closeOverlay(); // 오버레이 열려 있으면 닫아둠
     });
 
+    await fetchLocationData();
     await fetchListings();
 
     w.kakao.maps.event.addListener(map, 'dragend', () => updateURL());
@@ -244,7 +257,7 @@ function rebuildMarkers() {
   }
   markers = [];
 
-  markers = listings.value.map((item) => {
+  markers = propertyLocations.value.map((item) => {
     const m = new w.kakao.maps.Marker({
       position: new w.kakao.maps.LatLng(item.lat, item.lng),
       image: markerImage,
