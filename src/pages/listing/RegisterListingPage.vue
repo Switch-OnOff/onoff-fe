@@ -1,7 +1,7 @@
 <template>
   <div class="wizard-page">
-    <SimpleHeader :show-button="false" title="매물 등록"/>
-      <!-- <template #action>
+    <SimpleHeader :show-button="false" title="매물 등록">
+      <template #action>
         <button
           v-if="step < 4"
           type="button"
@@ -11,7 +11,7 @@
           다음(건너뛰기)
         </button>
       </template>
-    </SimpleHeader> -->
+    </SimpleHeader>
 
     <!-- STEP 1 -->
     <section class="step" v-if="step === 1">
@@ -290,7 +290,7 @@
 
     <!-- STEP 4 -->
     <section class="step step-photos" v-else-if="step === 4">
-      <h2 class="titleExtra28px">사진 등록 (1~5장)</h2>
+      <h2 class="titleExtra28px">사진 등록</h2>
 
       <PhotoUploader v-model="photos" :max="5" :min="1" :capture="true" />
 
