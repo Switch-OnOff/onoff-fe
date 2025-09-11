@@ -122,7 +122,9 @@
             <template v-if="formStep2.dealType === '월세'">
               <label class="bodyMedium14px label-inline">
                 보증금(만원)
-                <span v-if="depositWon" class="label-right bodyRegular12px">{{ depositWon }}</span>
+                <span v-if="depositWon" class="label-right bodyRegular12px">{{
+                  depositWon
+                }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.deposit" />
               <NumberButtonGroup
@@ -133,7 +135,9 @@
 
               <label class="bodyMedium14px label-inline">
                 월세(만원)
-                <span v-if="rentWon" class="label-right bodyRegular12px">{{ rentWon }}</span>
+                <span v-if="rentWon" class="label-right bodyRegular12px">{{
+                  rentWon
+                }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.rent" />
               <NumberButtonGroup
@@ -146,7 +150,9 @@
             <template v-else>
               <label class="bodyMedium14px label-inline">
                 매매가(만원)
-                <span v-if="saleWon" class="label-right bodyRegular12px">{{ saleWon }}</span>
+                <span v-if="saleWon" class="label-right bodyRegular12px">{{
+                  saleWon
+                }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.salePrice" />
               <NumberButtonGroup
@@ -160,7 +166,9 @@
 
         <label class="bodyMedium16px label-inline">
           권리금(만원)
-          <span v-if="premiumWon" class="label-right bodyRegular12px">{{ premiumWon }}</span>
+          <span v-if="premiumWon" class="label-right bodyRegular12px">{{
+            premiumWon
+          }}</span>
         </label>
         <div class="gap-tight">
           <MoneyInput v-model.number="formStep2.premium" />
@@ -175,7 +183,9 @@
 
         <label class="bodyMedium16px label-inline">
           관리비(만원)
-          <span v-if="mgmtFeeWon" class="label-right bodyLight12px">{{ mgmtFeeWon }}</span>
+          <span v-if="mgmtFeeWon" class="label-right bodyLight12px">{{
+            mgmtFeeWon
+          }}</span>
         </label>
         <MoneyInput v-model.number="formStep2.mgmtFee" />
 
@@ -186,13 +196,23 @@
         />
 
         <label class="bodyMedium16px">상호명</label>
-        <InputSimple placeholder="상호명을 입력하세요" v-model="formStep2.storeName" />
+        <InputSimple
+          placeholder="상호명을 입력하세요"
+          v-model="formStep2.storeName"
+        />
 
         <label class="bodyMedium16px">상가형태</label>
-        <SelectField v-model="formStep2.shopType" :items="SHOP_TYPES" placeholder="상가형태 선택" />
+        <SelectField
+          v-model="formStep2.shopType"
+          :items="SHOP_TYPES"
+          placeholder="상가형태 선택"
+        />
 
         <label class="bodyMedium16px">면적</label>
-        <AreaInput v-model:m2Supply="formStep2.area.supply" v-model:m2Exclusive="formStep2.area.exclusive" />
+        <AreaInput
+          v-model:m2Supply="formStep2.area.supply"
+          v-model:m2Exclusive="formStep2.area.exclusive"
+        />
 
         <label class="bodyMedium16px">층 정보</label>
         <FloorInput
@@ -209,13 +229,25 @@
         />
 
         <label class="bodyMedium16px">화장실</label>
-        <SelectField v-model="formStep2.restroom" :items="RESTROOM_OPTIONS" placeholder="화장실 선택" />
+        <SelectField
+          v-model="formStep2.restroom"
+          :items="RESTROOM_OPTIONS"
+          placeholder="화장실 선택"
+        />
 
         <label class="bodyMedium16px">배달</label>
-        <SelectField v-model="formStep2.delivery" :items="DELIVERY_OPTIONS" placeholder="배달 선택" />
+        <SelectField
+          v-model="formStep2.delivery"
+          :items="DELIVERY_OPTIONS"
+          placeholder="배달 선택"
+        />
 
         <label class="bodyMedium16px">포장</label>
-        <SelectField v-model="formStep2.takeout" :items="TAKEOUT_OPTIONS" placeholder="포장 선택" />
+        <SelectField
+          v-model="formStep2.takeout"
+          :items="TAKEOUT_OPTIONS"
+          placeholder="포장 선택"
+        />
 
         <label class="bodyMedium16px">위치(주소)</label>
         <AddressSearch
@@ -255,7 +287,11 @@
       </p>
 
       <div class="row center submit-row">
-        <MedSubmitBtn text="등록 완료" :disabled="!canSubmit" @click="submitAll" />
+        <MedSubmitBtn
+          text="등록 완료"
+          :disabled="!canSubmit"
+          @click="submitAll"
+        />
       </div>
     </section>
 
@@ -272,31 +308,31 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
-import axios from 'axios'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
 
-import SimpleHeader from '@/components/layout/SimpleHeader.vue'
-import MedSubmitBtn from '@/components/button/MedSubmitBtn.vue'
-import InputField from '@/components/input/InputField.vue'
-import InputSimple from '@/components/input/InputSimple.vue'
+import SimpleHeader from '@/components/layout/SimpleHeader.vue';
+import MedSubmitBtn from '@/components/button/MedSubmitBtn.vue';
+import InputField from '@/components/input/InputField.vue';
+import InputSimple from '@/components/input/InputSimple.vue';
 
-import IndustryPicker from '@/pages/listing/components/IndustryPicker.vue'
-import MoneyInput from '@/pages/listing/components/MoneyInput.vue'
-import AreaInput from '@/pages/listing/components/AreaInput.vue'
-import TransferDateField from '@/pages/listing/components/TransferDateField.vue'
-import AddressSearch from '@/pages/listing/components/AddressSearch.vue'
-import NumberButtonGroup from '@/components/input/NumberButtonGroup.vue'
-import FloorInput from '@/pages/listing/components/FloorInput.vue'
-import ParkingCard from '@/pages/listing/components/ParkingCard.vue'
-import SelectField from '@/pages/listing/components/DropDown.vue'
-import PhotoUploader from '@/pages/listing/components/PhotoUploader.vue'
-import AlertModal from '@/components/modal/AlertModal.vue'
+import IndustryPicker from '@/pages/listing/components/IndustryPicker.vue';
+import MoneyInput from '@/pages/listing/components/MoneyInput.vue';
+import AreaInput from '@/pages/listing/components/AreaInput.vue';
+import TransferDateField from '@/pages/listing/components/TransferDateField.vue';
+import AddressSearch from '@/pages/listing/components/AddressSearch.vue';
+import NumberButtonGroup from '@/components/input/NumberButtonGroup.vue';
+import FloorInput from '@/pages/listing/components/FloorInput.vue';
+import ParkingCard from '@/pages/listing/components/ParkingCard.vue';
+import SelectField from '@/pages/listing/components/DropDown.vue';
+import PhotoUploader from '@/pages/listing/components/PhotoUploader.vue';
+import AlertModal from '@/components/modal/AlertModal.vue';
 
-const step = ref(1)
-const verifying = ref(false)
-const errorMsg = ref('')
-const router = useRouter()
+const step = ref(1);
+const verifying = ref(false);
+const errorMsg = ref('');
+const router = useRouter();
 
 /* 공용 모달 상태 */
 const modal = reactive({
@@ -304,26 +340,30 @@ const modal = reactive({
   title: '알림',
   message: '',
   confirmText: '확인',
-  onConfirm: null
-})
+  onConfirm: null,
+});
 function showModal(message, opts = {}) {
-  modal.title = opts.title ?? '알림'
-  modal.message = message
-  modal.confirmText = opts.confirmText ?? '확인'
-  modal.onConfirm = typeof opts.onConfirm === 'function' ? opts.onConfirm : null
-  modal.open = true
+  modal.title = opts.title ?? '알림';
+  modal.message = message;
+  modal.confirmText = opts.confirmText ?? '확인';
+  modal.onConfirm =
+    typeof opts.onConfirm === 'function' ? opts.onConfirm : null;
+  modal.open = true;
 }
 function handleModalConfirm() {
-  const fn = modal.onConfirm
-  modal.open = false
-  if (fn) fn()
+  const fn = modal.onConfirm;
+  modal.open = false;
+  if (fn) fn();
 }
 
 const INDUSTRY_CATEGORIES = [
-  { major: '일반음식점', minors: ['한식', '중식', '양식', '분식', '치킨', '카페/디저트'] },
+  {
+    major: '일반음식점',
+    minors: ['한식', '중식', '양식', '분식', '치킨', '카페/디저트'],
+  },
   { major: '서비스업', minors: ['미용', '세탁', '교육', '기타'] },
   { major: '소매', minors: ['편의점', '잡화', '의류', '기타'] },
-]
+];
 
 const SHOP_TYPES = [
   { label: '근린상가', value: '근린상가' },
@@ -332,28 +372,28 @@ const SHOP_TYPES = [
   { label: '주상복합', value: '주상복합' },
   { label: '몰/쇼핑센터', value: '몰/쇼핑센터' },
   { label: '기타/확인필요', value: '기타/확인필요' },
-]
+];
 
 const RESTROOM_OPTIONS = [
   { label: '내부', value: '내부' },
   { label: '외부(개인)', value: '외부(개인)' },
   { label: '외부(공용)', value: '외부(공용)' },
-]
+];
 
 const DELIVERY_OPTIONS = [
   { label: '많음', value: '많음' },
   { label: '보통', value: '보통' },
   { label: '적음', value: '적음' },
-]
+];
 
 const TAKEOUT_OPTIONS = [
   { label: '많음', value: '많음' },
   { label: '보통', value: '보통' },
   { label: '적음', value: '적음' },
-]
+];
 
-const formStep1 = reactive({ bNo: '', ownerName: '', openDt: '' })
-const verified = reactive({ ok: false, bNo: '', ownerName: '', openDt: '' })
+const formStep1 = reactive({ bNo: '', ownerName: '', openDt: '' });
+const verified = reactive({ ok: false, bNo: '', ownerName: '', openDt: '' });
 
 const formStep2 = reactive({
   industryMajor: '',
@@ -374,49 +414,64 @@ const formStep2 = reactive({
   delivery: '',
   takeout: '',
   address: { base: '', detail: '', zip: '' },
-})
+});
 
-const mgmtFeeWon = computed(() => manToKoreanWon(formStep2.mgmtFee))
-const formStep3 = reactive({ description: '' })
+const mgmtFeeWon = computed(() => manToKoreanWon(formStep2.mgmtFee));
+const formStep3 = reactive({ description: '' });
 
-const photos = ref([])
-const MAX_PHOTOS = 5
-const MIN_PHOTOS = 1
-const canSubmit = computed(() => photos.value.length >= MIN_PHOTOS && photos.value.length <= MAX_PHOTOS)
+const photos = ref([]);
+const MAX_PHOTOS = 5;
+const MIN_PHOTOS = 1;
+const canSubmit = computed(
+  () => photos.value.length >= MIN_PHOTOS && photos.value.length <= MAX_PHOTOS
+);
 
-function goStep(n){ step.value = n }
-function skipToNext(){
+function goStep(n) {
+  step.value = n;
+}
+function skipToNext() {
   if (step.value === 1) {
-    verified.bNo = formStep1.bNo
-    verified.ownerName = formStep1.ownerName
-    verified.openDt = formStep1.openDt
-    verified.ok = false
+    verified.bNo = formStep1.bNo;
+    verified.ownerName = formStep1.ownerName;
+    verified.openDt = formStep1.openDt;
+    verified.ok = false;
   }
-  if (step.value < 4) step.value += 1
+  if (step.value < 4) step.value += 1;
 }
 
-function onlyDigitsLen(val, max){ return String(val || '').replace(/\D/g, '').slice(0, max) }
-function onBNoInput(e){ formStep1.bNo = onlyDigitsLen(e.target.value, 10) }
-function onOpenDtInput(e){ formStep1.openDt = onlyDigitsLen(e.target.value, 8) }
+function onlyDigitsLen(val, max) {
+  return String(val || '')
+    .replace(/\D/g, '')
+    .slice(0, max);
+}
+function onBNoInput(e) {
+  formStep1.bNo = onlyDigitsLen(e.target.value, 10);
+}
+function onOpenDtInput(e) {
+  formStep1.openDt = onlyDigitsLen(e.target.value, 8);
+}
 
 async function onVerify() {
-  errorMsg.value = ''
-  verifying.value = true
+  errorMsg.value = '';
+  verifying.value = true;
   try {
-    const res = await axios.post('http://localhost:8080/api/property/validate', {
-      b_no: formStep1.bNo.replace(/\D/g, ''),
-      p_nm: formStep1.ownerName.trim(),
-      start_dt: formStep1.openDt.replace(/\D/g, ''),
-    })
-    const valid = res?.data?.data === true
+    const res = await axios.post(
+      'http://localhost:8080/api/property/validate',
+      {
+        b_no: formStep1.bNo.replace(/\D/g, ''),
+        p_nm: formStep1.ownerName.trim(),
+        start_dt: formStep1.openDt.replace(/\D/g, ''),
+      }
+    );
+    const valid = res?.data?.data === true;
     if (valid) {
-      verified.ok = true
-      verified.bNo = formStep1.bNo
-      verified.ownerName = formStep1.ownerName
-      verified.openDt = formStep1.openDt
-      goStep(2)
+      verified.ok = true;
+      verified.bNo = formStep1.bNo;
+      verified.ownerName = formStep1.ownerName;
+      verified.openDt = formStep1.openDt;
+      goStep(2);
     } else {
-      errorMsg.value = '진위확인 실패'
+      errorMsg.value = '진위확인 실패';
       showModal(
         [
           '사업자 진위확인에 실패했습니다.',
@@ -427,154 +482,202 @@ async function onVerify() {
           '• 개업일자: YYYYMMDD 형식',
         ].join('\n'),
         { title: '진위확인 실패' }
-      )
+      );
     }
   } catch {
-    showModal('서버 오류로 확인에 실패했습니다.\n잠시 후 다시 시도해 주세요.', { title: '진위확인 오류' })
+    showModal('서버 오류로 확인에 실패했습니다.\n잠시 후 다시 시도해 주세요.', {
+      title: '진위확인 오류',
+    });
   } finally {
-    verifying.value = false
+    verifying.value = false;
   }
 }
 
-function addAmount(field, delta){
-  const current = Number(formStep2[field] ?? 0) || 0
-  const next = current + Number(delta || 0)
-  formStep2[field] = Math.max(0, next)
+function addAmount(field, delta) {
+  const current = Number(formStep2[field] ?? 0) || 0;
+  const next = current + Number(delta || 0);
+  formStep2[field] = Math.max(0, next);
 }
 
-function manToKoreanWon(num){
-  if (num === null || num === undefined || num === '') return ''
-  const n = Number(num); if (Number.isNaN(n)) return ''
-  if (n === 0) return '0원'
-  let rest = Math.floor(n * 10000)
-  const eok = Math.floor(rest / 100000000); rest %= 100000000
-  const man = Math.floor(rest / 10000); const won = rest % 10000
-  const parts = []
-  if (eok) parts.push(`${eok}억`)
-  if (man) parts.push(`${man}만`)
-  if (won) parts.push(`${won.toLocaleString()}원`)
-  if (!won) parts.push('원')
-  return parts.join(' ').trim()
+function manToKoreanWon(num) {
+  if (num === null || num === undefined || num === '') return '';
+  const n = Number(num);
+  if (Number.isNaN(n)) return '';
+  if (n === 0) return '0원';
+  let rest = Math.floor(n * 10000);
+  const eok = Math.floor(rest / 100000000);
+  rest %= 100000000;
+  const man = Math.floor(rest / 10000);
+  const won = rest % 10000;
+  const parts = [];
+  if (eok) parts.push(`${eok}억`);
+  if (man) parts.push(`${man}만`);
+  if (won) parts.push(`${won.toLocaleString()}원`);
+  if (!won) parts.push('원');
+  return parts.join(' ').trim();
 }
 
-const depositWon = computed(() => manToKoreanWon(formStep2.deposit))
-const rentWon = computed(() => manToKoreanWon(formStep2.rent))
-const saleWon = computed(() => manToKoreanWon(formStep2.salePrice))
-const premiumWon = computed(() => manToKoreanWon(formStep2.premium))
+const depositWon = computed(() => manToKoreanWon(formStep2.deposit));
+const rentWon = computed(() => manToKoreanWon(formStep2.rent));
+const saleWon = computed(() => manToKoreanWon(formStep2.salePrice));
+const premiumWon = computed(() => manToKoreanWon(formStep2.premium));
 
 function onNextStep2() {
-  const missing = []
-  if (!formStep2.industryMajor) missing.push('업종(대분류)')
-  if (!formStep2.industryMinor) missing.push('업종(중분류)')
+  const missing = [];
+  if (!formStep2.industryMajor) missing.push('업종(대분류)');
+  if (!formStep2.industryMinor) missing.push('업종(중분류)');
 
   if (formStep2.dealType === '월세') {
-    if (formStep2.deposit === null) missing.push('보증금')
-    if (formStep2.rent === null) missing.push('월세')
+    if (formStep2.deposit === null) missing.push('보증금');
+    if (formStep2.rent === null) missing.push('월세');
   } else {
-    if (formStep2.salePrice === null) missing.push('매매가')
+    if (formStep2.salePrice === null) missing.push('매매가');
   }
 
-  if (!formStep2.transfer?.type) missing.push('양도가능일')
-  if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date) missing.push('양도가능일(날짜)')
+  if (!formStep2.transfer?.type) missing.push('양도가능일');
+  if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date)
+    missing.push('양도가능일(날짜)');
 
-  if (!formStep2.storeName) missing.push('상호명')
-  if (!formStep2.shopType) missing.push('상가형태')
-  if (formStep2.area.supply === null) missing.push('공급면적')
-  if (formStep2.area.exclusive === null) missing.push('전용면적')
-  if (formStep2.floor.current === null) missing.push('해당층')
+  if (!formStep2.storeName) missing.push('상호명');
+  if (!formStep2.shopType) missing.push('상가형태');
+  if (formStep2.area.supply === null) missing.push('공급면적');
+  if (formStep2.area.exclusive === null) missing.push('전용면적');
+  if (formStep2.floor.current === null) missing.push('해당층');
 
-  if (!formStep2.parking?.type) missing.push('주차 형태')
-  if (formStep2.parking?.type && formStep2.parking.type !== '없음' && formStep2.parking.count === null) {
-    missing.push('주차 대수')
+  if (!formStep2.parking?.type) missing.push('주차 형태');
+  if (
+    formStep2.parking?.type &&
+    formStep2.parking.type !== '없음' &&
+    formStep2.parking.count === null
+  ) {
+    missing.push('주차 대수');
   }
 
-  if (!formStep2.restroom) missing.push('화장실')
-  if (!formStep2.delivery) missing.push('배달')
-  if (!formStep2.takeout) missing.push('포장')
-  if (!formStep2.address.base) missing.push('기본주소')
+  if (!formStep2.restroom) missing.push('화장실');
+  if (!formStep2.delivery) missing.push('배달');
+  if (!formStep2.takeout) missing.push('포장');
+  if (!formStep2.address.base) missing.push('기본주소');
 
   if (missing.length) {
-    showModal('다음 항목을 입력해주세요:\n- ' + missing.join('\n- '), { title: '입력 누락' })
-    return
+    showModal('다음 항목을 입력해주세요:\n- ' + missing.join('\n- '), {
+      title: '입력 누락',
+    });
+    return;
   }
-  goStep(3)
+  goStep(3);
 }
 
 const payload = computed(() => {
+  // 화장실 값 통일
   const restroomForDb = (() => {
-    if (formStep2.restroom === '외부(공용)') return '공용'
-    if (formStep2.restroom === '외부(개인)') return '개인'
-    return formStep2.restroom
-  })()
-  const currentFloorNumber = formStep2.floor.isBasement
-    ? -Math.abs(Number(formStep2.floor.current || 1))
-    : Number(formStep2.floor.current || 0)
+    if (formStep2.restroom === '외부(공용)') return '공용';
+    if (formStep2.restroom === '외부(개인)') return '개인';
+    return formStep2.restroom;
+  })();
 
-  return {
-    biz: {
-      bNo: verified.bNo,
-      ownerName: verified.ownerName,
-      openDt: verified.openDt,
-    },
-    listing: {
-      industry: `${formStep2.industryMajor}/${formStep2.industryMinor}`.replace(/\/$/, ''),
-      dealType: formStep2.dealType,
-      deposit: formStep2.dealType === '월세' ? formStep2.deposit : undefined,
-      rent: formStep2.dealType === '월세' ? formStep2.rent : undefined,
-      salePrice: formStep2.dealType === '매매' ? formStep2.salePrice : undefined,
-      premium: formStep2.premium,
-      mgmtFee: formStep2.mgmtFee,
-      transfer: formStep2.transfer,
-      storeName: formStep2.storeName,
-      shopType: formStep2.shopType,
-      area: { supply: formStep2.area.supply, exclusive: formStep2.area.exclusive },
-      floor: { current: currentFloorNumber, total: Number(formStep2.floor.total || 0) },
-      parking: formStep2.parking,
-      restroom: restroomForDb,
-      delivery: formStep2.delivery,
-      takeout: formStep2.takeout,
-      address: `${formStep2.address.base} ${formStep2.address.detail}`.trim(),
-    },
-    description: formStep3.description,
+  // 지하층은 음수 처리
+  const currentFloorNumber = formStep2.floor?.isBasement
+    ? -Math.abs(Number(formStep2.floor?.current ?? 1))
+    : Number(formStep2.floor?.current ?? 0);
+
+  // 거래 유형 플래그
+  const isMonthly = formStep2.dealType === '월세';
+  const isSale = formStep2.dealType === '매매';
+
+  // 날짜(transferDate)는 ISO 8601 문자열 기대로 가정
+  const transferDateISO = formStep2.transfer?.date
+    ? new Date(formStep2.transfer.date).toISOString()
+    : null;
+
+  const base = {
+    // ----- 매핑 시작 (백엔드 키) -----
+    storeName: formStep2.storeName?.trim() ?? '',
+    industry: `${formStep2.industryMajor ?? ''}/${
+      formStep2.industryMinor ?? ''
+    }`.replace(/\/$/, ''),
+    shopType: formStep2.shopType ?? '',
+    transferType: formStep2.transfer?.type ?? '', // 예: '권리양도', '시설양도' 등
+    transferDate: transferDateISO, // 예: '2025-09-11T15:57:39.253Z'
+
+    currentFloor: currentFloorNumber,
+    totalFloor: Number(formStep2.floor?.total ?? 0),
+
+    parkingType: formStep2.parking?.type ?? '없음', // 예: '지하/지상/없음'
+    parkingCount: Number(formStep2.parking?.count ?? 0),
+    parkingPaid: Boolean(formStep2.parking?.paid ?? false),
+
+    restroom: restroomForDb, // '공용' | '개인' | '내부' 등
+    deliveryLevel: formStep2.delivery ?? '', // 예: '불가/가능/우수' 등 레벨 문자열
+    takeoutLevel: formStep2.takeout ?? '',
+
+    supplyArea: Number(formStep2.area?.supply ?? 0),
+    exclusiveArea: Number(formStep2.area?.exclusive ?? 0),
+
+    description: (formStep3.description ?? '').trim(),
+    transactionType: formStep2.dealType ?? '', // '월세' | '매매'
+
+    deposit: isMonthly ? Number(formStep2.deposit ?? 0) : null,
+    mgmtFee: Number(formStep2.mgmtFee ?? 0),
+    premium: Number(formStep2.premium ?? 0),
+    rent: isMonthly ? Number(formStep2.rent ?? 0) : null,
+    salePrice: isSale ? Number(formStep2.salePrice ?? 0) : null,
+
+    address: `${formStep2.address?.base ?? ''} ${
+      formStep2.address?.detail ?? ''
+    }`.trim(),
+    // ----- 매핑 끝 -----
+  };
+
+  // null/undefined 제거(백엔드가 빈 필드 거부 시 유용)
+  return Object.fromEntries(
+    Object.entries(base).filter(([, v]) => v !== null && v !== undefined)
+  );
+});
+
+const propertyId = ref(null);
+
+// 매물 데이터 등록 API
+async function createListing() {
+  try {
+    console.log('Submitting payload:', payload.value);
+    const res = await axios.post(
+      'http://localhost:8080/api/property/',
+      payload.value
+    );
+    const id = res?.data?.id ?? res?.data?.data ?? null;
+    propertyId.value = id;
+  } catch {
+    propertyId.value = null;
   }
-})
+}
 
 async function submitAll() {
   if (!photos.value || photos.value.length === 0) {
-    showModal('사진을 최소 1장 등록해 주세요.', { title: '사진 등록' })
-    return
+    showModal('사진을 최소 1장 등록해 주세요.', { title: '사진 등록' });
+    return;
   }
 
   try {
-    const fd = new FormData()
-    fd.append('data', JSON.stringify(payload.value))
-    photos.value.forEach((f, i) => fd.append('photos', f, f.name || `photo_${i}.jpg`))
-
-    const { data, headers } = await axios.post('/api/listings', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-
-    let id =
-      data?.id ?? data?.listingId ?? data?.result?.id ?? data?.slug ?? data?.data?.id ?? data?.data?.slug
-    if (!id && headers?.location) {
-      const m = headers.location.match(/\/listing\/([^/?#]+)/)
-      if (m) id = m[1]
-    }
+    await createListing();
+    console.log('Created listing with ID:', propertyId.value);
 
     showModal('등록 완료', {
       title: '완료',
       onConfirm: () => {
-        if (id) {
-          router.push({ name: 'listing-detail', params: { id } })
+        if (propertyId.value) {
+          router.push({
+            name: 'listing-detail',
+            params: { id: propertyId.value },
+          });
         } else if (headers?.location) {
-          router.push(headers.location)
+          router.push(headers.location);
         } else {
-          router.push({ name: 'listing-list' })
+          router.push({ name: 'listing-list' });
         }
-      }
-    })
+      },
+    });
   } catch {
-    showModal('등록 실패. 잠시 후 다시 시도해주세요.', { title: '오류' })
+    showModal('등록 실패. 잠시 후 다시 시도해주세요.', { title: '오류' });
   }
 }
 </script>
@@ -591,27 +694,67 @@ async function submitAll() {
   overflow-x: hidden;
 }
 
-.step > h2 { color: var(--color-primary); margin: 0 0 8px; }
+.step > h2 {
+  color: var(--color-primary);
+  margin: 0 0 8px;
+}
 
-.desc { color: var(--color-darkgray); margin: 0 0 14px; line-height: 1.45; }
+.desc {
+  color: var(--color-darkgray);
+  margin: 0 0 14px;
+  line-height: 1.45;
+}
 
-.header-skip { background: transparent; border: 1px solid var(--color-lightgray); border-radius: 8px; padding: 6px 10px; line-height: 1; cursor: pointer; }
+.header-skip {
+  background: transparent;
+  border: 1px solid var(--color-lightgray);
+  border-radius: 8px;
+  padding: 6px 10px;
+  line-height: 1;
+  cursor: pointer;
+}
 
-.step { display: block; }
+.step {
+  display: block;
+}
 
-.form { display: block; }
+.form {
+  display: block;
+}
 
-.form > label { display: block; color: var(--color-primary); margin: 0; }
+.form > label {
+  display: block;
+  color: var(--color-primary);
+  margin: 0;
+}
 
-.form > label + * { margin-top: 6px; margin-bottom: 18px; }
+.form > label + * {
+  margin-top: 6px;
+  margin-bottom: 18px;
+}
 
-.label-inline { display: flex; align-items: center; width: 100%; gap: 6px; }
-.label-inline .label-right { margin-left: auto; color: var(--color-darkgray); text-align: right; }
+.label-inline {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 6px;
+}
+.label-inline .label-right {
+  margin-left: auto;
+  color: var(--color-darkgray);
+  text-align: right;
+}
 
-.deal-body .label-inline { justify-content: space-between; }
-.deal-body .label-inline .label-right { margin-left: 8px; }
+.deal-body .label-inline {
+  justify-content: space-between;
+}
+.deal-body .label-inline .label-right {
+  margin-left: 8px;
+}
 
-.input, .textarea, select {
+.input,
+.textarea,
+select {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--color-lightgray);
@@ -620,33 +763,97 @@ async function submitAll() {
   background: #fff;
 }
 
-.textarea { resize: vertical; }
+.textarea {
+  resize: vertical;
+}
 
-.row { width: 100%; display: flex; gap: 8px; }
-.row.center { justify-content: center; }
-.row.gap { justify-content: space-between; }
-.submit-row { margin-top: 20px; }
+.row {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+}
+.row.center {
+  justify-content: center;
+}
+.row.gap {
+  justify-content: space-between;
+}
+.submit-row {
+  margin-top: 20px;
+}
 
-.error { color: var(--color-error); }
+.error {
+  color: var(--color-error);
+}
 
-.deal-card { border: 1px solid var(--color-lightgray); border-radius: 12px; overflow: hidden; background: #fff; margin-bottom: 18px; }
+.deal-card {
+  border: 1px solid var(--color-lightgray);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  margin-bottom: 18px;
+}
 
-.deal-seg { display: grid; grid-template-columns: repeat(2, 1fr); border-bottom: 1px solid var(--color-lightgray); }
+.deal-seg {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-bottom: 1px solid var(--color-lightgray);
+}
 
-.deal-seg .seg-btn { padding: 10px 12px; background: #fff; border: 0; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
-.deal-seg .seg-btn + .seg-btn { border-left: 1px solid var(--color-lightgray); }
-.deal-seg .seg-btn:hover { background: var(--color-primary-10); }
-.deal-seg .seg-btn.active { background: var(--color-primary-10); color: var(--color-primary); font-weight: 600; }
+.deal-seg .seg-btn {
+  padding: 10px 12px;
+  background: #fff;
+  border: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.deal-seg .seg-btn + .seg-btn {
+  border-left: 1px solid var(--color-lightgray);
+}
+.deal-seg .seg-btn:hover {
+  background: var(--color-primary-10);
+}
+.deal-seg .seg-btn.active {
+  background: var(--color-primary-10);
+  color: var(--color-primary);
+  font-weight: 600;
+}
 
-.deal-body { padding: 12px; }
-.deal-body > label { margin-top: 2px; }
-.deal-body > label + * { margin-top: 6px; }
-.deal-body :deep(.number-button-group) { margin-top: 8px; margin-bottom: 12px; }
+.deal-body {
+  padding: 12px;
+}
+.deal-body > label {
+  margin-top: 2px;
+}
+.deal-body > label + * {
+  margin-top: 6px;
+}
+.deal-body :deep(.number-button-group) {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
 
-.biz-kv { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 0 0 16px; padding: 12px; border: 1px solid var(--color-lightgray); border-radius: 12px; }
-.kv { display: grid; grid-template-columns: 110px 1fr; column-gap: 8px; align-items: center; }
-.kv-key { color: var(--color-lightblack); }
-.kv-val { color: var(--color-black); }
+.biz-kv {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 12px;
+  border: 1px solid var(--color-lightgray);
+  border-radius: 12px;
+}
+.kv {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  column-gap: 8px;
+  align-items: center;
+}
+.kv-key {
+  color: var(--color-lightblack);
+}
+.kv-val {
+  color: var(--color-black);
+}
 
 .input-box {
   width: 100%;
@@ -658,8 +865,15 @@ async function submitAll() {
   background: var(--color-white);
   transition: border 0.2s;
 }
-.input-box:focus { border-color: var(--color-primary); }
-.input-box::placeholder { color: var(--color-mediumgray); }
+.input-box:focus {
+  border-color: var(--color-primary);
+}
+.input-box::placeholder {
+  color: var(--color-mediumgray);
+}
 
-.step-photos { margin-left: 0rem; margin-right: 0rem; }
+.step-photos {
+  margin-left: 0rem;
+  margin-right: 0rem;
+}
 </style>
