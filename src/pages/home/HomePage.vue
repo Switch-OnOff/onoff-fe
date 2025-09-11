@@ -46,55 +46,67 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import SegmentSwitch from '@/pages/home/components/SegmentSwitch.vue'
-import HeroCarousel from '@/pages/home/components/HeroCarousel.vue'
-import SquareNavButton from '@/pages/home/components/SquareNavButton.vue'
-import PolicyBottom from '@/pages/home/components/PolicyBottom.vue' 
+import { ref, computed } from 'vue';
+import SegmentSwitch from '@/pages/home/components/SegmentSwitch.vue';
+import HeroCarousel from '@/pages/home/components/HeroCarousel.vue';
+import SquareNavButton from '@/pages/home/components/SquareNavButton.vue';
+import PolicyBottom from '@/pages/home/components/PolicyBottom.vue';
 
-import icManage   from '@/assets/icons/manage.png'
-import icAdd      from '@/assets/icons/add.png'
-import icBookmark from '@/assets/icons/main-bookmark.png'
-import icMap      from '@/assets/icons/search-map.png'
+import icManage from '@/assets/icons/manage.png';
+import icAdd from '@/assets/icons/add.png';
+import icBookmark from '@/assets/icons/main-bookmark.png';
+import icMap from '@/assets/icons/search-map.png';
 
-const mode = ref('TRANSFER') // 'TRANSFER' | 'SUCCESSION'
+const mode = ref('TRANSFER'); // 'TRANSFER' | 'SUCCESSION'
 
 // 카드뉴스 아이템(예시)
 const news = ref([
   { title: '공지/앱 사용 가이드', text: '처음 사용자라면 여기부터!' },
   { title: '양도 전 체크리스트', text: '등록 전에 반드시 확인하세요.' },
   { title: '승계 추천 매물', text: '관심 매물 기반으로 추천해드려요.' },
-])
+]);
 
 // 모드에 따라 2개씩 노출 (아이콘 포함)
 const actions = computed(() =>
   mode.value === 'TRANSFER'
     ? [
+        { label: '양도 매물 등록', to: 'listing-new', icon: icAdd },
         { label: '등록 매물 관리', to: 'my-listing', icon: icManage },
-        { label: '양도 매물 등록', to: 'listing-new',    icon: icAdd    },
       ]
     : [
-        { label: '관심 매물 목록', to: 'my-bookmark',   icon: icBookmark },
-        { label: '매물 지도 이동', to: 'listing-map', icon: icMap      },
+        { label: '관심 매물 목록', to: 'my-bookmark', icon: icBookmark },
+        { label: '매물 지도 이동', to: 'listing-map', icon: icMap },
       ]
-)
+);
 </script>
 
 <style scoped>
 .home {
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   padding: 1.5rem;
   background: var(--color-white);
 }
 
 /* 상단 */
-.brand-bar { display:flex; flex-direction: column; gap: 12px; }
-.mode-row { display:flex; align-items:center; justify-content: space-between; }
-.mode-label { color: var(--color-lightblack); }
+.brand-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mode-label {
+  color: var(--color-lightblack);
+}
 
 /* 카드뉴스 영역은 컴포넌트가 높이를 가짐 */
-.hero { }
+.hero {
+}
 
 .nav-grid {
   display: grid;
@@ -103,5 +115,7 @@ const actions = computed(() =>
   justify-content: space-between; /* 좌우 균형 */
 }
 
-.bottom { margin-bottom: 12px; }
+.bottom {
+  margin-bottom: 12px;
+}
 </style>
