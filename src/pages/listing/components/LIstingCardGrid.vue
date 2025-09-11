@@ -42,7 +42,7 @@ const props = defineProps({
   rent: { type: [Number, String], default: null }, // 만원
   salePrice: { type: [Number, String], default: null }, // 매매가(만원)
   premium: { type: [Number, String], default: null }, // 권리금(만원)
-  areaPyeong: { type: [Number, String], default: null }, // 평
+  exclusiveArea: { type: [Number, String], default: null }, // 평
   location: { type: String, default: '' }, // "제주시 애월읍"
 });
 
@@ -54,10 +54,15 @@ const imageSrc = computed(
 function formatManwonOrNone(v) {
   if (v === null || v === undefined || v === '') return '없음';
   const n = Number(v);
-  if (!Number.isFinite(n)) return '없음';
-  const eok = Math.floor(n / 10000);
-  const man = n % 10000;
-  return eok > 0 ? `${eok}억 ${man.toLocaleString()}` : man.toLocaleString();
+  if (!Number.isFinite(n) || n <= 0) return '없음';
+
+  const eok = Math.floor(n / 10000); // 억
+  const man = n % 10000; // 만
+
+  if (eok > 0) {
+    return man > 0 ? `${eok}억 ${man.toLocaleString()}` : `${eok}억`;
+  }
+  return man > 0 ? man.toLocaleString() : '없음';
 }
 
 const depositText = computed(() => formatManwonOrNone(props.deposit));
@@ -77,7 +82,7 @@ const titleLine = computed(() => {
 });
 
 const metaLine = computed(() => {
-  const left = props.areaPyeong != null ? `${props.areaPyeong}평` : null;
+  const left = props.exclusiveArea != null ? `${props.exclusiveArea}평` : null;
   const right = props.location || null;
   if (!left && !right) return '없음';
   return [left, right].filter(Boolean).join(' · ');
