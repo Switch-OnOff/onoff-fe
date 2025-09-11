@@ -50,6 +50,8 @@ const userItem = sessionStorage.getItem('user');
 const currentUser = userItem ? JSON.parse(userItem) : null;
 const currentUserId = currentUser ? Number(currentUser.userId) : 0;
 
+console.log('current');
+console.log(currentUserId);
 // formattedMessages: messageHistory + messages 합치고 'mine'/'other' 계산
 const formattedMessages = computed(() => {
   const allMessages = [
