@@ -20,13 +20,18 @@
     </SimpleHeader>
 
     <!-- 사진 -->
-    <section class="gallery"
+    <section
+      class="gallery"
       @mouseenter="pauseAuto"
       @mouseleave="resumeAuto"
       @touchstart.passive="pauseAuto"
       @touchend.passive="resumeAuto"
     >
-      <div class="gallery-track" ref="galleryRef" @scroll.passive="onGalleryScroll">
+      <div
+        class="gallery-track"
+        ref="galleryRef"
+        @scroll.passive="onGalleryScroll"
+      >
         <img
           v-for="(src, i) in images"
           :key="i"
@@ -45,14 +50,18 @@
         class="gallery-nav left"
         aria-label="이전 사진"
         @click="prevSlide"
-      >‹</button>
+      >
+        ‹
+      </button>
       <button
         v-if="hasMultiple"
         type="button"
         class="gallery-nav right"
         aria-label="다음 사진"
         @click="nextSlide"
-      >›</button>
+      >
+        ›
+      </button>
 
       <div class="gallery-indicator bodyRegular12px">
         {{ currentSlide }} / {{ images.length }}
@@ -61,10 +70,14 @@
 
     <!-- 업종, 월세, 상호명 -->
     <section class="section head">
-      <div class="badge bodyMedium12px" v-if="listing.industry">{{ listing.industry }}</div>
+      <div class="badge bodyMedium12px" v-if="listing.industry">
+        {{ listing.industry }}
+      </div>
 
       <h1 class="titleExtra24px price-headline">{{ mainPriceLine }}</h1>
-      <div class="store-name bodyMedium16px" v-if="listing.storeName">{{ listing.storeName }}</div>
+      <div class="store-name bodyMedium16px" v-if="listing.storeName">
+        {{ listing.storeName }}
+      </div>
 
       <div class="price-block">
         <div class="stats-3">
@@ -91,16 +104,23 @@
           <tbody>
             <tr>
               <th scope="row" class="bodyRegular14px">상가형태</th>
-              <td class="bodyMedium16px">{{ listing.shopType || '-' }}</td>
+              <td class="bodyMedium16px">{{ shopTypeText }}</td>
             </tr>
             <tr>
               <th scope="row" class="bodyRegular14px">공급/전용</th>
               <td class="bodyMedium16px">
-                <span v-if="listing.area?.supply">{{ listing.area.supply }}m²</span><span v-else>-</span>
+                <span v-if="listing.supplyArea">{{ listing.supplyArea }}m²</span
+                ><span v-else>-</span>
                 <span> / </span>
-                <span v-if="listing.area?.exclusive">{{ listing.area.exclusive }}m²</span><span v-else>-</span>
-                <span class="value-hint bodyRegular14px" v-if="listing.area?.supply || listing.area?.exclusive">
-                  (≈ {{ toPyeong(listing.area?.supply) }}평 / {{ toPyeong(listing.area?.exclusive) }}평)
+                <span v-if="listing.exclusiveArea"
+                  >{{ listing.exclusiveArea }}m²</span
+                ><span v-else>-</span>
+                <span
+                  class="value-hint bodyRegular14px"
+                  v-if="listing.supplyArea || listing.exclusiveArea"
+                >
+                  (≈ {{ toPyeong(listing.supplyArea) }}평 /
+                  {{ toPyeong(listing.exclusiveArea) }}평)
                 </span>
               </td>
             </tr>
@@ -111,10 +131,11 @@
             <tr>
               <th scope="row" class="bodyRegular14px">주차</th>
               <td class="bodyMedium16px">
-                <template v-if="listing.parking?.type === '가능'">
-                  가능 ({{ listing.parking?.count ?? '?' }}대 / {{ listing.parking?.paid ? '유료' : '무료' }})
+                <template v-if="listing.parkingType === '가능'">
+                  가능 ({{ listing.parkingCount ?? '?' }}대 /
+                  {{ listing.parkingPaid ? '유료' : '무료' }})
                 </template>
-                <template v-else>{{ listing.parking?.type || '-' }}</template>
+                <template v-else>{{ listing.parkingType || '-' }}</template>
               </td>
             </tr>
             <tr>
@@ -125,8 +146,12 @@
               <th scope="row" class="bodyRegular14px">운영 형태</th>
               <td>
                 <div class="chips">
-                  <span class="chip bodyMedium14px">배달: {{ listing.deliveryLevel }}</span>
-                  <span class="chip bodyMedium14px">포장: {{ listing.takeoutLevel }}</span>
+                  <span class="chip bodyMedium14px"
+                    >배달: {{ listing.deliveryLevel }}</span
+                  >
+                  <span class="chip bodyMedium14px"
+                    >포장: {{ listing.takeoutLevel }}</span
+                  >
                 </div>
               </td>
             </tr>
@@ -164,8 +189,20 @@
 
     <section class="section cta-static">
       <div class="cta-row">
-        <button type="button" class="btn-secondary bodyMedium16px" @click="openShare">공유</button>
-        <button type="button" class="btn-primary bodyMedium16px" @click="contact">문의하기</button>
+        <button
+          type="button"
+          class="btn-secondary bodyMedium16px"
+          @click="openShare"
+        >
+          공유
+        </button>
+        <button
+          type="button"
+          class="btn-primary bodyMedium16px"
+          @click="contact"
+        >
+          문의하기
+        </button>
       </div>
     </section>
 
@@ -180,214 +217,258 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRoute } from 'vue-router'
-import axios from 'axios' 
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useRoute } from 'vue-router';
+import axios from 'axios';
 
-import SimpleHeader from '@/components/layout/SimpleHeader.vue'
-import ShareSheet from '@/components/common/ShareSheet.vue'
-import KakaoMapAddress from '@/components/map/KakaoMapAddress.vue'
-import fallbackImg from '@/assets/images/fallback-image.png'
-import emptyStar from '@/assets/icons/empty-star.png'
-import solidStar from '@/assets/icons/solid-star.png'
+import SimpleHeader from '@/components/layout/SimpleHeader.vue';
+import ShareSheet from '@/components/common/ShareSheet.vue';
+import KakaoMapAddress from '@/components/map/KakaoMapAddress.vue';
+import fallbackImg from '@/assets/images/fallback-image.png';
+import emptyStar from '@/assets/icons/empty-star.png';
+import solidStar from '@/assets/icons/solid-star.png';
 
-const route = useRoute()
+const route = useRoute();
 
-const listing = ref({})
+const listing = ref({});
 
 const images = computed(() =>
   Array.isArray(listing.value.images) && listing.value.images.length
     ? listing.value.images
     : [fallbackImg]
-)
+);
 
 function onImgError(e) {
-  const img = e.target
-  img.onerror = null
-  img.src = fallbackImg
+  const img = e.target;
+  img.onerror = null;
+  img.src = fallbackImg;
 }
 
 /* 북마크 */
-const BM_KEY = 'listing-bookmarks'
-const isBookmarked = ref(false)
-const bookmarking = ref(false)
-const bookmarkIconSrc = computed(() => (isBookmarked.value ? solidStar : emptyStar))
+const BM_KEY = 'listing-bookmarks';
+const isBookmarked = ref(false);
+const bookmarking = ref(false);
+const bookmarkIconSrc = computed(() =>
+  isBookmarked.value ? solidStar : emptyStar
+);
 
 function readBookmarkIds() {
-  try { return JSON.parse(localStorage.getItem(BM_KEY) || '[]') } catch { return [] }
+  try {
+    return JSON.parse(localStorage.getItem(BM_KEY) || '[]');
+  } catch {
+    return [];
+  }
 }
 function writeBookmarkIds(arr) {
-  try { localStorage.setItem(BM_KEY, JSON.stringify(arr)) } catch {}
+  try {
+    localStorage.setItem(BM_KEY, JSON.stringify(arr));
+  } catch {}
 }
 function syncBookmarkFlag() {
-  const id = Number(listing.value?.id)
-  if (!id) return
-  const set = new Set(readBookmarkIds())
-  isBookmarked.value = set.has(id)
+  const id = Number(listing.value?.id);
+  if (!id) return;
+  const set = new Set(readBookmarkIds());
+  isBookmarked.value = set.has(id);
 }
 function toggleBookmark() {
-  const id = Number(listing.value?.id)
-  if (!id) return
-  const arr = readBookmarkIds()
-  const idx = arr.indexOf(id)
-  if (idx >= 0) arr.splice(idx, 1)
-  else arr.push(id)
-  writeBookmarkIds(arr)
-  isBookmarked.value = idx < 0
-  bookmarking.value = true
-  setTimeout(() => (bookmarking.value = false), 260)
+  const id = Number(listing.value?.id);
+  if (!id) return;
+  const arr = readBookmarkIds();
+  const idx = arr.indexOf(id);
+  if (idx >= 0) arr.splice(idx, 1);
+  else arr.push(id);
+  writeBookmarkIds(arr);
+  isBookmarked.value = idx < 0;
+  bookmarking.value = true;
+  setTimeout(() => (bookmarking.value = false), 260);
 }
 
-const hasMultiple = computed(() => images.value.length > 1)
+const hasMultiple = computed(() => images.value.length > 1);
 
-const galleryRef = ref(null)
-const currentSlide = ref(1)
+const galleryRef = ref(null);
+const currentSlide = ref(1);
 
 function fmt(v) {
-  const n = Number(v)
-  if (!Number.isFinite(n)) return '-'
-  const eok = Math.floor(n / 10000)
-  const man = n % 10000
-  return eok > 0 ? `${eok}억 ${man.toLocaleString()}` : man.toLocaleString()
+  const n = Number(v);
+  if (!Number.isFinite(n) || n <= 0) return '-';
+
+  const eok = Math.floor(n / 10000); // 억 단위
+  const man = n % 10000; // 만 단위
+
+  if (man === 0) {
+    return `${eok}억`;
+  }
+
+  const manStr =
+    man % 1000 === 0 ? `${man / 1000}천` : man.toLocaleString('ko-KR');
+
+  return eok > 0 ? `${eok}억 ${manStr}` : manStr;
 }
 
 const mainPriceLine = computed(() => {
-  if (listing.value.dealType === '매매') {
+  if (listing.value.transactionType === '매매') {
     return `매매 ${fmt(listing.value.salePrice)}${
       listing.value.rent ? ` ${fmt(listing.value.rent)}` : ''
-    }`
+    }`;
   }
-  return `월세 ${fmt(listing.value.deposit)}/${fmt(listing.value.rent)}`
-})
+  return `월세 ${fmt(listing.value.deposit)}/${fmt(listing.value.rent)}`;
+});
 
 const premiumText = computed(() =>
   listing.value.premium == null ? '-' : fmt(listing.value.premium)
-)
+);
 
 const mgmtText = computed(() =>
   listing.value.mgmtFee == null ? '-' : fmt(listing.value.mgmtFee)
-)
+);
 
 const transferText = computed(() => {
-  const t = listing.value.transfer?.type
-  if (!t) return '-'
-  if (t === '지정') return listing.value.transfer?.date || '협의'
-  return t
-})
+  const t = listing.value.transferType;
+  if (!t) return '-';
+  if (t === '지정') return listing.value.transfer?.date || '협의';
+  return t;
+});
 
 function toPyeong(m2) {
-  const n = Number(m2)
-  if (!Number.isFinite(n)) return '-'
-  return (n / 3.305785).toFixed(1)
+  const n = Number(m2);
+  if (!Number.isFinite(n)) return '-';
+  return (n / 3.305785).toFixed(1);
 }
 
 const floorText = computed(() => {
-  const c = listing.value.floor?.current ?? '-'
-  const t = listing.value.floor?.total ?? '-'
-  return `${c}/${t}층`
-})
+  const c = listing.value.currentFloor ?? '-';
+  const t = listing.value.totalFloor ?? '-';
+  return `${c}/${t}층`;
+});
 
 function onGalleryScroll() {
-  const el = galleryRef.value
-  if (!el) return
-  const idx = Math.round(el.scrollLeft / el.clientWidth) + 1
-  currentSlide.value = Math.min(Math.max(idx, 1), images.value.length)
-  restartAuto()
+  const el = galleryRef.value;
+  if (!el) return;
+  const idx = Math.round(el.scrollLeft / el.clientWidth) + 1;
+  currentSlide.value = Math.min(Math.max(idx, 1), images.value.length);
+  restartAuto();
 }
 
 /* 오토플레이 */
-const AUTO_MS = 3500
-let autoTimer = null
-let resumeTimer = null
+const AUTO_MS = 3500;
+let autoTimer = null;
+let resumeTimer = null;
 
 function goSlide(i) {
-  const el = galleryRef.value
-  if (!el) return
-  const idx = Math.min(Math.max(i, 1), images.value.length)
-  el.scrollTo({ left: (idx - 1) * el.clientWidth, behavior: 'smooth' })
+  const el = galleryRef.value;
+  if (!el) return;
+  const idx = Math.min(Math.max(i, 1), images.value.length);
+  el.scrollTo({ left: (idx - 1) * el.clientWidth, behavior: 'smooth' });
 }
 
 function nextSlide() {
-  if (!hasMultiple.value) return
-  const n = currentSlide.value % images.value.length + 1
-  goSlide(n)
+  if (!hasMultiple.value) return;
+  const n = (currentSlide.value % images.value.length) + 1;
+  goSlide(n);
 }
 
 function prevSlide() {
-  if (!hasMultiple.value) return
-  const n = (currentSlide.value - 2 + images.value.length) % images.value.length + 1
-  goSlide(n)
+  if (!hasMultiple.value) return;
+  const n =
+    ((currentSlide.value - 2 + images.value.length) % images.value.length) + 1;
+  goSlide(n);
 }
 
 function startAuto() {
-  if (!hasMultiple.value || autoTimer) return
-  autoTimer = setInterval(nextSlide, AUTO_MS)
+  if (!hasMultiple.value || autoTimer) return;
+  autoTimer = setInterval(nextSlide, AUTO_MS);
 }
 
 function stopAuto() {
-  if (autoTimer) { clearInterval(autoTimer); autoTimer = null }
+  if (autoTimer) {
+    clearInterval(autoTimer);
+    autoTimer = null;
+  }
 }
 
 function restartAuto() {
-  stopAuto()
-  if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null }
-  resumeTimer = setTimeout(() => startAuto(), 1200)
+  stopAuto();
+  if (resumeTimer) {
+    clearTimeout(resumeTimer);
+    resumeTimer = null;
+  }
+  resumeTimer = setTimeout(() => startAuto(), 1200);
 }
 
 function pauseAuto() {
-  stopAuto()
-  if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null }
+  stopAuto();
+  if (resumeTimer) {
+    clearTimeout(resumeTimer);
+    resumeTimer = null;
+  }
 }
 
 function resumeAuto() {
-  restartAuto()
+  restartAuto();
 }
 
 /* 상세 로드 */
 async function fetchDetail(id) {
   try {
-    const { data } = await axios.get(`/listings/${id}`)
-    listing.value = data
-    syncBookmarkFlag()
+    const res = await axios.get(
+      `http://localhost:8080/api/property/detail/${id}`
+    );
+    const data = res?.data?.data || {};
+    listing.value = data;
+
+    console.log('데이터 확인', listing.value);
+    syncBookmarkFlag();
     requestAnimationFrame(() => {
-      onGalleryScroll()
-      startAuto()
-    })
+      onGalleryScroll();
+      startAuto();
+    });
   } catch (e) {
-    console.warn('[ListingDetail] fetch fail:', e)
+    console.warn('[ListingDetail] fetch fail:', e);
   }
 }
 
 onMounted(() => {
-  const id = route.params.id || 1
-  fetchDetail(id)
-  document.addEventListener('visibilitychange', onVis)
-})
+  const id = route.params.id || 1;
+  fetchDetail(id);
+  document.addEventListener('visibilitychange', onVis);
+});
 
 function onVis() {
-  if (document.hidden) pauseAuto()
-  else resumeAuto()
+  if (document.hidden) pauseAuto();
+  else resumeAuto();
 }
 
 onBeforeUnmount(() => {
-  pauseAuto()
-  document.removeEventListener('visibilitychange', onVis)
-})
+  pauseAuto();
+  document.removeEventListener('visibilitychange', onVis);
+});
 
 const descriptionParas = computed(() =>
   (listing.value.description || '')
     .split(/\n\s*\n/g)
-    .map(s => s.trim())
+    .map((s) => s.trim())
     .filter(Boolean)
-)
+);
 
-const shareOpen = ref(false)
-const shareTitle = computed(() => listing.value.storeName || '매물 상세')
-const shareText = computed(() => `${listing.value.industry} · ${mainPriceLine.value}`)
-const shareUrl = computed(() => `${location.origin}${route.fullPath}`)
-function openShare() { shareOpen.value = true }
+const shareOpen = ref(false);
+const shareTitle = computed(() => listing.value.storeName || '매물 상세');
+const shareText = computed(
+  () => `${listing.value.industry} · ${mainPriceLine.value}`
+);
+const shopTypeText = computed(() => listing.value.shopType || '상가');
+const shareUrl = computed(() => `${location.origin}${route.fullPath}`);
+function openShare() {
+  shareOpen.value = true;
+}
+// 텍스트 관련
+const parkingPaidText = computed(() => {
+  if (listing.value.parking?.type !== '가능') return '';
+  return listing.value.parking?.paid ? '유료' : '무료';
+});
 
-function contact() { alert('1:1 채팅으로 연결합니다.') }
+function contact() {
+  alert('1:1 채팅으로 연결합니다.');
+}
 </script>
 
 <style scoped>
@@ -397,26 +478,39 @@ function contact() { alert('1:1 채팅으로 연결합니다.') }
 }
 
 /* 헤더 북마크 버튼 */
-.header-bookmark-btn{
-  width: 36px; height: 36px; padding: 0; margin: 0;
-  background: transparent; border: none; display: inline-flex;
-  align-items: center; justify-content: center; cursor: pointer;
+.header-bookmark-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.header-bookmark-btn img{
-  width: 22px; 
-  height: 22px; 
+.header-bookmark-btn img {
+  width: 22px;
+  height: 22px;
   display: block;
-  transition: transform .18s ease;
+  transition: transform 0.18s ease;
   margin-right: 18px;
 }
-.header-bookmark-btn img.pop{
-  animation: pop .26s ease;
+.header-bookmark-btn img.pop {
+  animation: pop 0.26s ease;
 }
-@keyframes pop{
-  0%{ transform: scale(1); }
-  50%{ transform: scale(1.25); }
-  100%{ transform: scale(1); }
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .gallery {
@@ -460,21 +554,32 @@ function contact() { alert('1:1 채팅으로 연결합니다.') }
   height: 36px;
   border-radius: 50%;
   border: none;
-  background: rgba(0,0,0,.22);
+  background: rgba(0, 0, 0, 0.22);
   color: var(--color-white);
   line-height: 1;
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background .15s ease;
+  transition: background 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.gallery-nav:hover { background: rgba(0,0,0,.32); }
-.gallery-nav.left  { left: 8px; }
-.gallery-nav.right { right: 8px; }
+.gallery-nav:hover {
+  background: rgba(0, 0, 0, 0.32);
+}
+.gallery-nav.left {
+  left: 8px;
+}
+.gallery-nav.right {
+  right: 8px;
+}
 
-.section { padding: 16px; color: var(--color-primary); }
-.head { padding-top: 12px; }
+.section {
+  padding: 16px;
+  color: var(--color-primary);
+}
+.head {
+  padding-top: 12px;
+}
 
 .badge {
   display: inline-flex;

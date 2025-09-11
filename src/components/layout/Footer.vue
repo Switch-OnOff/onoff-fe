@@ -65,7 +65,12 @@ const navItems = [
   },
 ];
 
-const isActive = (path) => route.path === path;
+const isActive = (path) => {
+  // root must match exactly
+  if (path === '/') return route.path === '/';
+  // activate for exact match or any nested route under the path (e.g. /financial/loan-detail)
+  return route.path === path || route.path.startsWith(path + '/');
+};
 </script>
 
 <style scoped>

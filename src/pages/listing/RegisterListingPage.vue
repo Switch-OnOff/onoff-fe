@@ -17,7 +17,8 @@
     <section class="step" v-if="step === 1">
       <h2 class="titleExtra28px">사업자 진위확인</h2>
       <p class="desc bodyRegular12px">
-        국세청 진위확인으로 사업자 정보를 확인합니다. 등록번호(10자리)·대표자명·개업일자를 입력하세요.
+        국세청 진위확인으로 사업자 정보를 확인합니다.
+        등록번호(10자리)·대표자명·개업일자를 입력하세요.
       </p>
 
       <form class="form" @submit.prevent="onVerify">
@@ -121,37 +122,43 @@
             <template v-if="formStep2.dealType === '월세'">
               <label class="bodyMedium14px label-inline">
                 보증금(만원)
-                <span v-if="depositWon" class="label-right bodyRegular12px">{{ depositWon }}</span>
+                <span v-if="depositWon" class="label-right bodyRegular12px">{{
+                  depositWon
+                }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.deposit" />
               <NumberButtonGroup
                 :labels="['10만원', '100만원', '1천만원', '1억']"
                 :amounts="[10, 100, 1000, 10000]"
-                @add="v => addAmount('deposit', v)"
+                @add="(v) => addAmount('deposit', v)"
               />
 
               <label class="bodyMedium14px label-inline">
                 월세(만원)
-                <span v-if="rentWon" class="label-right bodyRegular12px">{{ rentWon }}</span>
+                <span v-if="rentWon" class="label-right bodyRegular12px">{{
+                  rentWon
+                }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.rent" />
               <NumberButtonGroup
                 :labels="['10만원', '100만원', '1천만원', '1억']"
                 :amounts="[10, 100, 1000, 10000]"
-                @add="v => addAmount('rent', v)"
+                @add="(v) => addAmount('rent', v)"
               />
             </template>
 
             <template v-else>
               <label class="bodyMedium14px label-inline">
                 매매가(만원)
-                <span v-if="saleWon" class="label-right bodyRegular12px">{{ saleWon }}</span>
+                <span v-if="saleWon" class="label-right bodyRegular12px">{{
+                  saleWon
+                }}</span>
               </label>
               <MoneyInput v-model.number="formStep2.salePrice" />
               <NumberButtonGroup
                 :labels="['10만원', '100만원', '1천만원', '1억']"
                 :amounts="[10, 100, 1000, 10000]"
-                @add="v => addAmount('salePrice', v)"
+                @add="(v) => addAmount('salePrice', v)"
               />
             </template>
           </div>
@@ -159,7 +166,9 @@
 
         <label class="bodyMedium16px label-inline">
           권리금(만원)
-          <span v-if="premiumWon" class="label-right bodyRegular12px">{{ premiumWon }}</span>
+          <span v-if="premiumWon" class="label-right bodyRegular12px">{{
+            premiumWon
+          }}</span>
         </label>
         <div class="gap-tight">
           <MoneyInput v-model.number="formStep2.premium" />
@@ -169,12 +178,14 @@
           class="nbg-premium"
           :labels="['10만원', '100만원', '1천만원', '1억']"
           :amounts="[10, 100, 1000, 10000]"
-          @add="v => addAmount('premium', v)"
+          @add="(v) => addAmount('premium', v)"
         />
 
         <label class="bodyMedium16px label-inline">
           관리비(만원)
-          <span v-if="mgmtFeeWon" class="label-right bodyLight12px">{{ mgmtFeeWon }}</span>
+          <span v-if="mgmtFeeWon" class="label-right bodyLight12px">{{
+            mgmtFeeWon
+          }}</span>
         </label>
         <MoneyInput v-model.number="formStep2.mgmtFee" />
 
@@ -270,12 +281,7 @@
     <section class="step step-photos" v-else-if="step === 4">
       <h2 class="titleExtra28px">사진 등록 (1~5장)</h2>
 
-      <PhotoUploader
-        v-model="photos"
-        :max="5"
-        :min="1"
-        :capture="true"
-      />
+      <PhotoUploader v-model="photos" :max="5" :min="1" :capture="true" />
 
       <p class="desc bodyRegular12px">
         사진은 최소 1장, 최대 5장까지 등록할 수 있어요.
@@ -293,36 +299,39 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
-import axios from 'axios'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
 
-import SimpleHeader from '@/components/layout/SimpleHeader.vue'
-import MedSubmitBtn from '@/components/button/MedSubmitBtn.vue'
-import InputField from '@/components/input/InputField.vue'
-import InputSimple from '@/components/input/InputSimple.vue'
+import SimpleHeader from '@/components/layout/SimpleHeader.vue';
+import MedSubmitBtn from '@/components/button/MedSubmitBtn.vue';
+import InputField from '@/components/input/InputField.vue';
+import InputSimple from '@/components/input/InputSimple.vue';
 
-import IndustryPicker from '@/pages/listing/components/IndustryPicker.vue'
-import MoneyInput from '@/pages/listing/components/MoneyInput.vue'
-import AreaInput from '@/pages/listing/components/AreaInput.vue'
-import TransferDateField from '@/pages/listing/components/TransferDateField.vue'
-import AddressSearch from '@/pages/listing/components/AddressSearch.vue'
-import NumberButtonGroup from '@/components/input/NumberButtonGroup.vue'
-import FloorInput from '@/pages/listing/components/FloorInput.vue'
-import ParkingCard from '@/pages/listing/components/ParkingCard.vue'
-import SelectField from '@/pages/listing/components/DropDown.vue'
-import PhotoUploader from '@/pages/listing/components/PhotoUploader.vue'
+import IndustryPicker from '@/pages/listing/components/IndustryPicker.vue';
+import MoneyInput from '@/pages/listing/components/MoneyInput.vue';
+import AreaInput from '@/pages/listing/components/AreaInput.vue';
+import TransferDateField from '@/pages/listing/components/TransferDateField.vue';
+import AddressSearch from '@/pages/listing/components/AddressSearch.vue';
+import NumberButtonGroup from '@/components/input/NumberButtonGroup.vue';
+import FloorInput from '@/pages/listing/components/FloorInput.vue';
+import ParkingCard from '@/pages/listing/components/ParkingCard.vue';
+import SelectField from '@/pages/listing/components/DropDown.vue';
+import PhotoUploader from '@/pages/listing/components/PhotoUploader.vue';
 
-const step = ref(1)
-const verifying = ref(false)
-const errorMsg = ref('')
-const router = useRouter()
+const step = ref(1);
+const verifying = ref(false);
+const errorMsg = ref('');
+const router = useRouter();
 
 const INDUSTRY_CATEGORIES = [
-  { major: '일반음식점', minors: ['한식', '중식', '양식', '분식', '치킨', '카페/디저트'] },
+  {
+    major: '일반음식점',
+    minors: ['한식', '중식', '양식', '분식', '치킨', '카페/디저트'],
+  },
   { major: '서비스업', minors: ['미용', '세탁', '교육', '기타'] },
   { major: '소매', minors: ['편의점', '잡화', '의류', '기타'] },
-]
+];
 
 const SHOP_TYPES = [
   { label: '근린상가', value: '근린상가' },
@@ -331,28 +340,28 @@ const SHOP_TYPES = [
   { label: '주상복합', value: '주상복합' },
   { label: '몰/쇼핑센터', value: '몰/쇼핑센터' },
   { label: '기타/확인필요', value: '기타/확인필요' },
-]
+];
 
 const RESTROOM_OPTIONS = [
   { label: '내부', value: '내부' },
   { label: '외부(개인)', value: '외부(개인)' },
   { label: '외부(공용)', value: '외부(공용)' },
-]
+];
 
 const DELIVERY_OPTIONS = [
   { label: '많음', value: '많음' },
   { label: '보통', value: '보통' },
   { label: '적음', value: '적음' },
-]
+];
 
 const TAKEOUT_OPTIONS = [
   { label: '많음', value: '많음' },
   { label: '보통', value: '보통' },
   { label: '적음', value: '적음' },
-]
+];
 
-const formStep1 = reactive({ bNo: '', ownerName: '', openDt: '' })
-const verified = reactive({ ok: false, bNo: '', ownerName: '', openDt: '' })
+const formStep1 = reactive({ bNo: '', ownerName: '', openDt: '' });
+const verified = reactive({ ok: false, bNo: '', ownerName: '', openDt: '' });
 
 const formStep2 = reactive({
   industryMajor: '',
@@ -364,167 +373,185 @@ const formStep2 = reactive({
   premium: null,
   mgmtFee: null,
   transfer: { type: '협의', date: '' },
-  storeName: '',      // ✅ 상호명
+  storeName: '', // ✅ 상호명
   shopType: '',
   area: { supply: null, exclusive: null },
   floor: { isBasement: false, current: null, total: null },
   parking: { type: '', count: null, paid: false },
   restroom: '',
-  delivery: '',       // ✅ 배달
-  takeout: '',        // ✅ 포장
+  delivery: '', // ✅ 배달
+  takeout: '', // ✅ 포장
   address: { base: '', detail: '', zip: '' },
-})
+});
 
-const mgmtFeeWon = computed(() => manToKoreanWon(formStep2.mgmtFee))
-const formStep3 = reactive({ description: '' })
+const mgmtFeeWon = computed(() => manToKoreanWon(formStep2.mgmtFee));
+const formStep3 = reactive({ description: '' });
 
-const photos = ref([])
-const MAX_PHOTOS = 5
-const MIN_PHOTOS = 1
-const canSubmit = computed(() => photos.value.length >= MIN_PHOTOS && photos.value.length <= MAX_PHOTOS)
+const photos = ref([]);
+const MAX_PHOTOS = 5;
+const MIN_PHOTOS = 1;
+const canSubmit = computed(
+  () => photos.value.length >= MIN_PHOTOS && photos.value.length <= MAX_PHOTOS
+);
 
 function goStep(n) {
-  step.value = n
+  step.value = n;
 }
 
 function skipToNext() {
   if (step.value === 1) {
-    verified.bNo = formStep1.bNo
-    verified.ownerName = formStep1.ownerName
-    verified.openDt = formStep1.openDt
-    verified.ok = false
+    verified.bNo = formStep1.bNo;
+    verified.ownerName = formStep1.ownerName;
+    verified.openDt = formStep1.openDt;
+    verified.ok = false;
   }
-  if (step.value < 4) step.value += 1
+  if (step.value < 4) step.value += 1;
 }
 
 function onlyDigitsLen(val, max) {
-  return String(val || '').replace(/\D/g, '').slice(0, max)
+  return String(val || '')
+    .replace(/\D/g, '')
+    .slice(0, max);
 }
 
 function onBNoInput(e) {
-  formStep1.bNo = onlyDigitsLen(e.target.value, 10)
+  formStep1.bNo = onlyDigitsLen(e.target.value, 10);
 }
 
 function onOpenDtInput(e) {
-  formStep1.openDt = onlyDigitsLen(e.target.value, 8)
+  formStep1.openDt = onlyDigitsLen(e.target.value, 8);
 }
 
 async function onVerify() {
-  errorMsg.value = ''
-  verifying.value = true
+  errorMsg.value = '';
+  verifying.value = true;
   try {
-    const { data } = await axios.post('/api/nts/validate', {
-      b_no: formStep1.bNo.replace(/\D/g, ''),
-      p_nm: formStep1.ownerName.trim(),
-      start_dt: formStep1.openDt.replace(/\D/g, ''),
-    })
-    if (data?.ok && data?.valid) {
-      verified.ok = true
-      verified.bNo = formStep1.bNo
-      verified.ownerName = formStep1.ownerName
-      verified.openDt = formStep1.openDt
-      goStep(2)
+    const res = await axios.post(
+      'http://localhost:8080/api/property/validate',
+      {
+        b_no: formStep1.bNo.replace(/\D/g, ''),
+        p_nm: formStep1.ownerName.trim(),
+        start_dt: formStep1.openDt.replace(/\D/g, ''),
+      }
+    );
+
+    const valid = res?.data?.data === true; // boolean으로 직접 비교
+    if (valid) {
+      verified.ok = true;
+      verified.bNo = formStep1.bNo;
+      verified.ownerName = formStep1.ownerName;
+      verified.openDt = formStep1.openDt;
+      goStep(2);
     } else {
-      errorMsg.value = data?.message || '진위확인 실패'
+      errorMsg.value = '진위확인 실패';
     }
   } catch {
-    errorMsg.value = '서버 오류로 확인에 실패했습니다.'
+    errorMsg.value = '서버 오류로 확인에 실패했습니다.';
   } finally {
-    verifying.value = false
+    verifying.value = false;
   }
 }
 
 function addAmount(field, delta) {
-  const current = Number(formStep2[field] ?? 0) || 0
-  const next = current + Number(delta || 0)
-  formStep2[field] = Math.max(0, next)
+  const current = Number(formStep2[field] ?? 0) || 0;
+  const next = current + Number(delta || 0);
+  formStep2[field] = Math.max(0, next);
 }
 
 function manToKoreanWon(num) {
-  if (num === null || num === undefined || num === '') return ''
-  const n = Number(num)
-  if (Number.isNaN(n)) return ''
-  if (n === 0) return '0원'
+  if (num === null || num === undefined || num === '') return '';
+  const n = Number(num);
+  if (Number.isNaN(n)) return '';
+  if (n === 0) return '0원';
 
-  let rest = Math.floor(n * 10000)
-  const eok = Math.floor(rest / 100000000)
-  rest %= 100000000
-  const man = Math.floor(rest / 10000)
-  const won = rest % 10000
+  let rest = Math.floor(n * 10000);
+  const eok = Math.floor(rest / 100000000);
+  rest %= 100000000;
+  const man = Math.floor(rest / 10000);
+  const won = rest % 10000;
 
-  const parts = []
-  if (eok) parts.push(`${eok}억`)
-  if (man) parts.push(`${man}만`)
-  if (won) parts.push(`${won.toLocaleString()}원`)
-  if (!won) parts.push('원')
-  return parts.join(' ').trim()
+  const parts = [];
+  if (eok) parts.push(`${eok}억`);
+  if (man) parts.push(`${man}만`);
+  if (won) parts.push(`${won.toLocaleString()}원`);
+  if (!won) parts.push('원');
+  return parts.join(' ').trim();
 }
 
-const depositWon = computed(() => manToKoreanWon(formStep2.deposit))
-const rentWon    = computed(() => manToKoreanWon(formStep2.rent))
-const saleWon    = computed(() => manToKoreanWon(formStep2.salePrice))
-const premiumWon = computed(() => manToKoreanWon(formStep2.premium))
+const depositWon = computed(() => manToKoreanWon(formStep2.deposit));
+const rentWon = computed(() => manToKoreanWon(formStep2.rent));
+const saleWon = computed(() => manToKoreanWon(formStep2.salePrice));
+const premiumWon = computed(() => manToKoreanWon(formStep2.premium));
 
 function onNextStep2() {
-  const missing = []
-  if (!formStep2.industryMajor) missing.push('업종(대분류)')
-  if (!formStep2.industryMinor) missing.push('업종(중분류)')
+  const missing = [];
+  if (!formStep2.industryMajor) missing.push('업종(대분류)');
+  if (!formStep2.industryMinor) missing.push('업종(중분류)');
 
   if (formStep2.dealType === '월세') {
-    if (formStep2.deposit === null) missing.push('보증금')
-    if (formStep2.rent === null) missing.push('월세')
+    if (formStep2.deposit === null) missing.push('보증금');
+    if (formStep2.rent === null) missing.push('월세');
   } else {
-    if (formStep2.salePrice === null) missing.push('매매가')
+    if (formStep2.salePrice === null) missing.push('매매가');
   }
 
-  if (!formStep2.transfer?.type) missing.push('양도가능일')
-  if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date) missing.push('양도가능일(날짜)')
+  if (!formStep2.transfer?.type) missing.push('양도가능일');
+  if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date)
+    missing.push('양도가능일(날짜)');
 
-  if (!formStep2.storeName) missing.push('상호명')
-  if (!formStep2.shopType) missing.push('상가형태')
-  if (formStep2.area.supply === null) missing.push('공급면적')
-  if (formStep2.area.exclusive === null) missing.push('전용면적')
-  if (formStep2.floor.current === null) missing.push('해당층')
+  if (!formStep2.storeName) missing.push('상호명');
+  if (!formStep2.shopType) missing.push('상가형태');
+  if (formStep2.area.supply === null) missing.push('공급면적');
+  if (formStep2.area.exclusive === null) missing.push('전용면적');
+  if (formStep2.floor.current === null) missing.push('해당층');
 
-  if (!formStep2.parking?.type) missing.push('주차 형태')
-  if (formStep2.parking?.type && formStep2.parking.type !== '없음' && formStep2.parking.count === null) {
-    missing.push('주차 대수')
+  if (!formStep2.parking?.type) missing.push('주차 형태');
+  if (
+    formStep2.parking?.type &&
+    formStep2.parking.type !== '없음' &&
+    formStep2.parking.count === null
+  ) {
+    missing.push('주차 대수');
   }
 
-  if (!formStep2.restroom) missing.push('화장실')
-  if (!formStep2.delivery) missing.push('배달')
-  if (!formStep2.takeout) missing.push('포장')
-  if (!formStep2.address.base) missing.push('기본주소')
+  if (!formStep2.restroom) missing.push('화장실');
+  if (!formStep2.delivery) missing.push('배달');
+  if (!formStep2.takeout) missing.push('포장');
+  if (!formStep2.address.base) missing.push('기본주소');
 
   if (missing.length) {
-    alert('다음 항목을 입력해주세요:\n- ' + missing.join('\n- '))
-    return
+    alert('다음 항목을 입력해주세요:\n- ' + missing.join('\n- '));
+    return;
   }
-  goStep(3)
+  goStep(3);
 }
 
 const payload = computed(() => {
   const restroomForDb = (() => {
-    if (formStep2.restroom === '외부(공용)') return '공용'
-    if (formStep2.restroom === '외부(개인)') return '개인'
-    return formStep2.restroom
-  })()
+    if (formStep2.restroom === '외부(공용)') return '공용';
+    if (formStep2.restroom === '외부(개인)') return '개인';
+    return formStep2.restroom;
+  })();
   const currentFloorNumber = formStep2.floor.isBasement
     ? -Math.abs(Number(formStep2.floor.current || 1))
-    : Number(formStep2.floor.current || 0)
+    : Number(formStep2.floor.current || 0);
 
   return {
     biz: {
       bNo: verified.bNo,
       ownerName: verified.ownerName,
-      openDt: verified.openDt
+      openDt: verified.openDt,
     },
     listing: {
-      industry: `${formStep2.industryMajor}/${formStep2.industryMinor}`.replace(/\/$/, ''),
+      industry: `${formStep2.industryMajor}/${formStep2.industryMinor}`.replace(
+        /\/$/,
+        ''
+      ),
       dealType: formStep2.dealType,
       deposit: formStep2.dealType === '월세' ? formStep2.deposit : undefined,
       rent: formStep2.dealType === '월세' ? formStep2.rent : undefined,
-      salePrice: formStep2.dealType === '매매' ? formStep2.salePrice : undefined,
+      salePrice:
+        formStep2.dealType === '매매' ? formStep2.salePrice : undefined,
       premium: formStep2.premium,
       mgmtFee: formStep2.mgmtFee,
       transfer: formStep2.transfer,
@@ -532,38 +559,38 @@ const payload = computed(() => {
       shopType: formStep2.shopType,
       area: {
         supply: formStep2.area.supply,
-        exclusive: formStep2.area.exclusive
+        exclusive: formStep2.area.exclusive,
       },
       floor: {
         current: currentFloorNumber,
-        total: Number(formStep2.floor.total || 0)
+        total: Number(formStep2.floor.total || 0),
       },
       parking: formStep2.parking,
       restroom: restroomForDb,
       delivery: formStep2.delivery,
       takeout: formStep2.takeout,
-      address: `${formStep2.address.base} ${formStep2.address.detail}`.trim()
+      address: `${formStep2.address.base} ${formStep2.address.detail}`.trim(),
     },
     description: formStep3.description,
-  }
-})
+  };
+});
 
 async function submitAll() {
   if (!photos.value || photos.value.length === 0) {
-    alert('사진을 최소 1장 등록해 주세요.')
-    return
+    alert('사진을 최소 1장 등록해 주세요.');
+    return;
   }
 
   try {
-    const fd = new FormData()
-    fd.append('data', JSON.stringify(payload.value))
+    const fd = new FormData();
+    fd.append('data', JSON.stringify(payload.value));
     photos.value.forEach((f, i) =>
       fd.append('photos', f, f.name || `photo_${i}.jpg`)
-    )
+    );
 
     const { data, headers } = await axios.post('/api/listings', fd, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    });
 
     let id =
       data?.id ??
@@ -571,23 +598,23 @@ async function submitAll() {
       data?.result?.id ??
       data?.slug ??
       data?.data?.id ??
-      data?.data?.slug
+      data?.data?.slug;
     if (!id && headers?.location) {
-      const m = headers.location.match(/\/listing\/([^/?#]+)/)
-      if (m) id = m[1]
+      const m = headers.location.match(/\/listing\/([^/?#]+)/);
+      if (m) id = m[1];
     }
 
-    alert('등록 완료')
+    alert('등록 완료');
 
     if (id) {
-      await router.push({ name: 'listing-detail', params: { id } })
+      await router.push({ name: 'listing-detail', params: { id } });
     } else if (headers?.location) {
-      await router.push(headers.location)
+      await router.push(headers.location);
     } else {
-      await router.push({ name: 'listing-list' })
+      await router.push({ name: 'listing-list' });
     }
   } catch {
-    alert('등록 실패. 잠시 후 다시 시도해주세요.')
+    alert('등록 실패. 잠시 후 다시 시도해주세요.');
   }
 }
 </script>
@@ -719,7 +746,7 @@ select {
   background: #fff;
   border: 0;
   cursor: pointer;
-  transition: background .15s ease, color .15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .deal-seg .seg-btn + .seg-btn {

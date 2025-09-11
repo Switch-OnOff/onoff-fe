@@ -1,12 +1,6 @@
 <!-- src/components/map/ListingMiniCard.vue -->
 <template>
-  <div
-    class="card"
-    @click.stop
-    @mousedown.stop
-    @touchstart.stop
-    @touchend.stop
-  >
+  <div class="card" @click.stop @mousedown.stop @touchstart.stop @touchend.stop>
     <!-- 상단 썸네일 -->
     <div class="thumb-wrap">
       <img
@@ -20,7 +14,9 @@
       <!-- 거래 타입 뱃지 (클래스 분리) -->
       <span
         class="deal-badge bodyMedium12px"
-        :class="item.transactionType === 'SALE' ? 'badge-sale' : 'badge-monthly'"
+        :class="
+          item.transactionType === 'SALE' ? 'badge-sale' : 'badge-monthly'
+        "
       >
         {{ item.transactionType === 'SALE' ? '매매' : '월세' }}
       </span>
@@ -29,7 +25,9 @@
     <!-- 본문 -->
     <div class="body">
       <!-- industry 배지 -->
-      <span v-if="item.industry" class="badge bodySemiBold12px">{{ item.industry }}</span>
+      <span v-if="item.industry" class="badge bodySemiBold12px">{{
+        item.industry
+      }}</span>
       <p class="price bodyBold14px">{{ priceText }}</p>
       <p class="addr bodyMedium12px">{{ item.address }}</p>
     </div>
@@ -63,44 +61,52 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import fallbackImg from '@/assets/images/fallback-image.png'
+import { computed } from 'vue';
+import fallbackImg from '@/assets/images/fallback-image.png';
 
 const props = defineProps({
   item: { type: Object, required: true },
-})
-defineEmits(['close'])
+});
+defineEmits(['close']);
 
 /** 만원 → "3억 5천" 형태(천 단위 딱 떨어지면 '천' 표기) */
 function fmtManPretty(n) {
-  const v = Number(n)
-  if (!Number.isFinite(v)) return '-'
-  const eok = Math.floor(v / 10000)
-  const man = v % 10000
-  let manStr = ''
+  if (n === null || n === undefined) return '없음';
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '없음';
+
+  const eok = Math.floor(v / 10000);
+  const man = v % 10000;
+  let manStr = '';
   if (man > 0) {
-    manStr = man % 1000 === 0 ? `${man / 1000}천` : man.toLocaleString('ko-KR')
+    manStr = man % 1000 === 0 ? `${man / 1000}천` : man.toLocaleString('ko-KR');
   }
-  if (eok > 0) return manStr ? `${eok}억 ${manStr}` : `${eok}억`
-  return manStr || '0'
+
+  if (eok > 0) {
+    return manStr ? `${eok}억 ${manStr}` : `${eok}억`;
+  }
+
+  return manStr || '없음';
 }
 
 const priceText = computed(() => {
   if (props.item.transactionType === 'SALE') {
-    return `매매 ${fmtManPretty(props.item.salePrice)}`
+    return `매매 ${fmtManPretty(props.item.salePrice)}`;
   }
-  return `월세 ${fmtManPretty(props.item.deposit)}/${fmtManPretty(props.item.monthlyRent)}`
-})
+  return `월세 ${fmtManPretty(props.item.deposit)}/${fmtManPretty(
+    props.item.rent
+  )}`;
+});
 
 /* title 없이 alt 생성 */
-const altText = computed(() =>
-  `${props.item.industry || props.item.address || '매물'} 사진`
-)
+const altText = computed(
+  () => `${props.item.industry || props.item.address || '매물'} 사진`
+);
 
 function onImgError(e) {
-  const img = e.target
-  img.onerror = null
-  img.src = fallbackImg
+  const img = e.target;
+  img.onerror = null;
+  img.src = fallbackImg;
 }
 </script>
 
@@ -109,7 +115,7 @@ function onImgError(e) {
   width: 248px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, .12);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   position: relative;
   border: 1px solid var(--color-white);
