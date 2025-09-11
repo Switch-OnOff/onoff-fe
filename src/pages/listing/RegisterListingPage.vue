@@ -274,6 +274,10 @@
       <div class="row gap submit-row">
         <MedSubmitBtn text="다음" @click="goStep(4)" />
       </div>
+
+      <div class="row gap submit-row">
+        <MedSubmitBtn text="생성" @click="generateContent" />
+      </div>
     </section>
 
     <!-- STEP 4 -->
@@ -591,6 +595,7 @@ const payload = computed(() => {
 
   const base = {
     // ----- 매핑 시작 (백엔드 키) -----
+    userId: JSON.parse(sessionStorage.getItem('user') || '{}').userId,
     storeName: formStep2.storeName?.trim() ?? '',
     industry: `${formStep2.industryMajor ?? ''}/${
       formStep2.industryMinor ?? ''
@@ -639,15 +644,47 @@ const propertyId = ref(null);
 // 매물 데이터 등록 API
 async function createListing() {
   try {
-    console.log('Submitting payload:', payload.value);
     const res = await axios.post(
       'http://localhost:8080/api/property/',
       payload.value
     );
-    const id = res?.data?.id ?? res?.data?.data ?? null;
+    // 서버 응답이 { success, code, message, data: <number> } 라고 하셨으니:
+    const id =
+      typeof res?.data?.data === 'number'
+        ? res.data.data
+        : res?.data?.id ?? null;
     propertyId.value = id;
-  } catch {
+    return id; // <- 반환해두면 아래에서 바로 사용 가능
+  } catch (e) {
     propertyId.value = null;
+    throw e; // <- submitAll에서 catch되도록
+  }
+}
+
+//매물 사진 데이터 등록 API
+async function createPropertyImg(propertyId) {
+  try {
+    const userId = sessionStorage.getItem('user')
+      ? JSON.parse(sessionStorage.getItem('user')).userId
+      : null;
+    if (!userId)
+      throw new Error('userId가 없습니다. 로그인 상태를 확인하세요.');
+
+    const formData = new FormData();
+    formData.append('content', '이미지 저장');
+    formData.append('propertyId', String(propertyId));
+    (photos.value || []).forEach((f) => formData.append('images', f));
+
+    const res = await axios.post(
+      `http://localhost:8080/api/posts/${userId}`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    console.log('게시글 등록 완료:', res.data);
+    return res.data;
+  } catch (err) {
+    console.error('게시글 등록 실패:', err);
+    throw err;
   }
 }
 
@@ -658,19 +695,16 @@ async function submitAll() {
   }
 
   try {
-    await createListing();
-    console.log('Created listing with ID:', propertyId.value);
+    const id = await createListing();
+    console.log('Created listing with ID:', id);
+
+    await createPropertyImg(id);
 
     showModal('등록 완료', {
       title: '완료',
       onConfirm: () => {
-        if (propertyId.value) {
-          router.push({
-            name: 'listing-detail',
-            params: { id: propertyId.value },
-          });
-        } else if (headers?.location) {
-          router.push(headers.location);
+        if (id) {
+          router.push({ name: 'listing-detail', params: { id } });
         } else {
           router.push({ name: 'listing-list' });
         }
@@ -678,6 +712,36 @@ async function submitAll() {
     });
   } catch {
     showModal('등록 실패. 잠시 후 다시 시도해주세요.', { title: '오류' });
+  }
+}
+
+async function generateContent() {
+  try {
+    // textarea 내용 가져오기
+    const textarea = document.querySelector('.textarea');
+    const text = textarea.value;
+
+    if (!text) return alert('내용을 입력해주세요.');
+
+    // 줄바꿈 기준으로 배열 생성
+    const sentences = text
+      .split('\n')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    // 백엔드 호출
+    const res = await axios.post(
+      'http://localhost:8080/api/ghostwrite/generate',
+      {
+        sentences: sentences,
+      }
+    );
+
+    // 결과를 textarea에 바로 반영
+    textarea.value = res.data.data;
+  } catch (err) {
+    console.error(err);
+    alert('글 생성에 실패했습니다.');
   }
 }
 </script>
