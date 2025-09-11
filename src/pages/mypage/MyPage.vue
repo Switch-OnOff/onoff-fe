@@ -19,9 +19,9 @@
           />
         </div>
         <div class="profile-info">
-          <div class="profile-name titleBold20px">사용자</div>
+          <div class="profile-name titleBold20px">{{ user.name }}</div>
           <div class="profile-email bodyMedium14px">
-            <span class="emoji">📧 </span>user@gmail.com
+            <span class="emoji">📧 </span>{{ user.email }}
           </div>
         </div>
       </div>
@@ -32,15 +32,19 @@
     <div class="menu-wrapper">
       <div class="menu-box">
         <img class="icon" :src="UserIcon" />
-        <label>회원정보</label>
+        <label>회원정보 수정</label>
       </div>
       <div class="menu-box">
         <img class="icon" :src="ChatIcon" />
         <label>문의</label>
       </div>
       <div class="menu-box">
-        <img class="icon" :src="UserIcon" />
+        <img class="icon" :src="SettingIcon" />
         <label>설정</label>
+      </div>
+      <div class="menu-box" @click="logOut">
+        <img class="icon" :src="LogOutIcon" />
+        <label>로그아웃</label>
       </div>
     </div>
   </div>
@@ -51,7 +55,27 @@ import SimpleHeader from '@/components/layout/SimpleHeader.vue';
 import UserIcon from '@/assets/icons/footer/user.png';
 import ChatIcon from '@/assets/icons/footer/chat.png';
 import PencilIcon from '@/assets/icons/mypage/pencil.png';
-import { ref } from 'vue';
+import SettingIcon from '@/assets/icons/mypage/settings.png';
+import LogOutIcon from '@/assets/icons/mypage/exit.png';
+import { onMounted, ref, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const user = reactive({
+  email: '',
+  userId: '',
+});
+
+onMounted(() => {
+  const userStr = sessionStorage.getItem('user');
+  if (userStr) {
+    const parsed = JSON.parse(userStr);
+    user.name = parsed.name;
+    user.email = parsed.email;
+  } else {
+    router.push('auth/login');
+  }
+});
 
 // 랜덤 초기 프로필 이미지
 const profileImageSrc = ref(
@@ -74,6 +98,12 @@ const onFileChange = (event) => {
     profileImageSrc.value = e.target.result; // 선택 즉시 반영
   };
   reader.readAsDataURL(file);
+};
+
+const logOut = () => {
+  const res = sessionStorage.removeItem('user');
+  console.log(res);
+  router.push('/');
 };
 </script>
 
@@ -137,7 +167,7 @@ const onFileChange = (event) => {
 }
 
 .menu-wrapper {
-  margin-top: 3rem;
+  margin-top: 1rem;
 }
 
 .menu-box {
