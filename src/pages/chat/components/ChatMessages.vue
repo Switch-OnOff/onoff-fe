@@ -1,6 +1,9 @@
 <template>
   <div class="messages" ref="messagesContainer" @scroll="onScroll">
-    <template v-for="(msg, index) in messages" :key="index">
+    <template
+      v-for="(msg, index) in formattedMessages"
+      :key="msg.chatMessageId"
+    >
       <div v-if="shouldShowDateSeparator(index)" class="date-separator">
         <span>{{ formatDate(msg.date) }}</span>
       </div>
@@ -8,12 +11,12 @@
       <div
         :class="[
           'message-row',
-          msg.user === 'me' ? 'mine' : 'other',
+          msg.user === 'mine' ? 'mine' : 'other',
           getGapClass(index),
         ]"
       >
-        <div :class="['message', msg.user === 'me' ? 'mine' : 'other']">
-          {{ msg.text }}
+        <div :class="['message', msg.user === 'mine' ? 'mine' : 'other']">
+          {{ msg.content }}
         </div>
         <span v-if="shouldShowTimestamp(index)" class="timestamp">
           {{ msg.time }}
@@ -24,9 +27,15 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onMounted } from 'vue';
+import { ref, watch, nextTick, onMounted, computed } from 'vue';
 
 const props = defineProps({
+  // API로 불러오는 과거 대화 내역
+  messageHistory: {
+    type: Array,
+    default: () => [],
+  },
+  // 웹소켓으로 받는 실시간 메시지
   messages: {
     type: Array,
     default: () => [],
@@ -36,17 +45,45 @@ const props = defineProps({
 const emit = defineEmits(['scroll-state-change']);
 const messagesContainer = ref(null);
 
+// sessionStorage에서 현재 로그인 유저 정보 가져오기
+const userItem = sessionStorage.getItem('user');
+const currentUser = userItem ? JSON.parse(userItem) : null;
+const currentUserId = currentUser ? Number(currentUser.userId) : 0;
+
+// formattedMessages: messageHistory + messages 합치고 'mine'/'other' 계산
+const formattedMessages = computed(() => {
+  const allMessages = [
+    ...(props.messageHistory || []),
+    ...(props.messages || []),
+  ];
+
+  return allMessages.map((msg) => {
+    const sentDate = new Date(msg.sentAt);
+    return {
+      ...msg,
+      user: msg.senderId === currentUserId ? 'mine' : 'other',
+      date: sentDate.toISOString().slice(0, 10),
+      time: sentDate.toLocaleTimeString('ko-KR', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      }),
+    };
+  });
+});
+
+// 헬퍼 함수
 const getGapClass = (index) => {
   if (index === 0) return 'different-user';
-  const current = props.messages[index];
-  const prev = props.messages[index - 1];
+  const current = formattedMessages.value[index];
+  const prev = formattedMessages.value[index - 1];
   return current.user === prev.user ? 'same-user' : 'different-user';
 };
 
 const shouldShowDateSeparator = (index) => {
   if (index === 0) return true;
-  const currentMsg = props.messages[index];
-  const prevMsg = props.messages[index - 1];
+  const currentMsg = formattedMessages.value[index];
+  const prevMsg = formattedMessages.value[index - 1];
   return currentMsg.date !== prevMsg.date;
 };
 
@@ -58,12 +95,13 @@ const formatDate = (dateString) => {
 };
 
 const shouldShowTimestamp = (index) => {
-  const currentMsg = props.messages[index];
-  const nextMsg = props.messages[index + 1];
+  const currentMsg = formattedMessages.value[index];
+  const nextMsg = formattedMessages.value[index + 1];
   if (!nextMsg) return true;
   return currentMsg.user !== nextMsg.user || currentMsg.time !== nextMsg.time;
 };
 
+// 스크롤 로직
 const scrollToBottom = () => {
   if (messagesContainer.value) {
     messagesContainer.value.scrollTo({
@@ -91,7 +129,7 @@ const onScroll = () => {
 };
 
 watch(
-  () => props.messages,
+  () => formattedMessages.value,
   (newVal, oldVal) => {
     if (newVal.length > (oldVal?.length ?? 0)) {
       const userWasAtBottom = isScrolledToBottom();

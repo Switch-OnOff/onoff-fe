@@ -15,6 +15,7 @@
     <div class="chat-container">
       <MarketInfo />
       <ChatMessages
+        :messageHistory="messageHistory"
         :messages="messages"
         ref="chatMessagesRef"
         @scroll-state-change="handleScrollState"
@@ -33,13 +34,16 @@ import MarketInfo from './components/MarketInfo.vue';
 import ChatInput from './components/ChatInput.vue';
 import ChatMessages from './components/ChatMessages.vue';
 import FloatingBtn from './components/FloatingBtn.vue';
-import { ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useWebSocket } from '@/pages/chat/utils/useWebSocket';
+import { getChatDetail } from '@/api/chat';
 
 const route = useRoute();
 const id = route.params.id;
-
+const messageHistory = ref();
+const messages = null;
+const sendMessage = null;
 // Popover 상태
 const popoverVisible = ref(false);
 const popoverOptions = [
@@ -47,6 +51,12 @@ const popoverOptions = [
   { label: '차단', value: 2 },
   { label: '나가기', value: 3 },
 ];
+
+const router = useRouter();
+const chatDetail = router.options.history.state.chatDetail;
+// console.log(chatDetail);
+messageHistory.value = chatDetail;
+
 const togglePopover = () => {
   popoverVisible.value = !popoverVisible.value;
 };
@@ -56,11 +66,10 @@ const handleSelect = (item) => {
 };
 
 // ✅ useWebSocket 훅 사용
-const { messages, sendMessage } = useWebSocket('http://localhost:8080/ws/chat');
+// const { messages, sendMessage } = useWebSocket('http://localhost:8080/ws/chat');
 
 const chatMessagesRef = ref(null);
 
-// 플로팅 버튼 표시 상태
 const isAtBottom = ref(true);
 const handleScrollState = (atBottom) => {
   isAtBottom.value = atBottom;
