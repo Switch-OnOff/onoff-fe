@@ -65,6 +65,11 @@ onMounted(() => {
   flex-direction: column;
 
   overflow-x: hidden; /* 방어용 */
+  /* allow vertical scrolling within the flex child so sticky elements work
+    and the page scroll doesn't live on the <body> (fixes blocked scrolling) */
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 60px 0 64px 0; /* 푸터 가림 방지 */
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <SimpleHeader title="대출·지원금" />
+    <SimpleHeader />
 
     <ModeTabs class="mt16" :model="store.mode" @update:model="onChangeMode" />
 

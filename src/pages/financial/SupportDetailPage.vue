@@ -60,7 +60,7 @@ import BottomCTA from './components/BottomCTA.vue';
 import { onMounted, ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import * as grants from '@/api/grants';
-import { getLogoSrc } from './utils/logo.js';
+import { getLogoSrc } from '@/utils/logo.js';
 
 const route = useRoute();
 const router = useRouter();

@@ -46,25 +46,25 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import SegmentSwitch from '@/pages/home/components/SegmentSwitch.vue'
-import BannerHero from '@/pages/home/components/HeroCarousel.vue'
-import SquareNavButton from '@/pages/home/components/SquareNavButton.vue'
-import PolicyBottom from '@/pages/home/components/PolicyBottom.vue' 
+import { ref, computed } from 'vue';
+import SegmentSwitch from '@/pages/home/components/SegmentSwitch.vue';
+import BannerHero from '@/pages/home/components/HeroCarousel.vue';
+import SquareNavButton from '@/pages/home/components/SquareNavButton.vue';
+import PolicyBottom from '@/pages/home/components/PolicyBottom.vue';
 
 import icManage from '@/assets/icons/manage.png';
 import icAdd from '@/assets/icons/add.png';
 import icBookmark from '@/assets/icons/main-bookmark.png';
 import icMap from '@/assets/icons/search-map.png';
 
-import b1 from '@/assets/images/home-banner1.png'
-import b2 from '@/assets/images/home-banner2.png'
-import b3 from '@/assets/images/home-banner3.png'
+import b1 from '@/assets/images/home-banner1.png';
+import b2 from '@/assets/images/home-banner2.png';
+import b3 from '@/assets/images/home-banner3.png';
 
-const mode = ref('TRANSFER') // 'TRANSFER' | 'SUCCESSION'
+const mode = ref('TRANSFER'); // 'TRANSFER' | 'SUCCESSION'
 
 // 배너 이미지 배열
-const banners = [b1, b2, b3]
+const banners = [b1, b2, b3];
 
 // 모드에 따라 2개씩 노출 (아이콘 포함)
 const actions = computed(() =>
@@ -72,7 +72,6 @@ const actions = computed(() =>
     ? [
         { label: '양도 매물 등록', to: 'listing-new', icon: icAdd },
         { label: '등록 매물 관리', to: 'my-listing', icon: icManage },
-        { label: '양도 매물 등록', to: 'listing-new', icon: icAdd },
       ]
     : [
         { label: '관심 매물 목록', to: 'my-bookmark', icon: icBookmark },
@@ -104,7 +103,6 @@ const actions = computed(() =>
 .mode-label {
   color: var(--color-lightblack);
 }
-
 
 .nav-grid {
   display: grid;

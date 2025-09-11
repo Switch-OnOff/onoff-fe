@@ -112,7 +112,13 @@ function finish() {
       docs: { selected: [...selected.value] },
     },
   });
-  router.push('/financial/result');
+  router.push({
+    path: '/financial/result',
+    query: {
+      id: service.value?.serviceId, // 혹시 결과에서 다시 API 쓰고 싶을 때
+      product: service.value?.serviceName || '', // 지원금 이름 전달!
+    },
+  });
 }
 
 function goNext() {

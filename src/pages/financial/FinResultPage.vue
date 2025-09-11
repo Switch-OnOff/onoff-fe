@@ -5,10 +5,7 @@
     <!-- 헤드 메시지 -->
     <TopMessage class="px" v-bind="topProps">
       <!-- caution일 때만 slot 내용 삽입 -->
-      <template v-if="isCaution">
-        <strong class="hl">{{ missingCount }}</strong
-        >개 조건을 보완하면
-      </template>
+      <template v-if="isCaution"> 몇가지 조건을 보완하면 </template>
     </TopMessage>
     <main class="content px">
       <!-- 아이콘/일러스트 -->
@@ -78,7 +75,7 @@ const topProps = computed(() => {
   }
   if (isIneligible.value) {
     return {
-      prefix: '사용자 님은 ',
+      prefix: '스위치 님은 ',
       highlight: productName.value,
       suffix: ' 지원 대상이 아니에요',
     };
@@ -110,9 +107,9 @@ const reasons = computed(() => {
   }
   if (isCaution.value) {
     return [
-      '조건을 일부 보완하면 승인 가능성이 있어요',
-      '신용 정보와 상환 계획을 점검하세요',
-      '상담을 통해 대안 상품을 확인해 보세요',
+      '요건을 더 충족해야 합니다',
+      '서류 준비가 미비해요.',
+      '필요 서류를 준비해 주세요',
     ];
   }
   return [];
