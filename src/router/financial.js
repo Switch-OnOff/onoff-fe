@@ -49,7 +49,7 @@ export default [
     meta: { layout: 'default', title: '', hideHeader: true },
   },
   {
-    path: '/financial/suppport-detail',
+    path: '/financial/support-detail',
     name: 'support-detail',
     component: () => import('../pages/financial/SupportDetailPage.vue'),
     meta: { layout: 'default', title: '', hideHeader: true },
