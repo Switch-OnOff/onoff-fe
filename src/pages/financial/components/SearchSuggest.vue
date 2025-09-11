@@ -41,15 +41,20 @@
       <button
         v-if="hasFilter"
         class="icon-btn filter-btn"
-        :class="{ active: filterActive }"
+        :class="{ filled: filterActive }"
         type="button"
         @click="$emit('filter')"
         aria-label="필터"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+        <svg
+          class="funnel"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
           <path
             d="M3 5h18l-6.8 7.3v5.2c0 .4-.2.8-.6 1l-2.8 1.6c-.6.3-1.3-.1-1.3-.8v-7L3 5z"
-            fill="currentColor"
           />
         </svg>
       </button>
@@ -278,22 +283,25 @@ watch(
 /* 필터 아이콘: 항상 보이되, 활성시 강조 점 */
 .filter-btn {
   right: 0.5rem;
-  opacity: 0.75;
-}
-.filter-btn.active {
-  opacity: 1;
-}
-.filter-btn.active::after {
-  content: '';
-  position: absolute;
-  right: -2px;
-  top: -2px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-primary);
+
+  background: #fff;
+  color: var(--color-primary);
 }
 
+/* 기본: 비어있는(Outline) 깔때기 */
+.filter-btn .funnel path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* filled 상태: 꽉 찬 깔때기 */
+.filter-btn.filled .funnel path {
+  fill: currentColor;
+  stroke: currentColor; /* 둘 다 넣어주면 테두리도 또렷 */
+}
 /* 드롭다운 */
 .suggestion-list {
   position: absolute;

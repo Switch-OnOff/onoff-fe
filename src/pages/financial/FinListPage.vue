@@ -1,4 +1,3 @@
-<!-- src/pages/financial/FinancialListPage.vue -->
 <template>
   <div class="page">
     <SimpleHeader title="대출·지원금" />
@@ -12,8 +11,8 @@
       "
       :get-suggestions="getSuggestions"
       :show-dropdown="true"
-      :has-filter="store.mode === 'support'"
-      :filter-active="hasActiveFilter"
+      :has-filter="true"
+      :filter-active="hasActiveFilter || openFilter"
       :label-key="store.mode === 'loan' ? '상품명' : 'service_name'"
       :initial-max="5"
       :max="12"
@@ -42,9 +41,18 @@
 
     <BottomNavSpace />
 
-    <!-- 필터 시트(지원금 전용) -->
+    <!-- 필터 시트: 지원금 -->
     <FilterSheet v-model:open="openFilter" v-if="store.mode === 'support'">
       <SupportFilterPanel />
+      <div class="px pb16">
+        <button class="apply-btn" @click="applyAndReload">필터 적용</button>
+        <button class="reset-btn" @click="resetFilters">초기화</button>
+      </div>
+    </FilterSheet>
+
+    <!-- 필터 시트: 대출 -->
+    <FilterSheet v-model:open="openFilter" v-else-if="store.mode === 'loan'">
+      <LoanFilterPanel />
       <div class="px pb16">
         <button class="apply-btn" @click="applyAndReload">필터 적용</button>
         <button class="reset-btn" @click="resetFilters">초기화</button>
@@ -61,6 +69,7 @@ import SimpleHeader from '@/components/layout/SimpleHeader.vue';
 import ModeTabs from './components/ModeTabs.vue';
 import SearchSuggest from './components/SearchSuggest.vue';
 import SupportFilterPanel from './components/SupportFilterPanel.vue';
+import LoanFilterPanel from './components/LoanFilterPanel.vue';
 import ListItemCard from './components/ListItemCard.vue';
 import FilterSheet from './components/FilterSheet.vue';
 
@@ -79,13 +88,26 @@ const loading = ref(false);
 const searchLocal = ref('');
 const openFilter = ref(false);
 
-const hasActiveFilter = computed(() => {
+/* ---- 필터 활성 여부 ---- */
+const hasActiveSupport = computed(() => {
   if (store.mode !== 'support') return false;
   const f = store.supportFilters || {};
   return !!(f.status || f.sido || f.sigungu || f.industry);
 });
 
+const hasActiveLoan = computed(() => {
+  if (store.mode !== 'loan') return false;
+  const f = store.loanFilters || {};
+  return !!(f.target || f.collateral || f.rate || f.repay);
+});
+
+const hasActiveFilter = computed(
+  () => hasActiveSupport.value || hasActiveLoan.value
+);
+
+/* ---- 유틸 ---- */
 const norm = (s = '') => String(s).replace(/\s+/g, '');
+const has = (s, kw) => norm(s).includes(norm(kw));
 
 function applySupportFilters(list) {
   const f = store.supportFilters || {};
@@ -100,6 +122,36 @@ function applySupportFilters(list) {
   });
 }
 
+/* 가입대상 맵핑: 데이터가 제각각이라 대충 규칙화 */
+function mapLoanTarget(s) {
+  const v = norm(s);
+  if (v.includes('개인사업자')) return '개인 사업자';
+  if (v.includes('셀러') || v.includes('온라인')) return '온라인셀러';
+  return '기타';
+}
+
+function applyLoanFilters(list) {
+  const f = store.loanFilters || {};
+  return list.filter((r) => {
+    const okTarget = !f.target || mapLoanTarget(r['가입대상']) === f.target;
+    const okCollateral =
+      !f.collateral ||
+      (f.collateral === '담보대출' && has(r['담보여부'], '담보')) ||
+      (f.collateral === '신용대출' && has(r['담보여부'], '신용'));
+    const okRate =
+      !f.rate ||
+      (f.rate === '고정금리' && has(r['금리방식'], '고정')) ||
+      (f.rate === '변동금리' && has(r['금리방식'], '변동'));
+    const repayStr = norm(r['상환방식']);
+    const okRepay =
+      !f.repay ||
+      (f.repay === '만기일시' && repayStr.includes('만기일시')) ||
+      (f.repay === '원금분할' && repayStr.includes('원금분할')) ||
+      (f.repay === '원리금분할' && repayStr.includes('원리금분할'));
+    return okTarget && okCollateral && okRate && okRepay;
+  });
+}
+
 function getTitle(row) {
   return store.mode === 'loan' ? row['상품명'] : row['service_name'];
 }
@@ -107,7 +159,7 @@ function getDesc(row) {
   return row['요약'] || row['summary'] || '';
 }
 
-// 자동완성: 넉넉히 가져와서(1500) 중복제거 후 12개만
+/* ---- 자동완성 ---- */
 async function getSuggestions(q) {
   if (!store.mode) return [];
   const url = new URL(endpoints[store.mode]);
@@ -117,8 +169,13 @@ async function getSuggestions(q) {
   const r = await fetch(url.toString());
   if (!r.ok) return [];
   let arr = await r.json();
-  if (store.mode === 'support') arr = applySupportFilters(arr);
 
+  // 모드별 필터 적용
+  if (store.mode === 'support' && hasActiveSupport.value)
+    arr = applySupportFilters(arr);
+  if (store.mode === 'loan' && hasActiveLoan.value) arr = applyLoanFilters(arr);
+
+  // 중복 제목 제거 후 12개
   const seen = new Set();
   const res = [];
   for (const it of arr) {
@@ -131,8 +188,9 @@ async function getSuggestions(q) {
   return res;
 }
 
+/* ---- 리스트 로드 ---- */
 async function loadList() {
-  if (!store.mode) store.setMode('loan'); // 기본값 가드
+  if (!store.mode) store.setMode('loan');
   page.value = 1;
   items.value = [];
   hasMore.value = true;
@@ -145,15 +203,21 @@ async function loadMore() {
 
   const q = (searchLocal.value || store.search || '').trim();
 
-  // 지원금 + 필터 ON → 클라 페이지
-  if (store.mode === 'support' && hasActiveFilter.value) {
-    const url = new URL(endpoints.support);
+  // 지원금/대출 모두, 필터가 켜져 있으면 클라단 페이징
+  if (
+    (store.mode === 'support' && hasActiveSupport.value) ||
+    (store.mode === 'loan' && hasActiveLoan.value)
+  ) {
+    const url = new URL(endpoints[store.mode]);
     url.searchParams.set('_limit', '3000');
     if (q) url.searchParams.set('q', q);
 
     const r = await fetch(url.toString());
     let arr = await r.json();
-    arr = applySupportFilters(arr);
+    arr =
+      store.mode === 'support'
+        ? applySupportFilters(arr)
+        : applyLoanFilters(arr);
 
     const start = (page.value - 1) * pageSize;
     const slice = arr.slice(start, start + pageSize);
@@ -166,7 +230,7 @@ async function loadMore() {
     return;
   }
 
-  // 대출 또는 필터 OFF → 서버 페이지네이션
+  // 필터 OFF → 서버 페이지네이션 그대로 사용
   const base = new URL(endpoints[store.mode]);
   base.searchParams.set('_page', String(page.value));
   base.searchParams.set('_limit', String(pageSize));
@@ -185,35 +249,29 @@ async function loadMore() {
   loading.value = false;
 }
 
+/* ---- 이벤트 ---- */
 function onChangeMode(m) {
   store.setMode(m);
   loadList();
 }
 
 function onSubmitSearch(payload) {
-  // payload가 '문자열'(직접 입력)일 수도, '객체'(추천 클릭)일 수도 있음
   let q = '';
-
   if (typeof payload === 'string') {
     q = payload.trim();
   } else if (payload && typeof payload === 'object') {
-    // 객체면 라벨 키 우선순위로 뽑아서 문자열화
-    q =
+    q = String(
       payload['service_name'] ??
-      payload['상품명'] ??
-      payload['name'] ??
-      payload['title'] ??
-      '';
-    q = String(q).trim();
+        payload['상품명'] ??
+        payload['name'] ??
+        payload['title'] ??
+        ''
+    ).trim();
   } else {
     q = (searchLocal.value || '').trim();
   }
-
-  // v-model, store 둘 다 동기화
   searchLocal.value = q;
   store.search = q;
-
-  // 검색 실행
   loadList();
 }
 
@@ -223,29 +281,31 @@ function applyAndReload() {
 }
 
 function resetFilters() {
-  // 객체 통째 교체 대신 patch 권장 (반응성 안전)
-  store.$patch({
-    supportFilters: { status: '', sido: '', sigungu: '', industry: '' },
-  });
+  if (store.mode === 'support') {
+    store.$patch({
+      supportFilters: { status: '', sido: '', sigungu: '', industry: '' },
+    });
+  } else {
+    store.$patch({
+      loanFilters: { target: '', collateral: '', rate: '', repay: '' },
+    });
+  }
 }
 
 function goDetail(row) {
-  // 공통으로 id/제목 뽑기
   const loanId = row?.id ?? row?.['상품ID'] ?? row?.loan_id ?? null;
   const supportId = row?.service_id ?? null;
-  const title = getTitle(row); // '상품명' or 'service_name'
+  const title = getTitle(row);
 
   if (store.mode === 'loan') {
-    if (loanId) {
+    if (loanId)
       router.push({ path: '/financial/loan-detail', query: { id: loanId } });
-    } else {
+    else {
       if (title) sessionStorage.setItem('financial-keyword', title);
       router.push('/financial/loan-detail');
     }
     return;
   }
-
-  // support
   if (supportId) {
     router.push({
       path: '/financial/support-detail',
@@ -270,7 +330,6 @@ onMounted(() => {
 .pb16 {
   padding-bottom: 1rem;
 }
-
 .mt16 {
   margin-top: 1rem;
 }

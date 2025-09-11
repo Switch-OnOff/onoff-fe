@@ -27,6 +27,7 @@ export const useFinancialStore = defineStore('financial', {
       sigungu: '', // '강남구' 등
       industry: '', // '음식점업' | '제조업' | '기타'
     },
+    loanFilters: { target: '', collateral: '', rate: '', repay: '' },
 
     support: {
       basic: load()?.support?.basic ?? {
