@@ -14,6 +14,10 @@
 
 <script setup>
 import logo from '@/assets/icons/logo.png';
+import SegmentedBtn from '@/components/common/SegmentedBtn.vue';
+import { ref } from 'vue';
+
+const activeTab = ref('give'); // 기본 탭
 </script>
 
 <style scoped>
@@ -50,5 +54,78 @@ import logo from '@/assets/icons/logo.png';
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.btn-wrapper {
+  border: 1px solid var(--color-darkgray);
+  padding: 1px;
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.option-btn {
+  border-style: none !important;
+  color: white;
+  width: 30px;
+  /* padding: 0.2rem 0.5rem !important; */
+}
+
+.option-btn.active {
+  background-color: #fff !important;
+  color: var(--color-primary) !important;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--color-primary, var(--color-primary));
+  background: var(--color-white);
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background-color: #fff;
+  color: var(--color-primary);
+}
+</style>
+
+<style scoped>
+.btn-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 70px; /* 전체 길이 */
+  height: 36px; /* 전체 높이 */
+  background-color: var(--color-primary); /* 기본 배경 (남색) */
+  border-radius: 50px; /* 양 끝 둥글게 */
+  padding: 4px;
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+.option-btn {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+/* 활성화된 버튼은 하얀 원으로 표시 */
+.option-btn.active {
+  background-color: #fff;
+  color: var(--color-primary);
+  border-radius: 50%;
 }
 </style>

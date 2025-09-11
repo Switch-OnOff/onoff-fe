@@ -43,6 +43,18 @@ export default [
     meta: { layout: 'default', title: '지원/대출 - 결과', hideHeader: true },
   },
   {
+    path: '/financial/loan-detail',
+    name: 'loan-detail',
+    component: () => import('../pages/financial/LoanDetailPage.vue'),
+    meta: { layout: 'default', title: '', hideHeader: true },
+  },
+  {
+    path: '/financial/suppport-detail',
+    name: 'support-detail',
+    component: () => import('../pages/financial/SupportDetailPage.vue'),
+    meta: { layout: 'default', title: '', hideHeader: true },
+  },
+  {
     path: '/financial/list',
     name: 'FinancialList',
     component: () => import('@/pages/financial/FinListPage.vue'),
