@@ -1,128 +1,56 @@
 // src/composables/useWebSocket.js
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
-export function useWebSocket(url) {
-  const messages = ref([
-    {
-      user: 'me',
-      text: '안녕하세요!',
-      time: '오후 2:30',
-      date: '2025-08-10',
-    },
-    {
-      user: 'other',
-      text: '네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀네, 반갑습니다 😀',
-      time: '오후 2:31',
-      date: '2025-09-10',
-    },
-    {
-      user: 'me',
-      text: '안녕하세요!',
-      time: '오후 2:30',
-      date: '2025-09-10',
-    },
-    {
-      user: 'other',
-      text: '네, 반갑습니다 😀',
-      time: '오후 2:31',
-      date: '2025-09-10',
-    },
-    {
-      user: 'me',
-      text: '오늘 계약 일정 괜찮으세요?',
-      time: '오후 2:35',
-      date: '2025-09-10',
-    },
-    {
-      user: 'other',
-      text: '네, 내일 오후 3시에 가능할 것 같아요.',
-      time: '오후 2:36',
-      date: '2025-09-10',
-    },
-    {
-      user: 'me',
-      text: '좋습니다! 그럼 내일 뵐게요 🙌',
-      time: '오후 2:37',
-      date: '2025-09-10',
-    },
-    {
-      user: 'other',
-      text: '네~ 내일 뵈어요!',
-      time: '오후 2:38',
-      date: '2025-09-10',
-    },
-    {
-      user: 'other',
-      text: '네~ 내일 뵈어요!',
-      time: '오후 2:38',
-      date: '2025-09-10',
-    },
-    {
-      user: 'other',
-      text: '네~ 내일 뵈어요!',
-      time: '오후 2:38',
-      date: '2025-09-10',
-    },
-    {
-      user: 'other',
-      text: '네~ 내일 뵈어요!',
-      time: '오후 2:38',
-      date: '2025-09-10',
-    },
-    {
-      user: 'other',
-      text: '네~ 내일 뵈어요!',
-      time: '오후 2:38',
-      date: '2025-09-10',
-    },
-    {
-      user: 'other',
-      text: '네~ 내일 뵈어요!',
-      time: '오후 2:38',
-      date: '2025-09-10',
-    },
-    {
-      user: 'other',
-      text: '네~ 내일 뵈어요!',
-      time: '오후 2:38',
-      date: '2025-09-10',
-    },
-  ]);
-  let ws = null;
+export function useWebSocket(url, topic = '/topic/notify') {
+  const messages = ref([]);
+  let client = null;
 
   const connect = () => {
-    ws = new WebSocket(url);
+    const socket = new SockJS(url);
+    client = new Client({
+      webSocketFactory: () => socket,
+      reconnectDelay: 5000,
+      debug: (str) => console.log(str),
+    });
 
-    ws.onopen = () => {
-      console.log('WebSocket 연결됨');
+    client.onConnect = () => {
+      console.log('STOMP 연결됨');
+      client.subscribe(topic, (msg) => {
+        messages.value.push({
+          ...JSON.parse(msg.body),
+          self: false, // 서버에서 받은 메시지 → 상대방 메시지
+        });
+      });
     };
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      messages.value.push(data);
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket 연결 종료');
-      // 자동 재연결
-      setTimeout(connect, 1000);
-    };
-
-    ws.onerror = (err) => {
-      console.error('WebSocket 오류:', err);
-    };
+    client.activate();
   };
 
-  const sendMessage = (msg) => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(msg));
+  // src/composables/useWebSocket.js
+  const sendMessage = (msg, destination = '/app/chat') => {
+    if (!msg) {
+      console.error('⚠️ sendMessage: msg가 undefined임!');
+      return;
+    }
+
+    console.log(msg);
+    if (client && client.connected) {
+      client.publish({ destination, body: JSON.stringify(msg) });
+
+      messages.value.push({
+        text: msg,
+        self: true,
+      });
+
+      console.log(messages.value);
     }
   };
 
   onMounted(connect);
-
   onBeforeUnmount(() => {
-    if (ws) ws.close();
+    if (client) client.deactivate();
   });
 
   return { messages, sendMessage };

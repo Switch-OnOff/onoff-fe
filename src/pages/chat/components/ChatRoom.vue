@@ -1,8 +1,8 @@
 <template>
-  <div class="chat-item" @click="goToDetail">
+  <div class="chat-item" @click="goToDetail(partnerId)">
     <div class="chat-avatar"></div>
     <div class="chat-body">
-      <span class="chat-userid">{{ props.chatInfo.id }}</span>
+      <span class="chat-userid">{{ partnerId }}</span>
       <span class="chat-message">{{ props.chatInfo.message }}</span>
     </div>
     <span class="chat-timestamp">{{ props.chatInfo.time }}</span>
@@ -11,28 +11,47 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
+import { computed } from 'vue';
 
 const props = defineProps({
-  chatInfo: Object,
+  chatInfo: {
+    type: Object,
+    required: true,
+  },
+});
+
+const loggedInUserId = 1;
+
+const partnerId = computed(() => {
+  if (!props.chatInfo) {
+    return null;
+  }
+
+  const { buyerId, sellerId } = props.chatInfo;
+
+  return loggedInUserId === buyerId ? sellerId : buyerId;
 });
 
 const router = useRouter();
 
-const goToDetail = () => {
+const goToDetail = (userId) => {
+  if (!userId) return;
   router.push({
     name: 'chat-detail',
-    params: { id: props.chatInfo.id },
+    params: { id: userId },
     state: { chatData: props.chatInfo },
   });
 };
 </script>
 
 <style scoped>
+/* 스타일은 기존과 동일합니다. */
 .chat-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0;
+  cursor: pointer;
 }
 
 .chat-avatar {
