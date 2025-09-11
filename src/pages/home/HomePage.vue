@@ -85,7 +85,7 @@ const actions = computed(() =>
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 1.5rem;
+  padding: 1.2rem 1.5rem;
   background: var(--color-white);
 }
 
@@ -113,7 +113,7 @@ const actions = computed(() =>
 }
 
 .bottom {
-  margin-top: 8px;
+  /* margin-top: 8px; */
   margin-bottom: 12px;
 }
 </style>
