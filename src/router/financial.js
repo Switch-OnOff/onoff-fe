@@ -42,4 +42,10 @@ export default [
     component: () => import('../pages/financial/FinResultPage.vue'),
     meta: { layout: 'default', title: '지원/대출 - 결과', hideHeader: true },
   },
+  {
+    path: '/financial/list',
+    name: 'FinancialList',
+    component: () => import('@/pages/financial/FinListPage.vue'),
+    meta: { layout: 'default', title: '지원/대출 - 목록', hideHeader: true },
+  },
 ];

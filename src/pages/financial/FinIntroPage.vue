@@ -49,7 +49,7 @@ const features = [
 
 const router = useRouter();
 const goNext = () => router.push('/financial/select');
-const goList = () => router.push('/financial/list'); // TODO: 실제 라우트로 교체
+const goList = () => router.push('/financial/list');
 </script>
 
 <style scoped>

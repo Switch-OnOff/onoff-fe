@@ -24,6 +24,8 @@
       :get-suggestions="getSuggestions"
       @submit="doSearch"
       @select="doSearch"
+      :label-key="labelKey"
+      :value-key="valueKey"
     />
 
     <div class="list-link bodyLight12px" @click="goList">
@@ -33,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import SimpleHeader from '@/components/layout/SimpleHeader.vue';
 import TopMessage from './components/TopMessage.vue';
@@ -56,8 +58,48 @@ const mode = computed({
   set: (v) => store.setMode(v),
 });
 
-/* ---- 기존 드롭다운 관련 상태/함수들은 전부 삭제하세요 ---- */
-/* open, dropdownRoot, toggle, onClickOutside, onKeyEsc 등 제거 */
+const keyword = ref('');
+
+// SearchSuggest에 labelKey, valueKey 전달
+const labelKey = computed(() =>
+  store.mode === 'loan' ? '상품명' : 'service_name'
+);
+const valueKey = computed(() =>
+  store.mode === 'loan' ? '상품ID' : 'service_id'
+);
+
+// 검색/선택 처리: 사용자 기대대로 '흐름 시작'이 되게 함
+// - 텍스트 입력(submit): 검색어를 세션에 저장하고 목록으로 이동
+// - 항목 선택(object): 지원이면 기본정보 폼(start flow), 대출이면 대출 기본정보로 이동
+function doSearch(row) {
+  if (!row) return;
+
+  // 사용자가 직접 입력한 검색어: 목록으로 이동하여 검색 결과/필터를 보여줌
+  if (typeof row === 'string') {
+    const kw = row.trim();
+    if (!kw) return;
+    sessionStorage.setItem('financial-keyword', kw);
+    // 목록 페이지가 검색어를 반영하므로 목록으로 이동
+    router.push('/financial/list');
+    return;
+  }
+
+  // 항목 선택: support -> 지원금 흐름 시작, loan -> 대출 흐름 시작
+  const id = row[valueKey.value];
+  if (!id) return;
+
+  if (store.mode === 'support') {
+    // support 폼들에서는 ?id 쿼리를 사용하여 해당 서비스를 불러옵니다
+    router.push({ path: '/financial/support-basic', query: { id: id } });
+    return;
+  }
+
+  if (store.mode === 'loan') {
+    // 대출은 기본정보 폼으로 이동 (필요 시 쿼리로 상품 id 전달)
+    router.push({ path: '/financial/loan-basic', query: { id: id } });
+    return;
+  }
+}
 
 /* 이하 기존 검색/추천 로직은 그대로 사용 */
 const API_BASE = 'http://localhost:3000';
@@ -68,8 +110,7 @@ function pickTitle(mode, row) {
   return mode === 'loan' ? row['상품명'] : row['service_name'];
 }
 
-const keyword = ref('');
-
+// row 전체 반환
 async function getSuggestions(q) {
   if (!store.mode) return [];
   const url = new URL(endpoints[store.mode]);
@@ -77,8 +118,10 @@ async function getSuggestions(q) {
   if (q) url.searchParams.set('q', q);
   const res = await fetch(url.toString());
   const data = await res.json();
-  return (data || []).map((r) => pickTitle(store.mode, r)).filter(Boolean);
+  return (data || []).filter(Boolean);
 }
+
+const goList = () => router.push('/financial/list');
 </script>
 
 <style scoped>
