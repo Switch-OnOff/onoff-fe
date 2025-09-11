@@ -62,6 +62,7 @@ const hasQueryView = !!(route.query.center && route.query.zoomLevel);
 
 /** 상태 */
 const listings = ref([]); // 지도에 올릴 매물(전체)
+const propertyLocations = ref([]); // 지도에 올릴 매물 위치 데이터
 const selected = ref(null); // 미니카드(오버레이) 선택 상태
 const isBottomSheetOpen = ref(false); // 바텀시트 열림 여부
 const clusterItems = ref([]); // 해당 클러스터에 포함된 매물 목록
@@ -112,36 +113,38 @@ async function waitClustererReady(maxMs = 7000, step = 50) {
   }
 }
 
-/* db.json 데이터를 가지고 지도/카드 모델로 매핑 */
+/* 백엔드 데이터를 가지고 지도/카드 모델로 매핑 */
 function mapServerRow(r) {
-  const isSale = r.transactionType === '매매';
+  const isSale = r.transactionType === '매매' || r.transactionType === 'SALE';
   return {
     id: r.id,
-    lat: r.lat,
-    lng: r.lng,
+    lat: r.lat ?? null,
+    lng: r.lng ?? null,
     thumbnail: r.images?.[0] || fallbackThumb,
+
     transactionType: isSale ? 'SALE' : 'MONTHLY',
-    salePrice: isSale ? r.salePrice ?? 0 : undefined,
-    deposit: !isSale ? r.deposit ?? 0 : undefined,
-    monthlyRent: !isSale ? r.rent ?? 0 : undefined,
+
+    // ⬇ 매매면 월세/보증금 필드는 아예 undefined 로 (0 금지)
+    salePrice: isSale ? r.salePrice ?? null : undefined,
+    deposit: !isSale ? r.deposit ?? null : undefined,
+    rent: !isSale ? r.rent ?? null : undefined,
+
     address: r.address,
     industry: r.industry,
-    premium: r.premium,
-    mgmtFee: r.mgmtFee,
+    premium: r.premium ?? null,
+    mgmtFee: r.mgmtFee ?? null,
+    exclusiveArea: r.exclusiveArea ?? null,
   };
 }
 
 /* 서버에서 목록 로드 */
 async function fetchListings() {
   try {
-    const { data } = await axios.get('/listings', {
-      params: { _sort: 'id', _order: 'desc' },
-    });
-    const rows = Array.isArray(data) ? data : data?.data || [];
-    listings.value = rows
-      .filter((r) => Number.isFinite(r.lat) && Number.isFinite(r.lng))
-      .map(mapServerRow);
+    const res = await axios.get('http://localhost:8080/api/property/card_list');
+    const list = res?.data?.data;
+    listings.value = Array.isArray(list) ? list : [];
 
+    console.log('확인', listings.value);
     rebuildMarkers();
 
     if (hasQueryView) {
@@ -156,6 +159,35 @@ async function fetchListings() {
   } catch (e) {
     console.error('[Map fetchListings] failed:', e);
     alert('지도를 불러오지 못했습니다.');
+  }
+}
+
+/*지도 위치 데이터 로드*/
+async function fetchLocationData() {
+  try {
+    const res = await axios.get(
+      'http://localhost:8080/api/property/property_location'
+    );
+    const list = res?.data?.data;
+    propertyLocations.value = Array.isArray(list) ? list : [];
+  } catch (e) {
+    console.error('[Map fetchLocationData] failed:', e);
+    alert('매물 위치 데이터를 불러오지 못했습니다.');
+  }
+}
+
+async function fetchCardByLocationId(locationId) {
+  try {
+    const res = await axios.get(
+      `http://localhost:8080/api/property/card_list/${locationId}`
+    );
+    const raw = res?.data?.data;
+    if (!raw) return null;
+
+    return mapServerRow(raw);
+  } catch (e) {
+    console.error('[fetchCardByLocationId] failed:', e);
+    return null;
   }
 }
 
@@ -203,13 +235,29 @@ onMounted(async () => {
     });
 
     // 클러스터 클릭하면 바텀시트 열기
-    w.kakao.maps.event.addListener(clusterer, 'clusterclick', (cluster) => {
-      const ms = cluster.getMarkers();
-      clusterItems.value = ms.map((m) => m.__item).filter(Boolean);
-      isBottomSheetOpen.value = true;
-      closeOverlay(); // 오버레이 열려 있으면 닫아둠
-    });
+    w.kakao.maps.event.addListener(
+      clusterer,
+      'clusterclick',
+      async (cluster) => {
+        const ms = cluster.getMarkers();
+        const ids = ms.map((m) => m.__item?.id).filter(Boolean);
 
+        try {
+          const results = await Promise.all(
+            ids.map((id) => fetchCardByLocationId(id))
+          );
+          clusterItems.value = results.filter(Boolean);
+        } catch (e) {
+          console.error('[clusterclick] load cards failed:', e);
+          clusterItems.value = [];
+        }
+
+        isBottomSheetOpen.value = true;
+        closeOverlay();
+      }
+    );
+
+    await fetchLocationData();
     await fetchListings();
 
     w.kakao.maps.event.addListener(map, 'dragend', () => updateURL());
@@ -244,15 +292,28 @@ function rebuildMarkers() {
   }
   markers = [];
 
-  markers = listings.value.map((item) => {
+  markers = propertyLocations.value.map((item) => {
     const m = new w.kakao.maps.Marker({
-      position: new w.kakao.maps.LatLng(item.lat, item.lng),
+      position: new w.kakao.maps.LatLng(+item.lat, +item.lng),
       image: markerImage,
       clickable: true,
     });
-    m.__item = item;
 
-    w.kakao.maps.event.addListener(m, 'click', () => openOverlay(item, m));
+    w.kakao.maps.event.addListener(m, 'click', async () => {
+      try {
+        const card = await fetchCardByLocationId(item.id);
+        if (!card) {
+          alert('이 위치에 연결된 매물을 찾지 못했습니다.');
+          return;
+        }
+        openOverlay(card, m);
+      } catch (e) {
+        console.error('[marker click] failed:', e);
+        alert('카드 데이터를 불러오지 못했습니다.');
+      }
+    });
+
+    m.__item = item;
     return m;
   });
 

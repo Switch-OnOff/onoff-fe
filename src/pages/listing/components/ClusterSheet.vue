@@ -9,7 +9,9 @@
     >
       <div class="sheet-header bodyBold16px">
         <strong>{{ title }} {{ items.length }}건</strong>
-        <button class="sheet-close" @click="$emit('close')" aria-label="닫기">×</button>
+        <button class="sheet-close" @click="$emit('close')" aria-label="닫기">
+          ×
+        </button>
       </div>
 
       <ul class="sheet-list">
@@ -24,7 +26,9 @@
             />
             <div class="info">
               <!-- industry 배지 스타일 적용 -->
-              <div class="title badge bodySemiBold14px">{{ it.industry || '-' }}</div>
+              <div class="title badge bodySemiBold14px">
+                {{ it.industry || '-' }}
+              </div>
               <div class="price bodySemiBold14px">{{ priceText(it) }}</div>
               <div class="addr bodyRegular12px">{{ it.address }}</div>
             </div>
@@ -40,29 +44,41 @@ const props = defineProps({
   open: { type: Boolean, required: true },
   items: { type: Array, default: () => [] },
   title: { type: String, default: '이 지역 매물' },
-})
-defineEmits(['close', 'select'])
+});
+defineEmits(['close', 'select']);
 
 function fmtMan(n) {
-  const v = Number(n)
-  if (!Number.isFinite(v)) return '-'
-  const eok = Math.floor(v / 10000)            // 억
-  const man = v % 10000                         // 만원
-  const manStr = man.toLocaleString('ko-KR')
-  return eok > 0 ? `${eok}억 ${manStr}` : manStr
+  if (n === null || n === undefined) return '없음';
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '없음';
+
+  const eok = Math.floor(v / 10000);
+  const man = v % 10000;
+  let manStr = '';
+  if (man > 0) {
+    manStr = man % 1000 === 0 ? `${man / 1000}천` : man.toLocaleString('ko-KR');
+  }
+
+  if (eok > 0) {
+    // 억 단위만 있으면 그냥 "51억"만 리턴
+    return manStr ? `${eok}억 ${manStr}` : `${eok}억`;
+  }
+
+  // 억 단위 없을 때만 만 단위/천 단위 출력
+  return manStr || '없음';
 }
 
 function priceText(it) {
   if (it?.transactionType === 'SALE') {
     // 예: "매매 3억 5,000"
-    return `매매 ${fmtMan(it?.salePrice)}`
+    return `매매 ${fmtMan(it?.salePrice)}`;
   }
   // 예: "월세 7,000/60"
-  return `월세 ${fmtMan(it?.deposit)}/${fmtMan(it?.monthlyRent)}`
+  return `월세 ${fmtMan(it?.deposit)}/${fmtMan(it?.rent)}`;
 }
 
 function onImgError(e) {
-  e.target.src = 'https://placehold.co/240x160?text=IMG'
+  e.target.src = 'https://placehold.co/240x160?text=IMG';
 }
 </script>
 
