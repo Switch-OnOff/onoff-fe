@@ -49,12 +49,13 @@ import SelectField from '../../components/common/SelectField.vue';
 import { onBeforeRouteLeave, useRouter, useRoute } from 'vue-router';
 import { computed, onMounted } from 'vue';
 import { useFinancialStore } from '@/stores/financial';
+import * as grants from '@/api/grants';
 
 const router = useRouter();
 const route = useRoute();
 const store = useFinancialStore();
 
-const API_BASE = 'http://localhost:3000';
+// API_BASE(mock) 제거, 실제 API 사용
 
 function resetBasic() {
   store.support.basic = { status: '', location: '', industry: '' };
@@ -136,35 +137,20 @@ function basicMatchesService(service, basic) {
 
 async function fetchServiceByIdOrKeyword() {
   const id = Number(route.query.id || store.support?.currentServiceId || 0);
-  if (id) {
-    const r = await fetch(`${API_BASE}/support?service_id=${id}&_limit=1`);
-    if (r.ok) {
-      const arr = await r.json();
-      if (arr?.[0]) return arr[0];
+  try {
+    if (id) {
+      return await grants.getGrantDetail(id);
     }
+    const kw = (sessionStorage.getItem('financial-keyword') || '').trim();
+    if (kw) {
+      const list = (await grants.searchGrants(kw)) || [];
+      return list?.[0] || null;
+    }
+    const top = (await grants.getTop5Grants()) || [];
+    return top?.[0] || null;
+  } catch {
+    return null;
   }
-
-  const kw = (sessionStorage.getItem('financial-keyword') || '').trim();
-  if (kw) {
-    let r = await fetch(
-      `${API_BASE}/support?service_name=${encodeURIComponent(kw)}&_limit=1`
-    );
-    if (r.ok) {
-      const a = await r.json();
-      if (a?.[0]) return a[0];
-    }
-    r = await fetch(
-      `${API_BASE}/support?service_name_like=${encodeURIComponent(kw)}&_limit=1`
-    );
-    if (r.ok) {
-      const a = await r.json();
-      if (a?.[0]) return a[0];
-    }
-  }
-
-  const r = await fetch(`${API_BASE}/support?_limit=1`);
-  const arr = r.ok ? await r.json() : [];
-  return arr?.[0] || null;
 }
 
 async function goNext() {
@@ -173,8 +159,8 @@ async function goNext() {
   const service = await fetchServiceByIdOrKeyword();
   const basic = store.support.basic;
 
-  if (service?.service_id) {
-    store.support = { ...store.support, currentServiceId: service.service_id };
+  if (service?.serviceId) {
+    store.support = { ...store.support, currentServiceId: service.serviceId };
   }
 
   if (!service || !basicMatchesService(service, basic)) {
@@ -190,7 +176,7 @@ async function goNext() {
 
   router.push({
     path: '/financial/support-criteria',
-    query: service?.service_id ? { id: service.service_id } : undefined,
+    query: service?.serviceId ? { id: service.serviceId } : undefined,
   });
 }
 </script>

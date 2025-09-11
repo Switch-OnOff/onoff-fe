@@ -132,6 +132,37 @@ const touched = ref(false);
 let blurTimer = null;
 let debounceTimer = null;
 
+/** 값(id) 추출 (valueKey 우선, 없으면 후보들에서 탐색) */
+function extractValue(item) {
+  if (item == null || typeof item !== 'object') return undefined;
+  const candidates = [
+    props.valueKey, // 부모가 준 기본 키 (예: 'service_id' or '상품ID')
+    'serviceId',
+    'service_id',
+    'loanId',
+    'loan_id',
+    '상품ID',
+    'id',
+  ].filter(Boolean);
+  for (const k of candidates) {
+    if (item[k] != null && item[k] !== '') return item[k];
+  }
+  return undefined;
+}
+
+/** valueKey가 비어있는 아이템이면, 추출값을 해당 키로 주입해서 반환 */
+function normalizeItem(item) {
+  if (item == null || typeof item !== 'object') return item;
+  const v = extractValue(item);
+  if (v === undefined) return item;
+  // 이미 props.valueKey가 없거나 비어있으면 그대로 둠 (부모가 빈 값 넘기면 'id'에 넣어도 됨)
+  const key = props.valueKey || 'id';
+  if (item[key] !== v) {
+    return { ...item, [key]: v };
+  }
+  return item;
+}
+
 /** 라벨 뽑기(폴백 포함) */
 const displayLabel = (item) => {
   if (item == null) return '';
@@ -184,11 +215,12 @@ function select(item) {
     emit('submit', q);
     return;
   }
-  const label = displayLabel(item);
+  const fixed = normalizeItem(item);
+  const label = displayLabel(fixed);
   emit('update:modelValue', label);
-  emit('select', item);
+  emit('select', fixed);
   open.value = false;
-  emit('submit', item);
+  emit('submit', fixed);
 }
 
 function scheduleSuggest(delay = 120) {
@@ -203,7 +235,8 @@ async function load() {
   try {
     const q = (props.modelValue || '').trim();
     const res = await props.getSuggestions(q);
-    const arr = Array.isArray(res) ? res : [];
+    const rawArr = Array.isArray(res) ? res : [];
+    const arr = rawArr.map(normalizeItem);
 
     // 중복 라벨 제거 + 개수 제한(입력 유무에 따라)
     const seen = new Set();

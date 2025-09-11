@@ -114,6 +114,10 @@ function finish() {
   });
   router.push('/financial/result');
 }
+
+function goNext() {
+  finish();
+}
 </script>
 <style scoped>
 .px {

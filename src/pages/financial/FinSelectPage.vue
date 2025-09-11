@@ -37,13 +37,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import SimpleHeader from '@/components/layout/SimpleHeader.vue';
 import TopMessage from './components/TopMessage.vue';
 import SearchSuggest from './components/SearchSuggest.vue';
 import SelectField from '../../components/common/SelectField.vue';
 import { useFinancialStore } from '@/stores/financial';
+import * as grants from '@/api/grants';
+import * as loans from '@/api/loan';
 
 const store = useFinancialStore();
 const router = useRouter();
@@ -62,23 +64,32 @@ const mode = computed({
 
 const keyword = ref('');
 
-// SearchSuggest에 labelKey, valueKey 전달
+// 검색창 placeholder
+const placeholder = computed(() =>
+  store.mode === 'loan'
+    ? '대출을 검색해보세요'
+    : store.mode === 'support'
+    ? '지원금을 검색해보세요'
+    : '종류를 먼저 선택하세요'
+);
+
+// 기본 모드 보정
+onMounted(() => {
+  if (!store.mode) store.setMode('support');
+});
+
+// SearchSuggest에 labelKey, valueKey 전달 (백엔드 필드 기준)
 const labelKey = computed(() =>
-  store.mode === 'loan' ? '상품명' : 'service_name'
+  store.mode === 'loan' ? 'loanName' : 'serviceName'
 );
 const valueKey = computed(() =>
-  store.mode === 'loan' ? '상품ID' : 'service_id'
+  store.mode === 'loan' ? 'loanId' : 'serviceId'
 );
 function onIntroSubmit(payload) {
-  // 문자열 입력이거나, 잘못된 payload면 이동 안 함 (그냥 무시)
-  if (typeof payload === 'string' || !payload || typeof payload !== 'object') {
-    // 필요하면 여기서 안내 토스트 띄워: "목록에서 하나를 선택해 주세요"
-    // e.g. toast('자동완성에서 항목을 선택해 주세요')
-    return;
-  }
-  // 혹시 컴포넌트가 객체를 submit으로도 넘기는 경우 대비
+  if (!payload || typeof payload !== 'object') return;
   onIntroSelect(payload);
 }
+
 function onIntroSelect(row) {
   const id = row?.[valueKey.value];
   if (!id) return;
@@ -90,24 +101,28 @@ function onIntroSelect(row) {
   }
 }
 
-/* 이하 기존 검색/추천 로직은 그대로 사용 */
-const API_BASE = 'http://localhost:3000';
-const endpoints = { loan: `${API_BASE}/loan`, support: `${API_BASE}/support` };
-const cache = { loan: null, support: null };
-
-function pickTitle(mode, row) {
-  return mode === 'loan' ? row['상품명'] : row['service_name'];
-}
-
-// row 전체 반환
+// row 전체 반환 (백엔드 API 사용)
 async function getSuggestions(q) {
   if (!store.mode) return [];
-  const url = new URL(endpoints[store.mode]);
-  url.searchParams.set('_limit', '1000');
-  if (q) url.searchParams.set('q', q);
-  const res = await fetch(url.toString());
-  const data = await res.json();
-  return (data || []).filter(Boolean);
+  try {
+    if (store.mode === 'loan') {
+      if (!q) {
+        const top = await loans.getTop5Loans();
+        return Array.isArray(top) ? top : [];
+      }
+      const arr = await loans.searchLoans(q || '');
+      return Array.isArray(arr) ? arr : [];
+    }
+    if (!q) {
+      const top = await grants.getTop5Grants();
+      return Array.isArray(top) ? top : [];
+    }
+    const arr = await grants.searchGrants(q || '');
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) {
+    console.error('[FinSelect] suggestions failed:', e);
+    return [];
+  }
 }
 
 const goList = () => router.push('/financial/list');
