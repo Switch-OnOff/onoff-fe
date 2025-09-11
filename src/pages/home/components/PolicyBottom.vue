@@ -293,7 +293,7 @@ onBeforeUnmount(() => stopAutoScroll());
 
 /* 카드(컴팩트) */
 .program {
-  padding: 10px 12px;
+  padding: 20px 14px;
   background: var(--color-white);
 }
 
@@ -305,7 +305,7 @@ onBeforeUnmount(() => stopAutoScroll());
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   line-height: 1.2;
 }
 
