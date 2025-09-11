@@ -27,7 +27,7 @@
         <input
           class="input-box-pw bodyMedium16px"
           type="password"
-          v-model="passwordCheck"
+          v-model="passwordConfirm"
           placeholder="비밀번호를 한 번 더 입력해주세요."
           autocomplete="new-password"
         />
@@ -75,7 +75,7 @@ const router = useRouter()
 
 const email = ref('')
 const password = ref('')
-const passwordCheck = ref('')
+const passwordConfirm = ref('')
 const username = ref('')
 const phone = ref('')
 
@@ -146,21 +146,22 @@ function isPasswordValid(pw) {
   if (/[A-Za-z]/.test(pw)) types++
   if (/\d/.test(pw)) types++
   if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pw)) types++
-  return pw.length >= 8 && types >= 2
+  return 6 <= pw.length && pw.length <= 30 && types >= 2
 }
 
 // 비밀번호 실시간 검사
-watch([password, passwordCheck], ([pw, pwCheck]) => {
+watch([password, passwordConfirm], ([pw, pwConfirm]) => {
   if (!pw) {
     passwordError.value = ''
     return
   }
   if (!isPasswordValid(pw)) {
     passwordError.value =
-      '비밀번호는 영문, 숫자, 특수문자 중 2종류 이상을 조합해 8자 이상이어야 합니다.'
+      '비밀번호는 영문, 숫자, 특수문자 중 2종류 이상을 조합해 6자 이상 30자 이하여야 합니다.'
     return
   }
-  if (pwCheck && pw !== pwCheck) {
+  
+  if (pwConfirm && pw !== pwConfirm) {
     passwordError.value = '비밀번호가 일치하지 않습니다.'
     return
   }
@@ -178,7 +179,7 @@ async function onSubmit() {
     loading.value = false
     return
   }
-  if (password.value !== passwordCheck.value) {
+  if (password.value !== passwordConfirm.value) {
     passwordError.value = '비밀번호가 일치하지 않습니다.'
     signupSuccess = false
     loading.value = false
@@ -192,17 +193,15 @@ async function onSubmit() {
     return
   }
 
-  // 서버 요청 부분 주석 처리
-  /*
   try {
     const userData = {
       email: email.value,
       password: password.value,
-      username: username.value,
-      phone: phone.value.replace(/-/g, ''),
-      userType: '중개사',
+      passwordConfirm: passwordConfirm.value,
+      name: username.value,
+      contact: phone.value.replace(/-/g, ''),
     }
-    await axios.post('http://localhost:8080/member', userData)
+    await axios.post('http://localhost:8080/api/user/auth/signup', userData)
 
     alert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.')
     signupSuccess = true
@@ -214,15 +213,14 @@ async function onSubmit() {
   } finally {
     loading.value = false
   }
-  */
 
-  // 데모 모드
-  setTimeout(() => {
-    alert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.')
-    signupSuccess = true
-    router.push('/auth/login')
-    loading.value = false
-  }, 800)
+  // // 데모 모드
+  // setTimeout(() => {
+  //   alert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.')
+  //   signupSuccess = true
+  //   router.push('/auth/login')
+  //   loading.value = false
+  // }, 800)
 }
 </script>
 

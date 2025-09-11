@@ -23,10 +23,10 @@ export default [
     props: true,              // id를 컴포넌트 props로 전달
     meta: { hideHeader: true },
   },
-  // {
-  //   path: '/listings/new',
-  //   name: 'listing-new',
-  //   component: () => import('@/pages/listing/ListingFormPage.vue'),
-  //   meta: { requiresAuth: true },
-  // },
+  {
+    path: '/listing/new',
+    name: 'listing-new',
+    component: () => import('@/pages/listing/RegisterListingPage.vue'),
+    meta: { requiresAuth: true },
+  },
 ]
