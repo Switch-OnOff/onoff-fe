@@ -103,14 +103,18 @@
               :class="{ active: formStep2.dealType === '월세' }"
               :aria-pressed="formStep2.dealType === '월세'"
               @click="formStep2.dealType = '월세'"
-            >월세</button>
+            >
+              월세
+            </button>
             <button
               type="button"
               class="seg-btn bodyMedium14px"
               :class="{ active: formStep2.dealType === '매매' }"
               :aria-pressed="formStep2.dealType === '매매'"
               @click="formStep2.dealType = '매매'"
-            >매매</button>
+            >
+              매매
+            </button>
           </div>
 
           <div class="deal-body">
@@ -180,6 +184,12 @@
           v-model:date="formStep2.transfer.date"
         />
 
+        <label class="bodyMedium16px">상호명</label>
+        <InputSimple
+          placeholder="상호명을 입력하세요"
+          v-model="formStep2.storeName"
+        />
+
         <label class="bodyMedium16px">상가형태</label>
         <SelectField
           v-model="formStep2.shopType"
@@ -212,6 +222,21 @@
           v-model="formStep2.restroom"
           :items="RESTROOM_OPTIONS"
           placeholder="화장실 선택"
+        />
+
+        <!-- ✅ 배달 / 포장 추가 -->
+        <label class="bodyMedium16px">배달</label>
+        <SelectField
+          v-model="formStep2.delivery"
+          :items="DELIVERY_OPTIONS"
+          placeholder="배달 선택"
+        />
+
+        <label class="bodyMedium16px">포장</label>
+        <SelectField
+          v-model="formStep2.takeout"
+          :items="TAKEOUT_OPTIONS"
+          placeholder="포장 선택"
         />
 
         <label class="bodyMedium16px">위치(주소)</label>
@@ -275,6 +300,7 @@ import { useRouter } from 'vue-router'
 import SimpleHeader from '@/components/layout/SimpleHeader.vue'
 import MedSubmitBtn from '@/components/button/MedSubmitBtn.vue'
 import InputField from '@/components/input/InputField.vue'
+import InputSimple from '@/components/input/InputSimple.vue'
 
 import IndustryPicker from '@/pages/listing/components/IndustryPicker.vue'
 import MoneyInput from '@/pages/listing/components/MoneyInput.vue'
@@ -306,10 +332,23 @@ const SHOP_TYPES = [
   { label: '몰/쇼핑센터', value: '몰/쇼핑센터' },
   { label: '기타/확인필요', value: '기타/확인필요' },
 ]
+
 const RESTROOM_OPTIONS = [
   { label: '내부', value: '내부' },
   { label: '외부(개인)', value: '외부(개인)' },
   { label: '외부(공용)', value: '외부(공용)' },
+]
+
+const DELIVERY_OPTIONS = [
+  { label: '많음', value: '많음' },
+  { label: '보통', value: '보통' },
+  { label: '적음', value: '적음' },
+]
+
+const TAKEOUT_OPTIONS = [
+  { label: '많음', value: '많음' },
+  { label: '보통', value: '보통' },
+  { label: '적음', value: '적음' },
 ]
 
 const formStep1 = reactive({ bNo: '', ownerName: '', openDt: '' })
@@ -325,23 +364,28 @@ const formStep2 = reactive({
   premium: null,
   mgmtFee: null,
   transfer: { type: '협의', date: '' },
+  storeName: '',      // ✅ 상호명
   shopType: '',
   area: { supply: null, exclusive: null },
   floor: { isBasement: false, current: null, total: null },
   parking: { type: '', count: null, paid: false },
   restroom: '',
+  delivery: '',       // ✅ 배달
+  takeout: '',        // ✅ 포장
   address: { base: '', detail: '', zip: '' },
 })
 
 const mgmtFeeWon = computed(() => manToKoreanWon(formStep2.mgmtFee))
 const formStep3 = reactive({ description: '' })
 
-const photos = ref([]) // File[]
+const photos = ref([])
 const MAX_PHOTOS = 5
 const MIN_PHOTOS = 1
 const canSubmit = computed(() => photos.value.length >= MIN_PHOTOS && photos.value.length <= MAX_PHOTOS)
 
-function goStep(n) { step.value = n }
+function goStep(n) {
+  step.value = n
+}
 
 function skipToNext() {
   if (step.value === 1) {
@@ -356,8 +400,14 @@ function skipToNext() {
 function onlyDigitsLen(val, max) {
   return String(val || '').replace(/\D/g, '').slice(0, max)
 }
-function onBNoInput(e) { formStep1.bNo = onlyDigitsLen(e.target.value, 10) }
-function onOpenDtInput(e) { formStep1.openDt = onlyDigitsLen(e.target.value, 8) }
+
+function onBNoInput(e) {
+  formStep1.bNo = onlyDigitsLen(e.target.value, 10)
+}
+
+function onOpenDtInput(e) {
+  formStep1.openDt = onlyDigitsLen(e.target.value, 8)
+}
 
 async function onVerify() {
   errorMsg.value = ''
@@ -430,6 +480,7 @@ function onNextStep2() {
   if (!formStep2.transfer?.type) missing.push('양도가능일')
   if (formStep2.transfer?.type === '날짜' && !formStep2.transfer?.date) missing.push('양도가능일(날짜)')
 
+  if (!formStep2.storeName) missing.push('상호명')
   if (!formStep2.shopType) missing.push('상가형태')
   if (formStep2.area.supply === null) missing.push('공급면적')
   if (formStep2.area.exclusive === null) missing.push('전용면적')
@@ -441,6 +492,8 @@ function onNextStep2() {
   }
 
   if (!formStep2.restroom) missing.push('화장실')
+  if (!formStep2.delivery) missing.push('배달')
+  if (!formStep2.takeout) missing.push('포장')
   if (!formStep2.address.base) missing.push('기본주소')
 
   if (missing.length) {
@@ -461,7 +514,11 @@ const payload = computed(() => {
     : Number(formStep2.floor.current || 0)
 
   return {
-    biz: { bNo: verified.bNo, ownerName: verified.ownerName, openDt: verified.openDt },
+    biz: {
+      bNo: verified.bNo,
+      ownerName: verified.ownerName,
+      openDt: verified.openDt
+    },
     listing: {
       industry: `${formStep2.industryMajor}/${formStep2.industryMinor}`.replace(/\/$/, ''),
       dealType: formStep2.dealType,
@@ -471,12 +528,21 @@ const payload = computed(() => {
       premium: formStep2.premium,
       mgmtFee: formStep2.mgmtFee,
       transfer: formStep2.transfer,
+      storeName: formStep2.storeName,
       shopType: formStep2.shopType,
-      area: { supply: formStep2.area.supply, exclusive: formStep2.area.exclusive },
-      floor: { current: currentFloorNumber, total: Number(formStep2.floor.total || 0) },
+      area: {
+        supply: formStep2.area.supply,
+        exclusive: formStep2.area.exclusive
+      },
+      floor: {
+        current: currentFloorNumber,
+        total: Number(formStep2.floor.total || 0)
+      },
       parking: formStep2.parking,
       restroom: restroomForDb,
-      address: `${formStep2.address.base} ${formStep2.address.detail}`.trim(),
+      delivery: formStep2.delivery,
+      takeout: formStep2.takeout,
+      address: `${formStep2.address.base} ${formStep2.address.detail}`.trim()
     },
     description: formStep3.description,
   }
@@ -484,16 +550,16 @@ const payload = computed(() => {
 
 async function submitAll() {
   if (!photos.value || photos.value.length === 0) {
-    alert('사진을 최소 1장 등록해 주세요.');
-    return;
+    alert('사진을 최소 1장 등록해 주세요.')
+    return
   }
 
   try {
-    const fd = new FormData();
-    fd.append('data', JSON.stringify(payload.value));
+    const fd = new FormData()
+    fd.append('data', JSON.stringify(payload.value))
     photos.value.forEach((f, i) =>
       fd.append('photos', f, f.name || `photo_${i}.jpg`)
-    );
+    )
 
     const { data, headers } = await axios.post('/api/listings', fd, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -520,10 +586,10 @@ async function submitAll() {
     } else {
       await router.push({ name: 'listing-list' })
     }
-   } catch {
-     alert('등록 실패. 잠시 후 다시 시도해주세요.')
-   }
- }
+  } catch {
+    alert('등록 실패. 잠시 후 다시 시도해주세요.')
+  }
+}
 </script>
 
 <style scoped>
@@ -557,15 +623,24 @@ async function submitAll() {
   cursor: pointer;
 }
 
-.step { display: block; }
+.step {
+  display: block;
+}
 
-.form { display: block; }
+.form {
+  display: block;
+}
+
 .form > label {
   display: block;
   color: var(--color-primary);
   margin: 0;
 }
-.form > label + * { margin-top: 6px; margin-bottom: 18px; }
+
+.form > label + * {
+  margin-top: 6px;
+  margin-bottom: 18px;
+}
 
 .label-inline {
   display: flex;
@@ -573,14 +648,20 @@ async function submitAll() {
   width: 100%;
   gap: 6px;
 }
+
 .label-inline .label-right {
   margin-left: auto;
   color: var(--color-darkgray);
   text-align: right;
 }
 
-.deal-body .label-inline { justify-content: space-between; }
-.deal-body .label-inline .label-right { margin-left: 8px; }
+.deal-body .label-inline {
+  justify-content: space-between;
+}
+
+.deal-body .label-inline .label-right {
+  margin-left: 8px;
+}
 
 .input,
 .textarea,
@@ -592,23 +673,32 @@ select {
   font: inherit;
   background: #fff;
 }
-.textarea { resize: vertical; }
 
-.row { width: 100%; display: flex; gap: 8px; }
-.row.center  { justify-content: center; }
-.row.gap     { justify-content: space-between; }
-.submit-row  { margin-top: 20px; }
-
-.btn-secondary {
-  background: var(--color-white);
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: 10px;
-  padding: 12px 16px;
-  cursor: pointer;
+.textarea {
+  resize: vertical;
 }
 
-.error { color: var(--color-error); }
+.row {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+}
+
+.row.center {
+  justify-content: center;
+}
+
+.row.gap {
+  justify-content: space-between;
+}
+
+.submit-row {
+  margin-top: 20px;
+}
+
+.error {
+  color: var(--color-error);
+}
 
 .deal-card {
   border: 1px solid var(--color-lightgray);
@@ -617,11 +707,13 @@ select {
   background: #fff;
   margin-bottom: 18px;
 }
+
 .deal-seg {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   border-bottom: 1px solid var(--color-lightgray);
 }
+
 .deal-seg .seg-btn {
   padding: 10px 12px;
   background: #fff;
@@ -629,38 +721,37 @@ select {
   cursor: pointer;
   transition: background .15s ease, color .15s ease;
 }
-.deal-seg .seg-btn + .seg-btn { border-left: 1px solid var(--color-lightgray); }
-.deal-seg .seg-btn:hover { background: var(--color-primary-10); }
+
+.deal-seg .seg-btn + .seg-btn {
+  border-left: 1px solid var(--color-lightgray);
+}
+
+.deal-seg .seg-btn:hover {
+  background: var(--color-primary-10);
+}
+
 .deal-seg .seg-btn.active {
   background: var(--color-primary-10);
   color: var(--color-primary);
   font-weight: 600;
 }
-.deal-body { padding: 12px; }
-.deal-body > label { margin-top: 2px; }
-.deal-body > label + * { margin-top: 6px; }
-.deal-body :deep(.number-button-group) { margin-top: 8px; margin-bottom: 12px; }
 
-.seg {
-  display: inline-flex;
-  border: 1px solid var(--color-lightgray);
-  border-radius: 8px;
-  overflow: hidden;
-  width: 100%;
+.deal-body {
+  padding: 12px;
 }
-.seg-btn {
-  flex: 1;
-  padding: 8px 12px;
-  background: var(--color-white);
-  border: none;
-  cursor: pointer;
+
+.deal-body > label {
+  margin-top: 2px;
 }
-.seg-btn.active { background: var(--color-primary-10); color: var(--color-primary); }
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.mt8 { margin-top: 8px; }
+.deal-body > label + * {
+  margin-top: 6px;
+}
 
-.hint { color: var(--color-darkgray); }
+.deal-body :deep(.number-button-group) {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
 
 .biz-kv {
   display: grid;
@@ -671,9 +762,21 @@ select {
   border: 1px solid var(--color-lightgray);
   border-radius: 12px;
 }
-.kv { display: grid; grid-template-columns: 110px 1fr; column-gap: 8px; align-items: center; }
-.kv-key { color: var(--color-lightblack); }
-.kv-val { color: var(--color-black); }
+
+.kv {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  column-gap: 8px;
+  align-items: center;
+}
+
+.kv-key {
+  color: var(--color-lightblack);
+}
+
+.kv-val {
+  color: var(--color-black);
+}
 
 .input-box {
   width: 100%;
@@ -686,8 +789,17 @@ select {
   background: var(--color-white);
   transition: border 0.2s;
 }
-.input-box:focus { border-color: var(--color-primary); }
-.input-box::placeholder { color: var(--color-mediumgray); }
 
-.step-photos { margin-left: -0.5rem; margin-right: -0.5rem; }
+.input-box:focus {
+  border-color: var(--color-primary);
+}
+
+.input-box::placeholder {
+  color: var(--color-mediumgray);
+}
+
+.step-photos {
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
 </style>
