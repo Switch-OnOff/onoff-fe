@@ -463,6 +463,7 @@ async function onVerify() {
       goStep(2);
     } else {
       errorMsg.value = '진위확인 실패';
+      // ⭐ 실패 모달
       showVerifyError(
         [
           '사업자 진위확인에 실패했습니다.',
@@ -475,7 +476,8 @@ async function onVerify() {
       );
     }
   } catch {
-    errorMsg.value = '서버 오류로 확인에 실패했습니다.';
+    // errorMsg.value = '서버 오류로 확인에 실패했습니다.';
+    showVerifyError('서버 오류로 확인에 실패했습니다.\n잠시 후 다시 시도해 주세요.');
   } finally {
     verifying.value = false;
   }
@@ -840,7 +842,7 @@ select {
   border-radius: 12px;
   border: 1px solid var(--color-lightgray);
   padding: 0 16px;
-  /* margin-bottom: 18px; */
+  margin-bottom: 18px;
   box-sizing: border-box;
   background: var(--color-white);
   transition: border 0.2s;
@@ -855,7 +857,7 @@ select {
 }
 
 .step-photos {
-  margin-left: 0rem;
-  margin-right: 0rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
 }
 </style>
