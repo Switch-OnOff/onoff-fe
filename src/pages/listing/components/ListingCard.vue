@@ -61,14 +61,17 @@ const imageSrc = computed(
 
 /** 만원 단위를 "3억 5,000" 형식으로 */
 function formatManwon(v) {
+  if (v === null || v === undefined || v === '') return '없음';
   const n = Number(v);
-  if (!Number.isFinite(n)) return '-';
-  const eok = Math.floor(n / 10000);
-  const man = n % 10000;
-  const parts = [];
-  if (eok > 0) parts.push(`${eok}억`);
-  parts.push(man.toLocaleString());
-  return parts.join(' ');
+  if (!Number.isFinite(n) || n <= 0) return '없음';
+
+  const eok = Math.floor(n / 10000); // 억
+  const man = n % 10000; // 만
+
+  if (eok > 0) {
+    return man > 0 ? `${eok}억 ${man.toLocaleString()}` : `${eok}억`;
+  }
+  return man > 0 ? man.toLocaleString() : '없음';
 }
 
 const depositText = computed(() => formatManwon(props.deposit));
