@@ -165,9 +165,7 @@ async function fetchListings() {
 /*지도 위치 데이터 로드*/
 async function fetchLocationData() {
   try {
-    const res = await axios.get(
-      'http://localhost:8080/api/property/property_location'
-    );
+    const res = await axios.get('http://localhost:8080/api/property/location');
     const list = res?.data?.data;
     propertyLocations.value = Array.isArray(list) ? list : [];
   } catch (e) {
