@@ -22,10 +22,12 @@
       v-model="keyword"
       :placeholder="placeholder"
       :get-suggestions="getSuggestions"
-      @submit="doSearch"
-      @select="doSearch"
       :label-key="labelKey"
       :value-key="valueKey"
+      :initial-max="5"
+      :max="12"
+      @submit="onIntroSubmit"
+      @select="onIntroSelect"
     />
 
     <div class="list-link bodyLight12px" @click="goList">
@@ -67,37 +69,24 @@ const labelKey = computed(() =>
 const valueKey = computed(() =>
   store.mode === 'loan' ? '상품ID' : 'service_id'
 );
-
-// 검색/선택 처리: 사용자 기대대로 '흐름 시작'이 되게 함
-// - 텍스트 입력(submit): 검색어를 세션에 저장하고 목록으로 이동
-// - 항목 선택(object): 지원이면 기본정보 폼(start flow), 대출이면 대출 기본정보로 이동
-function doSearch(row) {
-  if (!row) return;
-
-  // 사용자가 직접 입력한 검색어: 목록으로 이동하여 검색 결과/필터를 보여줌
-  if (typeof row === 'string') {
-    const kw = row.trim();
-    if (!kw) return;
-    sessionStorage.setItem('financial-keyword', kw);
-    // 목록 페이지가 검색어를 반영하므로 목록으로 이동
-    router.push('/financial/list');
+function onIntroSubmit(payload) {
+  // 문자열 입력이거나, 잘못된 payload면 이동 안 함 (그냥 무시)
+  if (typeof payload === 'string' || !payload || typeof payload !== 'object') {
+    // 필요하면 여기서 안내 토스트 띄워: "목록에서 하나를 선택해 주세요"
+    // e.g. toast('자동완성에서 항목을 선택해 주세요')
     return;
   }
-
-  // 항목 선택: support -> 지원금 흐름 시작, loan -> 대출 흐름 시작
-  const id = row[valueKey.value];
+  // 혹시 컴포넌트가 객체를 submit으로도 넘기는 경우 대비
+  onIntroSelect(payload);
+}
+function onIntroSelect(row) {
+  const id = row?.[valueKey.value];
   if (!id) return;
 
   if (store.mode === 'support') {
-    // support 폼들에서는 ?id 쿼리를 사용하여 해당 서비스를 불러옵니다
-    router.push({ path: '/financial/support-basic', query: { id: id } });
-    return;
-  }
-
-  if (store.mode === 'loan') {
-    // 대출은 기본정보 폼으로 이동 (필요 시 쿼리로 상품 id 전달)
-    router.push({ path: '/financial/loan-basic', query: { id: id } });
-    return;
+    router.push({ path: '/financial/support-basic', query: { id } });
+  } else if (store.mode === 'loan') {
+    router.push({ path: '/financial/loan-basic', query: { id } });
   }
 }
 

@@ -2,13 +2,19 @@
 <template>
   <div class="tabs">
     <button
-      :class="['tab', { active: model === 'loan' }]"
+      :class="[
+        'tab',
+        model === 'loan' ? 'active bodyBold20px' : 'bodyLight20px',
+      ]"
       @click="$emit('update:model', 'loan')"
     >
       대출
     </button>
     <button
-      :class="['tab', { active: model === 'support' }]"
+      :class="[
+        'tab',
+        model === 'support' ? 'active bodyBold20px' : 'bodyLight20px',
+      ]"
       @click="$emit('update:model', 'support')"
     >
       지원금
@@ -24,30 +30,32 @@ defineEmits(['update:model']);
 <style scoped>
 .tabs {
   display: flex;
-  gap: 2rem;
-  padding: 0 1.25rem;
   align-items: flex-end;
+  padding: 0;
   border-bottom: 1px solid #eee;
 }
+
 .tab {
-  position: relative;
+  position: relative; /* ← 이거 꼭 필요 */
+  flex: 1 0 0;
   padding: 12px 0;
-  font-weight: 700;
+  text-align: center;
+  background: transparent;
   color: var(--color-darkgray);
-  display: inline-block;
 }
+
 .tab.active {
   color: var(--color-primary);
 }
+
 .tab.active::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -1px;
+  bottom: 0; /* -1px 대신 0px으로 */
   height: 3px;
   border-radius: 3px;
   background: var(--color-primary);
-  transform: translateY(1px); /* 시각적 보정 */
 }
 </style>
