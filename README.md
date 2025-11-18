@@ -1,29 +1,169 @@
-# onoff-fe
+# 🔷ONOFF 
+> **2025 KB IT's your Life 해커톤 대회 프로젝트**  <br/>
+> 폐업 점포를 승계 가능한 자산으로 재정의하고,  
+> 창업자와의 매칭 및 금융·정책 정보를 통합 제공하는 소상공인 플랫폼
 
-This template should help get you started developing with Vue 3 in Vite.
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/5d903b84-9b27-48fa-931b-d2c1e4f99797" />
 
-## Recommended IDE Setup
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+---
 
-## Customize configuration
+## 👥 팀 SWITCH
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+| 이름 | GitHub | 역할 | 담당 기능 |
+|------|--------|-------------|-----------|
+| 이다연 | [@Leeday11](https://github.com/Leeday11) | FE | 폐업 매물 CRUD / 매물 지도·검색 |
+| 박준영 | [@Tarae0419](https://github.com/Tarae0419) | BE | 폐업 매물 CRUD / 매물 지도·검색 |
+| 신수연 | [@SuyeonShinnnn](https://github.com/SuyeonShinnnn) | FE | 1:1 채팅 / 마이페이지 |
+| 이학준 | [@dlgkrwns213](https://github.com/dlgkrwns213) | BE | 1:1 채팅 / AI 이미지 분석 |
+| 조예림 | [@cocoaocean](https://github.com/cocoaocean) | FE | 대출·지원금 지원 자격 확인 시스템 |
+| 이유진 | [@yyujin1231](https://github.com/yyujin1231) | BE | 대출·지원금 지원 자격 확인 시스템 |
 
-## Project Setup
 
-```sh
-npm install
-```
+---
 
-### Compile and Hot-Reload for Development
+# 📌 1. 프로젝트 개요
 
-```sh
-npm run dev
-```
+**ONOFF**는 ‘폐업’을 단절이 아닌 ‘승계’로 전환하는 플랫폼입니다.  
+폐업 예정 점포를 **입지·설비·운영 지식이 결합된 가치 있는 사업체**로 보고,  
+이를 필요로 하는 **예비 창업자와 연결**합니다.
 
-### Compile and Minify for Production
+동시에 **정책·금융·시세 정보를 원스톱 제공**하여  
+창업자·폐업자 모두의 의사결정을 돕는 서비스입니다.
 
-```sh
-npm run build
-```
+---
+
+# 🌱 2. 문제 인식 & 기획 배경
+
+- 2024년 폐업 신고 사업자 수 **100만 명 돌파**
+- 권리금 미회수, 철거·원상복구, 집기 폐기 → **폐업조차 큰 비용 부담**
+- 사용 가능한 설비·인테리어·운영 노하우가 폐기되면서 **사회적 낭비 증가**
+- 창업자는 동일한 설비를 다시 사며 **초기 비용 중복 발생**
+- 정부 및 지자체의 정책·지원금 정보는 기관별로 흩어져 **찾기 어려움**
+
+결과적으로 폐업자·창업자 모두 **비효율의 피해자**가 되고 있어,  
+이를 **승계 중심 구조로 전환**하는 플랫폼이 필요하다고 판단했습니다.
+
+---
+
+# 🎯 3. 서비스 목표
+
+### ✔ 폐업자
+- 권리금·설비·운영 지식 등 **가치 회수**
+- 철거·정리 부담 완화
+- 폐업 과정을 질서 있게 정리
+
+### ✔ 창업자
+- 검증된 입지·설비·노하우 기반 **초기 비용·리스크 감소**
+- 주변 시세·유사 매물 정보 제공 → **입지 판단 간소화**
+
+### ✔ 두 사용자 공통
+- 대출·공공 정책 정보를 **개인 조건 기반으로 추천**
+- 신호등 UI로 적합도 판단
+- 필수 서류 및 다음 행동까지 안내  
+→ **의사결정 피로도 최소화**
+
+---
+
+# 🛠 4. 개발 기능
+
+## ✔ 역할 기반 온보딩 
+
+### ▸ 폐업자 홈
+- 양도 매물 등록 진입 버튼
+- 등록 매물 관리 진입 버튼
+- 폐업자 맞춤 추천 대출.지원금 표시
+
+### ▸ 창업자 홈
+- 관심 매물 목록 진입 버튼
+- 매물 지도 진입 버튼
+- 창업자 맞춤 추천 대출.지원금 표
+
+  <img width="600" alt="image" src="https://github.com/user-attachments/assets/b4adfef8-b092-4691-ba2a-6a07f9f13ca8" />
+
+
+---
+
+## ✔ 대출/지원금 지원 자격 확인 시스템
+- 정부.금융 외부 API 연동
+- 입력 정보 기반 **개인화 금융·지원 상품 추천**
+- 전구 UI로 적합도 표시  
+  - 밝은 전구(충족) / 깜빡이는 전구(일부 보완) / 꺼진 전구(불충족)
+- 필요한 서류·다음 행동까지 자동 안내
+  
+  <img width="600" alt="image" src="https://github.com/user-attachments/assets/cc460930-3f0f-470a-bf2b-9bd48dee4893" />
+  <img width="600" alt="image" src="https://github.com/user-attachments/assets/9b7ad255-e2a4-45da-b388-fef5a8d7ae1a" />
+
+
+
+---
+
+## ✔ 폐업 매물 등록 & 관리
+1) **사업자 정보 확인**  
+   - 국세청 사업자등록정보 API 연동  
+
+2) **기본 정보 입력**  
+   - 업종, 면적, 보증금·월세 등  
+   - 입력 항목이 많아 **Dropdown UI 중심으로 구성**
+
+3) **상세 설명 자동 생성**  
+   - OPENAI API 기반  
+   - 키워드 입력만으로 자연스러운 문장 자동 생성
+
+4) **이미지 등록**
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/aa9f62ca-4eda-4e93-b654-779a110e5d49" />
+
+
+---
+
+## ✔ 폐업 매물 검색 및 상세 페이지
+- 업종, 매매/월세, 권리금, 면적 필터
+- 지역 검색 필터
+- 각 매물 상세 정보 표시
+
+## ✔ AI 이미지 분석 기능
+- 매물 사진 분석 → **업종/분위기 추천**
+- 창업자의 업종 판단과 점포 탐색을 지원
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/d0f8d73c-f8d7-4f9a-a58b-d44b5535e0eb" />
+
+---
+
+## ✔ 지도 기반 매물 탐색 (카카오 지도 API)
+- 지도 마커 기반 매물 분포 시각화
+- 지도 이동 시 자동 재검색
+- **하단 바텀시트 리스트뷰**에서 매물 정보 확인
+  <img width="600" alt="image" src="https://github.com/user-attachments/assets/1ea0d719-2284-4be0-be25-c8a98c495b73" />
+
+
+---
+
+## ✔ 실시간 1:1 채팅
+- WebSocket 기반  
+- 매물 상세 페이지에서 창업자 ↔ 폐업자 바로 연결  
+- 채팅 상단에 선택한 매물 요약 정보 표시
+  <img width="600" alt="image" src="https://github.com/user-attachments/assets/4ca318f1-c12b-412f-9165-647b36318c45" />
+
+
+---
+
+# 🌳 5. ONOFF가 만드는 가치
+
+### ✔ 사회적 효과
+- 권리금 손실·철거 비용 등 **불필요한 폐기 감소**
+- 지역 상권의 연속성 유지
+- 재사용 중심 구조로 **사회 비용 절감**
+
+### ✔ 경제적 효과
+- 창업자: 설비·입지를 그대로 활용 → **초기 부담 완화**
+- 폐업자: 가치 승계를 통한 **손실 최소화**
+
+### ✔ 사용자 경험(UX)
+- 정책·금융·시세 정보를 한 화면에서 비교  
+- 매물 등록 → 탐색 → 채팅까지 **원스톱 UX**  
+- 의사결정 부담 및 탐색 비용 감소
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/3c8e955d-c169-4c19-9f6b-91db1d692164" />
+
+---
