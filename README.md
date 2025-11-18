@@ -1,6 +1,6 @@
 # 🔷ONOFF 
 > **2025 KB IT's your Life 해커톤 대회 프로젝트**  <br/>
-> 폐업 점포를 승계 가능한 자산으로 재정의하고,  
+폐업 점포를 승계 가능한 자산으로 재정의하고,
 > 창업자와의 매칭 및 금융·정책 정보를 통합 제공하는 소상공인 플랫폼
 
 <img width="600" alt="image" src="https://github.com/user-attachments/assets/5d903b84-9b27-48fa-931b-d2c1e4f99797" />
